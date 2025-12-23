@@ -239,19 +239,21 @@ MYPACE SNSに投稿する短い文章（{profile.behavior.post_length_min}〜{pr
                 raise ValueError("Post content is empty")
             
             # イベント作成（kind:1、署名済み）
-            tags = [
-                Tag.hashtag("mypace"),
-                Tag.parse(["client", "sinov"]),
-            ]
+            # Nostr event: kind=1 (text note), tags, content
+            from nostr_sdk import EventBuilder
             
-            event_builder = EventBuilder(Kind(1), content, tags)
-            event = event_builder.sign_with_keys(keys)
+            # タグを作成
+            mypace_tag = Tag.hashtag("mypace")
+            client_tag = Tag.parse(["client", "sinov"])
+            
+            # EventBuilderの正しいAPI: text_note().tags([...]).sign_with_keys()
+            event = EventBuilder.text_note(content).tags([mypace_tag, client_tag]).sign_with_keys(keys)
             
             # NostrイベントをJSON化
             event_json = json.loads(event.as_json())
             
-            # MYPACE APIに送信
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            # MYPACE APIに送信 (SSL検証を無効化、プロキシ設定は環境変数から自動取得)
+            async with httpx.AsyncClient(timeout=30.0, verify=False, trust_env=True) as client:
                 response = await client.post(
                     f"{self.api_endpoint}/api/publish",
                     json={"event": event_json},
