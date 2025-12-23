@@ -4,19 +4,33 @@
 
 Sinov は MYPACE SNS 用の 100 体のボット管理システムです。各ボットが独自の性格、興味、行動パターンを持ち、自律的に投稿を行います。
 
+### 「100人の村」コンセプト
+
+このプロジェクトは、100体のボットが一つの「村」を形成し、互いに影響し合う生態系を目指します：
+
+- **自律性**: 各ボットは独立して行動し、中央集権的な制御はない
+- **相互作用**: 共有ニュースを参照し、同じ話題で盛り上がる
+- **成長**: 時間とともに興味が広がり、個性が変化する
+- **創発**: 人間が予想しない偶然の相互作用が生まれる
+- **文脈**: 前回の投稿を記憶し、続きを書く（会話の流れ）
+
 ## 主要な特徴
 
 1. **100 体のボット管理**: 各ボットに固有の Nostr 鍵ペア（nsec）
 2. **YAML 形式の履歴書**: 性格、興味、行動パターンを人間が編集可能
-3. **ローカル LLM 統合**: Ollama で自然な投稿文を生成（オプション）
+3. **ローカル LLM 統合**: Ollama で自然な投稿文を生成（**必須**）
 4. **常時稼働**: 1 つの Python プロセスで全ボット管理
 5. **型安全**: Pydantic で完全な型チェックとバリデーション
+6. **Dry run モード**: 本番環境に投稿せずテスト可能
+7. **文脈継続**: 前回投稿を記憶し、続きを書く（70%）
+8. **共有ニュース**: 全員が時事ネタを参照（20%）
+9. **成長要素**: 10投稿ごとに新しい興味を発見
 
 ## 技術スタック
 
 - **言語**: Python 3.11+
 - **Nostr ライブラリ**: nostr-sdk (Rust 製、Python bindings)
-- **LLM**: Ollama (ローカル LLM、オプション)
+- **LLM**: Ollama (gemma2:2b - Google 製、日本語最適)
 - **型チェック**: Pydantic 2.x
 - **設定管理**: YAML + JSON
 - **プロトコル**: Nostr (分散型 SNS)
@@ -31,10 +45,12 @@ sinov/
 │   ├── llm.py            # Ollama LLMクライアント
 │   └── types.py          # Pydantic型定義
 ├── scripts/
-│   └── generate_keys.py  # 100体の鍵生成
+│   ├── generate_keys.py  # 100体の鍵生成
+│   └── collect_news.py   # ニュース収集（定期実行）
 ├── bots/
 │   ├── keys.json         # ボットの秘密鍵（gitignore）
 │   ├── states.json       # 実行時状態（gitignore）
+│   ├── shared_news.json  # 共有ニュース（gitignore）
 │   └── profiles/         # YAML履歴書
 │       ├── template.yaml
 │       ├── bot001.yaml
@@ -64,17 +80,17 @@ sinov/
 
 ### 3. 投稿生成
 
-**LLM あり（推奨）:**
+**LLM による生成（必須）:**
 
 - ボットの性格・興味に基づいたプロンプト生成
-- Ollama 経由でローカル LLM（llama3.2 など）に投稿文生成を依頼
-- 自然で多様な文章
-
-**LLM なし:**
-
-- シンプルなテンプレートベース
-- キーワードや好きな言葉からランダム選択
-- コードブロックも含められる
+- Ollama 経由でローカル LLM（gemma2:2b）に投稿文生成を依頼
+- 自然で多様な日本語の文章
+- **文脈継続**: 70%の確率で前回投稿の続きを書く
+- **共有ニュース**: 20%の確率で時事ネタを参照
+- **過去投稿履歴**: 最新20件を保持し、重複を防止
+- **成長要素**: 10投稿ごとに新しいトピックに興味
+- **プロンプト最適化**: 短文・カジュアルな投稿を重視
+- マークダウン記号（`###`, ` ``` `）や説明文の排除
 
 ### 4. Nostr 投稿
 
@@ -122,10 +138,10 @@ class BotProfile(BaseModel):
 ### .env
 
 ```bash
-API_ENDPOINT=http://localhost:8787
-NOSTR_RELAYS=wss://nos.lol,wss://relay.damus.io
+API_ENDPOINT=https://api.mypace.llll-ll.com
 OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=llama3.2:3b
+OLLAMA_MODEL=gemma2:2b
+DRY_RUN=false  # true: 本番投稿しない、false: 本番投稿する
 ```
 
 ### bots/keys.json（自動生成）
@@ -150,7 +166,8 @@ OLLAMA_MODEL=llama3.2:3b
     "last_post_time": 1703318400,
     "next_post_time": 1703325600,
     "total_posts": 42,
-    "last_post_content": "..."
+    "last_post_content": "...",
+    "last_event_id": "abc123..."  # 投稿削除用のイベントID
   }
 ]
 ```

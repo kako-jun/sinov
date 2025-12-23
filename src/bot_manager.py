@@ -163,7 +163,7 @@ class BotManager:
     
     async def generate_post_content(self, bot_id: int) -> str:
         """投稿内容を生成"""
-        _, profile, _ = self.bots[bot_id]
+        _, profile, state = self.bots[bot_id]
         
         if not self.llm_client:
             raise RuntimeError("LLM client is not available")
@@ -173,7 +173,7 @@ class BotManager:
         # 最大3回までリトライ
         for attempt in range(3):
             # LLMを使って生成
-            prompt = self._create_prompt(profile)
+            prompt = self._create_prompt(profile, state)
             content = await self.llm_client.generate(
                 prompt,
                 max_length=profile.behavior.post_length_max
@@ -188,14 +188,9 @@ class BotManager:
             # 連続空白を1つに
             content = re.sub(r'\s+', ' ', content).strip()
             
-            # 中国語文字チェック（簡体字・繁体字）
-            if re.search(r'[\u4e00-\u9fff]', content):
-                print(f"⚠️  Retry {attempt + 1}/3: Chinese characters detected")
-                continue
-            
-            # 禁止文字チェック
-            if '```' in content or '###' in content:
-                print(f"⚠️  Retry {attempt + 1}/3: Forbidden characters detected")
+            # 禁止文字チェック（マークダウン記号）
+            if '```' in content or '###' in content or '**' in content:
+                print(f"⚠️  Retry {attempt + 1}/3: Markdown symbols detected")
                 continue
             
             # 検証OK
@@ -214,15 +209,42 @@ class BotManager:
         
         return content
     
-    def _create_prompt(self, profile: BotProfile) -> str:
+    def _create_prompt(self, profile: BotProfile, state: BotState) -> str:
         """LLM用のプロンプトを生成"""
-        topic = profile.interests.topics[0] if profile.interests.topics else "プログラミング"
+        import random
+        
+        # トピック選択: 通常の興味 + 新しく発見したトピック
+        all_topics = profile.interests.topics + state.discovered_topics
+        topic = random.choice(all_topics) if all_topics else "プログラミング"
+        
+        # 前回投稿との文脈継続（70%の確率で続きを書く）
+        context_continuation = ""
+        if state.last_post_content and random.random() < 0.7:
+            context_continuation = f"\n前回の投稿: \"{state.last_post_content}\"\n→ この流れを続けるか、関連した話題にする"
+        
+        # 共有ニュースの参照（20%の確率で時事ネタ）
+        news_context = ""
+        if random.random() < 0.2:
+            shared_news = self._load_shared_news()
+            if shared_news:
+                news_item = random.choice(shared_news)
+                news_context = f"\n最近のニュース: {news_item}\n→ これに関連した話題もOK"
+        
+        # 過去投稿の制約（重複防止）
+        recent_posts = state.post_history[-5:] if state.post_history else []
+        history_constraint = ""
+        if recent_posts:
+            history_constraint = f"\n\n過去の投稿:\n" + "\n".join(f"- {p}" for p in recent_posts)
+            history_constraint += "\n\n⚠️ これらとまったく同じ内容・表現は使うな"
         
         prompt = f"""以下の条件でSNS投稿を1つ書け:
 
-テーマ: {topic}
+テーマ: {topic}{context_continuation}{news_context}
 文字数: 最大{profile.behavior.post_length_max}文字
-条件: 1文か2文のカジュアルな日本語、記号禁止
+条件: 
+- 必ず日本語で書け（中国語は絶対に使うな）
+- 1文か2文のカジュアルな文
+- 記号・マークダウン禁止{history_constraint}
 
 投稿:"""
         
@@ -285,12 +307,56 @@ class BotManager:
             state.last_post_content = content
             state.last_event_id = event.id().to_hex()
             
+            # 投稿履歴を更新（最新20件のみ保持）
+            state.post_history.append(content)
+            if len(state.post_history) > 20:
+                state.post_history = state.post_history[-20:]
+            
+            # 成長要素: 10投稿ごとに新しいトピックに興味を持つ
+            self._evolve_interests(bot_id)
+            
             next_datetime = datetime.fromtimestamp(state.next_post_time)
             print(f"📝 {profile.name} posted: {content[:50]}... (next: {next_datetime.strftime('%H:%M:%S')})")
         except Exception as e:
             _, profile, _ = self.bots[bot_id]
             print(f"❌ Failed to post for {profile.name}: {e}")
             raise
+    
+    def _evolve_interests(self, bot_id: int) -> None:
+        """ボットの興味を成長させる（10投稿ごと）"""
+        _, profile, state = self.bots[bot_id]
+        
+        if state.total_posts % 10 == 0 and state.total_posts > 0:
+            # 新しいトピック候補
+            topic_pool = [
+                "機械学習", "Webデザイン", "データベース", "セキュリティ",
+                "クラウド", "Docker", "Kubernetes", "CI/CD",
+                "アジャイル開発", "オープンソース", "ブロックチェーン"
+            ]
+            
+            # まだ興味を持っていないトピックを選択
+            existing = set(profile.interests.topics + state.discovered_topics)
+            new_topics = [t for t in topic_pool if t not in existing]
+            
+            if new_topics:
+                import random
+                new_topic = random.choice(new_topics)
+                state.discovered_topics.append(new_topic)
+                print(f"🌱 {profile.name}が新しいトピックに興味: {new_topic}")
+    
+    def _load_shared_news(self) -> list[str]:
+        """共有ニュースを読み込む"""
+        news_file = Path("bots/shared_news.json")
+        if not news_file.exists():
+            return []
+        
+        try:
+            with open(news_file) as f:
+                data = json.load(f)
+                return data.get("news", [])
+        except Exception as e:
+            print(f"⚠️  Failed to load shared news: {e}")
+            return []
     
     async def run_once(self) -> None:
         """全ボットをチェックして投稿が必要なら投稿"""

@@ -51,15 +51,15 @@ cp .env.example .env
 `.env`を編集：
 
 ```bash
-# MYPACE APIエンドポイント（現在は未使用）
-API_ENDPOINT=http://localhost:8787
+# MYPACE APIエンドポイント（本番環境）
+API_ENDPOINT=https://api.mypace.llll-ll.com
 
-# Nostrリレー
-NOSTR_RELAYS=wss://nos.lol,wss://relay.damus.io,wss://relay.nostr.band
-
-# Ollama設定（オプション）
+# Ollama設定（必須）
 OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=llama3.2:3b
+OLLAMA_MODEL=gemma2:2b
+
+# Dry runモード（true: 本番投稿しない、false: 本番投稿する）
+DRY_RUN=true
 ```
 
 ### 4. Ollama のセットアップ（オプション）
@@ -69,11 +69,11 @@ OLLAMA_MODEL=llama3.2:3b
 curl -fsSL https://ollama.com/install.sh | sh
 
 # モデルのダウンロード
-ollama pull llama3.2:3b
+ollama pull gemma2:2b
 # または他のモデル
 ollama pull llama3.2:1b      # より軽量
-ollama pull gemma2:2b        # Google製
-ollama pull qwen2.5:3b       # 日本語強め
+ollama pull llama3.2:3b      # Meta製、バランス型
+ollama pull qwen2.5:3b       # 日本語強め（中国語混入注意）
 
 # Ollamaの起動
 ollama serve
@@ -81,10 +81,10 @@ ollama serve
 
 **モデル選択のポイント:**
 
+- `gemma2:2b` - Google 製、日本語最適（推奨）
 - `llama3.2:1b` - 最軽量、低スペックマシンに
-- `llama3.2:3b` - バランス型（推奨）
-- `gemma2:2b` - Google 製、品質高め
-- `qwen2.5:3b` - 日本語が得意
+- `llama3.2:3b` - Meta 製、バランス型
+- `qwen2.5:3b` - 中国 Alibaba 製、日本語強いが中国語混入あり
 
 ### 5. ボットの鍵を生成
 
@@ -96,7 +96,21 @@ python scripts/generate_keys.py
 
 **重要**: このファイルは絶対に git にコミットしないこと！
 
-### 6. ボット履歴書の作成
+### 6. 共有ニュースの収集（オプション）
+
+ボットが時事ネタを参照するため、定期的にニュースを収集します：
+
+```bash
+# 手動実行
+python scripts/collect_news.py
+
+# またはcronで定期実行（4時間ごとなど）
+0 */4 * * * cd /path/to/sinov && python scripts/collect_news.py
+```
+
+これにより `bots/shared_news.json` に最新ニュースが保存され、全ボットが20%の確率で参照します。
+
+### 7. ボット履歴書の作成
 
 最低 1 つの履歴書を作成：
 

@@ -108,3 +108,5 @@ class BotState(BaseModel):
     total_posts: int = Field(ge=0, description="累計投稿数")
     last_post_content: Optional[str] = Field(default=None, description="最後の投稿内容")
     last_event_id: Optional[str] = Field(default=None, description="最後の投稿のイベントID")
+    post_history: list[str] = Field(default_factory=list, description="過去の投稿内容（最新20件）")
+    discovered_topics: list[str] = Field(default_factory=list, description="新しく興味を持ったトピック")

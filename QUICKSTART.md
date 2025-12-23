@@ -11,9 +11,10 @@ cp .env.example .env
 cp .env.keys.example .env.keys
 
 # 3. .env を編集
-# API_ENDPOINT=http://localhost:8787 (MYPACE APIのURL)
-# OLLAMA_HOST=http://localhost:11434 (オプション)
-# OLLAMA_MODEL=llama3.2:3b (オプション)
+# API_ENDPOINT=https://api.mypace.llll-ll.com (MYPACE APIのURL)
+# OLLAMA_HOST=http://localhost:11434 (必須)
+# OLLAMA_MODEL=gemma2:2b (必須 - Google製、日本語最適)
+# DRY_RUN=true (テスト時はtrue、本番投稿時はfalse)
 
 # 4. ボットの鍵を生成
 uv run python scripts/generate_keys.py
@@ -26,17 +27,20 @@ uv run python scripts/generate_keys.py
 ## 実行
 
 ```bash
-# 1. MYPACE API を起動（別ターミナル）
-cd /path/to/mypace/apps/api
-pnpm dev
-# → http://localhost:8787
-
-# 2. Ollama を起動（使う場合、別ターミナル）
+# 1. Ollama を起動（必須）
 ollama serve
 # → http://localhost:11434
+# 別ターミナルで:
+ollama pull gemma2:2b
 
-# 3. sinov を実行
+# 2. Dry run モードでテスト実行
 cd /path/to/sinov
+# .envでDRY_RUN=trueに設定
+uv run python -m src.main
+# → 本番投稿せず、LLMで生成した文章をログに出力
+
+# 3. 本番投稿
+# .envでDRY_RUN=falseに設定
 uv run python -m src.main
 ```
 
@@ -77,7 +81,16 @@ sinov/
 # 鍵生成
 uv run python scripts/generate_keys.py
 
-# 実行
+# Ollama起動（必須）
+ollama serve
+ollama pull gemma2:2b
+
+# テスト実行（Dry runモード）
+# .envでDRY_RUN=trueに設定してから:
+uv run python -m src.main
+
+# 本番実行
+# .envでDRY_RUN=falseに設定してから:
 uv run python -m src.main
 
 # 型チェック

@@ -14,7 +14,8 @@ pip install nostr-sdk pyyaml python-dotenv httpx ollama pydantic pydantic-settin
 
 # 3. 環境設定
 cp .env.example .env
-# .envを編集
+cp .env.keys.example .env.keys
+# .envを編集（API_ENDPOINT, OLLAMA_HOST, OLLAMA_MODEL, DRY_RUN）
 
 # 4. ボットの鍵を生成
 python scripts/generate_keys.py
