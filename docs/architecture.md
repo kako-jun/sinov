@@ -40,8 +40,9 @@
 ### 1. Bot Manager (`src/bot_manager.py`)
 
 **責務:**
+
 - ボットの鍵・プロフィール・状態の管理
-- Nostrクライアントの初期化と管理
+- Nostr クライアントの初期化と管理
 - スケジューリング（どのボットがいつ投稿するか）
 - 投稿内容の生成
 - 投稿の実行
@@ -53,25 +54,25 @@
 class BotManager:
     async def load_bots() -> None
         # 鍵・プロフィール・状態を読み込み
-    
+
     async def initialize_clients() -> None
         # 100個のNostrクライアントを作成・接続
-    
+
     def should_post_now(bot_id: int) -> bool
         # このボットが今投稿すべきか判定
-    
+
     def _calculate_next_post_time(bot_id: int) -> int
         # 次回投稿時刻をランダムに計算
-    
+
     async def generate_post_content(bot_id: int) -> str
         # LLMまたはテンプレートで投稿内容生成
-    
+
     async def post(bot_id: int, content: str) -> None
         # Nostrに投稿
-    
+
     async def run_once() -> None
         # 全ボットをチェックして必要なら投稿
-    
+
     async def run_forever(check_interval: int) -> None
         # メインループ
 ```
@@ -79,9 +80,10 @@ class BotManager:
 ### 2. LLM Client (`src/llm.py`)
 
 **責務:**
-- Ollamaとの通信
+
+- Ollama との通信
 - プロンプトから投稿文の生成
-- エラーハンドリング（LLM利用不可時のフォールバック）
+- エラーハンドリング（LLM 利用不可時のフォールバック）
 
 **主要メソッド:**
 
@@ -89,7 +91,7 @@ class BotManager:
 class LLMClient:
     async def generate(prompt: str, max_length: int) -> str
         # プロンプトから文章生成
-    
+
     def is_available() -> bool
         # Ollamaが利用可能かチェック
 ```
@@ -97,9 +99,10 @@ class LLMClient:
 ### 3. Type Definitions (`src/types.py`)
 
 **責務:**
+
 - 全データ構造の型定義
-- Pydanticによるバリデーション
-- YAMLとJSONのシリアライズ
+- Pydantic によるバリデーション
+- YAML と JSON のシリアライズ
 
 **モデル:**
 
@@ -117,8 +120,9 @@ BotState        # 実行時状態（投稿時刻、カウント）
 ### 4. Main Entry Point (`src/main.py`)
 
 **責務:**
+
 - 環境変数の読み込み
-- Bot Managerの初期化
+- Bot Manager の初期化
 - メインループの開始
 
 ## データフロー
@@ -149,7 +153,7 @@ BotState        # 実行時状態（投稿時刻、カウント）
    └─ 失敗 → None（テンプレート生成）
 ```
 
-### メインループ（60秒ごと）
+### メインループ（60 秒ごと）
 
 ```
 1. run_once()
@@ -199,9 +203,10 @@ next_time = current_time + int(actual_interval)
 ```
 
 **例:**
-- `post_frequency = 5` → 平均4.8時間間隔
+
+- `post_frequency = 5` → 平均 4.8 時間間隔
 - `post_frequency_variance = 0.3` → ±30%のばらつき
-- 実際の間隔: 3.36時間 ~ 6.24時間
+- 実際の間隔: 3.36 時間 ~ 6.24 時間
 
 ## 並行処理
 
@@ -214,9 +219,9 @@ async def run_forever():
         await asyncio.sleep(60)
 ```
 
-- 1つのイベントループで全ボット管理
-- Nostr送信は非同期（`await client.send_event_builder()`）
-- LLM生成も非同期（`await llm_client.generate()`）
+- 1 つのイベントループで全ボット管理
+- Nostr 送信は非同期（`await client.send_event_builder()`）
+- LLM 生成も非同期（`await llm_client.generate()`）
 
 ### 将来の拡張（並列化）
 
@@ -229,13 +234,13 @@ async def run_once():
         if self.should_post_now(bot_id):
             task = self.process_bot(bot_id)
             tasks.append(task)
-    
+
     await asyncio.gather(*tasks)
 ```
 
 ## エラーハンドリング
 
-### レベル1: 起動時バリデーション
+### レベル 1: 起動時バリデーション
 
 ```python
 # YAML読み込み時
@@ -246,7 +251,7 @@ except ValidationError as e:
     continue  # このボットはスキップ
 ```
 
-### レベル2: 投稿時エラー
+### レベル 2: 投稿時エラー
 
 ```python
 async def run_once():
@@ -260,7 +265,7 @@ async def run_once():
             # 他のボットは継続
 ```
 
-### レベル3: LLMフォールバック
+### レベル 3: LLM フォールバック
 
 ```python
 if self.llm_client:
@@ -277,15 +282,18 @@ else:
 ### ステートフルなデータ
 
 **メモリ内:**
+
 - `self.bots: dict[int, tuple[BotKey, BotProfile, BotState]]`
 - `self.clients: dict[int, Client]`
 
 **永続化:**
-- `bots/states.json` - 60秒ごと & 終了時に保存
+
+- `bots/states.json` - 60 秒ごと & 終了時に保存
 
 ### ステートレスなデータ
 
 **起動時のみ読み込み:**
+
 - `bots/keys.json` - 鍵は変更されない
 - `bots/profiles/*.yaml` - 履歴書は変更されない（手動編集後は再起動）
 
@@ -311,9 +319,9 @@ else:
 
 - `bots/keys.json`は`.gitignore`に追加
 - ファイルパーミッションは`600`推奨
-- 秘密鍵は外部に送信しない（Nostr署名はローカル）
+- 秘密鍵は外部に送信しない（Nostr 署名はローカル）
 
-### Nostr署名
+### Nostr 署名
 
 ```python
 keys = Keys.parse(nsec)  # nostr-sdk内部で秘密鍵を管理
@@ -322,7 +330,7 @@ event_builder = EventBuilder(kind, content, tags)
 await client.send_event_builder(event_builder)  # 内部で署名して送信
 ```
 
-### LLMプロンプト
+### LLM プロンプト
 
 - ボットの履歴書情報のみ送信
 - ユーザー入力は含まれない（自律型）
@@ -332,29 +340,32 @@ await client.send_event_builder(event_builder)  # 内部で署名して送信
 
 ### 現在のスペック
 
-- ボット数: 100体
-- 平均投稿頻度: 5回/日/ボット → 500投稿/日
-- チェック間隔: 60秒
-- メモリ使用量: ~100MB（100クライアント + 状態）
+- ボット数: 100 体
+- 平均投稿頻度: 5 回/日/ボット → 500 投稿/日
+- チェック間隔: 60 秒
+- メモリ使用量: ~100MB（100 クライアント + 状態）
 
 ### ボトルネック
 
-1. **Nostr接続数**: 100個のWebSocket接続
-2. **LLM生成速度**: 1投稿あたり数秒
+1. **Nostr 接続数**: 100 個の WebSocket 接続
+2. **LLM 生成速度**: 1 投稿あたり数秒
 3. **メモリ**: 各クライアントがリレー接続を保持
 
 ### スケーリング戦略
 
-**ボット数を増やす（1000体など）:**
+**ボット数を増やす（1000 体など）:**
+
 - 複数プロセスに分割（bot001-300, bot301-600...）
 - 各プロセスは独立して動作
 - 状態ファイルも分割
 
 **投稿頻度を上げる:**
+
 - 並列投稿（`asyncio.gather()`）
-- LLMのバッチ生成
+- LLM のバッチ生成
 
 **リレー分散:**
+
 - ボットごとに異なるリレーセット
 - ロードバランシング
 
@@ -381,7 +392,7 @@ Press Ctrl+C to stop
 
 - [ ] 構造化ログ（JSON）
 - [ ] メトリクス収集（投稿数、成功率）
-- [ ] Prometheusエクスポーター
+- [ ] Prometheus エクスポーター
 - [ ] ダッシュボード（Grafana）
 
 ## テスト戦略
@@ -419,8 +430,8 @@ async def test_post():
     await manager.post(bot_id=1, content="test")
 ```
 
-### E2Eテスト
+### E2E テスト
 
-- テスト用の履歴書（1体のみ）
+- テスト用の履歴書（1 体のみ）
 - テスト用リレー
 - 実際に起動して投稿を確認

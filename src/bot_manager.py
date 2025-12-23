@@ -165,16 +165,44 @@ class BotManager:
         """投稿内容を生成"""
         _, profile, _ = self.bots[bot_id]
         
-        if self.llm_client:
+        if not self.llm_client:
+            raise RuntimeError("LLM client is not available")
+        
+        import re
+        
+        # 最大3回までリトライ
+        for attempt in range(3):
             # LLMを使って生成
             prompt = self._create_prompt(profile)
             content = await self.llm_client.generate(
                 prompt,
                 max_length=profile.behavior.post_length_max
             )
+            
+            # 余計な記号を削除
+            content = content.replace("###", "").replace("```", "").strip()
+            
+            # 改行を整理（2つ以上の連続改行は1つに）
+            content = re.sub(r'\n{2,}', '\n', content)
+            
+            # 連続空白を1つに
+            content = re.sub(r'\s+', ' ', content).strip()
+            
+            # 中国語文字チェック（簡体字・繁体字）
+            if re.search(r'[\u4e00-\u9fff]', content):
+                print(f"⚠️  Retry {attempt + 1}/3: Chinese characters detected")
+                continue
+            
+            # 禁止文字チェック
+            if '```' in content or '###' in content:
+                print(f"⚠️  Retry {attempt + 1}/3: Forbidden characters detected")
+                continue
+            
+            # 検証OK
+            break
         else:
-            # シンプルなランダム生成
-            content = self._generate_simple_content(profile)
+            # リトライ失敗
+            raise RuntimeError("Failed to generate valid content after 3 attempts")
         
         # 長さチェック
         if len(content) < profile.behavior.post_length_min:
@@ -188,57 +216,36 @@ class BotManager:
     
     def _create_prompt(self, profile: BotProfile) -> str:
         """LLM用のプロンプトを生成"""
-        topics_str = "、".join(profile.interests.topics)
-        traits_str = "、".join(profile.personality.traits)
+        topic = profile.interests.topics[0] if profile.interests.topics else "プログラミング"
         
-        prompt = f"""あなたは{profile.personality.type}な性格のプログラマーです。
-特徴: {traits_str}
-興味: {topics_str}
+        prompt = f"""以下の条件でSNS投稿を1つ書け:
 
-MYPACE SNSに投稿する短い文章（{profile.behavior.post_length_min}〜{profile.behavior.post_length_max}文字）を1つ生成してください。
-"""
-        
-        if profile.behavior.use_markdown:
-            prompt += "Markdownを使っても構いません。"
-        if profile.behavior.use_code_blocks:
-            prompt += "必要に応じてコードブロックを含めても良いです。"
-        
-        if profile.background.occupation:
-            prompt += f"\n職業: {profile.background.occupation}"
-        
-        prompt += "\n\n投稿内容のみを出力してください（説明は不要）:"
+テーマ: {topic}
+文字数: 最大{profile.behavior.post_length_max}文字
+条件: 1文か2文のカジュアルな日本語、記号禁止
+
+投稿:"""
         
         return prompt
-    
-    def _generate_simple_content(self, profile: BotProfile) -> str:
-        """シンプルな投稿内容生成（LLMなし）"""
-        templates = [
-            f"{random.choice(profile.interests.topics)}について勉強中 #{random.choice(profile.interests.keywords)}",
-            f"今日も{random.choice(profile.interests.keywords)}を頑張る！",
-            f"{random.choice(profile.interests.topics)}が面白い",
-        ]
-        
-        if profile.background.favorite_quotes:
-            templates.append(random.choice(profile.background.favorite_quotes))
-        
-        content = random.choice(templates)
-        
-        # コードブロックを含めることがある
-        if profile.behavior.use_code_blocks and random.random() < 0.3:
-            lang = random.choice(profile.interests.code_languages or ["python"])
-            content += f"\n\n```{lang}\n# TODO: implement\npass\n```"
-        
-        return content
     
     async def post(self, bot_id: int, content: str) -> None:
         """投稿を実行（MYPACE API経由）"""
         try:
-            keys = self.keys[bot_id]
             _, profile, state = self.bots[bot_id]
             
             # 投稿内容のバリデーション
             if not content or len(content.strip()) == 0:
                 raise ValueError("Post content is empty")
+            
+            # Dry runモード
+            if self.dry_run:
+                print(f"[DRY RUN] {profile.name}:")
+                print(f"  {content}")
+                print()
+                return
+            
+            # 以下は実際の投稿処理
+            keys = self.keys[bot_id]
             
             # イベント作成（kind:1、署名済み）
             # Nostr event: kind=1 (text note), tags, content
@@ -251,29 +258,24 @@ MYPACE SNSに投稿する短い文章（{profile.behavior.post_length_min}〜{pr
             # EventBuilderの正しいAPI: text_note().tags([...]).sign_with_keys()
             event = EventBuilder.text_note(content).tags([mypace_tag, client_tag]).sign_with_keys(keys)
             
-            # Dry runモード
-            if self.dry_run:
-                print(f"🔍 [DRY RUN] {profile.name} would post: {content}")
-                print(f"   Event ID: {event.id().to_hex()[:16]}...")
-            else:
-                # NostrイベントをJSON化
-                event_json = json.loads(event.as_json())
+            # NostrイベントをJSON化
+            event_json = json.loads(event.as_json())
+            
+            # MYPACE APIに送信 (SSL検証を無効化、プロキシ設定は環境変数から自動取得)
+            async with httpx.AsyncClient(timeout=30.0, verify=False, trust_env=True) as client:
+                response = await client.post(
+                    f"{self.api_endpoint}/api/publish",
+                    json={"event": event_json},
+                    headers={"Content-Type": "application/json"},
+                )
                 
-                # MYPACE APIに送信 (SSL検証を無効化、プロキシ設定は環境変数から自動取得)
-                async with httpx.AsyncClient(timeout=30.0, verify=False, trust_env=True) as client:
-                    response = await client.post(
-                        f"{self.api_endpoint}/api/publish",
-                        json={"event": event_json},
-                        headers={"Content-Type": "application/json"},
-                    )
-                    
-                    if response.status_code != 200:
-                        error_data = response.json() if response.headers.get("content-type") == "application/json" else {}
-                        raise RuntimeError(f"API error: {response.status_code} - {error_data}")
-                    
-                    result = response.json()
-                    if not result.get("success"):
-                        raise RuntimeError(f"Publish failed: {result}")
+                if response.status_code != 200:
+                    error_data = response.json() if response.headers.get("content-type") == "application/json" else {}
+                    raise RuntimeError(f"API error: {response.status_code} - {error_data}")
+                
+                result = response.json()
+                if not result.get("success"):
+                    raise RuntimeError(f"Publish failed: {result}")
             
             # 状態を更新
             current_time = int(datetime.now().timestamp())

@@ -31,7 +31,7 @@ ollama pull llama3.2:3b
 python -m src.main
 ```
 
-### 2回目以降
+### 2 回目以降
 
 ```bash
 # Ollama起動（使う場合）
@@ -50,9 +50,9 @@ python -m src.main
 # 状態は自動的に bots/states.json に保存される
 ```
 
-## systemdサービス化（Linux）
+## systemd サービス化（Linux）
 
-常時稼働させる場合はsystemdでサービス化します。
+常時稼働させる場合は systemd でサービス化します。
 
 ### 1. サービスファイルの作成
 
@@ -114,7 +114,7 @@ sudo systemctl restart sinov
 sudo systemctl disable sinov
 ```
 
-## Docker化
+## Docker 化
 
 ### Dockerfile
 
@@ -146,7 +146,7 @@ CMD ["python", "-m", "src.main"]
 ### docker-compose.yml
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   sinov:
@@ -201,21 +201,23 @@ docker-compose down
 docker-compose exec ollama ollama pull llama3.2:3b
 ```
 
-## VPSデプロイ
+## VPS デプロイ
 
 ### 推奨スペック
 
-**最小構成（LLMなし）:**
-- CPU: 1コア
+**最小構成（LLM なし）:**
+
+- CPU: 1 コア
 - メモリ: 512MB
 - ストレージ: 10GB
 
-**推奨構成（LLM使用）:**
-- CPU: 2コア以上
-- メモリ: 4GB以上（llama3.2:3b使用時）
-- ストレージ: 20GB以上
+**推奨構成（LLM 使用）:**
 
-### VPSプロバイダ例
+- CPU: 2 コア以上
+- メモリ: 4GB 以上（llama3.2:3b 使用時）
+- ストレージ: 20GB 以上
+
+### VPS プロバイダ例
 
 - DigitalOcean Droplet
 - Vultr
@@ -225,7 +227,7 @@ docker-compose exec ollama ollama pull llama3.2:3b
 
 ### デプロイ手順
 
-#### 1. VPSへの接続
+#### 1. VPS への接続
 
 ```bash
 ssh user@your-vps-ip
@@ -275,7 +277,7 @@ python scripts/generate_keys.py
 scp -r bots/profiles/* user@your-vps-ip:/opt/sinov/bots/profiles/
 ```
 
-#### 4. Ollamaモデルのダウンロード（使う場合）
+#### 4. Ollama モデルのダウンロード（使う場合）
 
 ```bash
 # Ollama起動
@@ -285,9 +287,9 @@ ollama serve &
 ollama pull llama3.2:3b
 ```
 
-#### 5. systemdサービス化
+#### 5. systemd サービス化
 
-上記の「systemdサービス化」セクションを参照。
+上記の「systemd サービス化」セクションを参照。
 
 #### 6. ファイアウォール設定（必要に応じて）
 
@@ -324,7 +326,7 @@ sudo systemctl status sinov
 
 ### ログの確認
 
-#### systemdの場合
+#### systemd の場合
 
 ```bash
 # リアルタイムログ
@@ -337,7 +339,7 @@ sudo journalctl -u sinov -n 100
 sudo journalctl -u sinov --since "2024-01-01 00:00:00"
 ```
 
-#### Dockerの場合
+#### Docker の場合
 
 ```bash
 # リアルタイムログ
@@ -418,7 +420,7 @@ chmod +x backup.sh
 ./backup.sh
 ```
 
-### crontabで自動バックアップ
+### crontab で自動バックアップ
 
 ```bash
 crontab -e
@@ -447,13 +449,15 @@ python -m src.main
 
 ### 投稿が送信されない
 
-1. **Nostr接続確認**
+1. **Nostr 接続確認**
+
    ```bash
    # リレーに接続できるか確認
    ping relay.damus.io
    ```
 
 2. **環境変数確認**
+
    ```bash
    cat .env
    ```
@@ -475,7 +479,7 @@ sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
 
-### Ollama接続エラー
+### Ollama 接続エラー
 
 ```bash
 # Ollamaステータス確認
@@ -509,10 +513,10 @@ async def run_once(self) -> None:
         if self.should_post_now(bot_id):
             task = self._process_single_bot(bot_id)
             tasks.append(task)
-    
+
     if tasks:
         await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     self._save_states()
 
 async def _process_single_bot(self, bot_id: int) -> None:
@@ -547,7 +551,7 @@ NOSTR_RELAYS=wss://nos.lol,wss://relay.damus.io
 RELAYS = ["wss://nos.lol"]
 ```
 
-### SSH鍵認証
+### SSH 鍵認証
 
 ```bash
 # パスワード認証を無効化
@@ -558,13 +562,13 @@ sudo systemctl restart sshd
 
 ## FAQ
 
-### Q: 100体すべて動かす必要がある？
+### Q: 100 体すべて動かす必要がある？
 
-A: いいえ。必要な数だけ履歴書を作成すればOKです。`bots/profiles/`にあるYAMLファイルの数だけボットが起動します。
+A: いいえ。必要な数だけ履歴書を作成すれば OK です。`bots/profiles/`にある YAML ファイルの数だけボットが起動します。
 
-### Q: LLMなしでも動く？
+### Q: LLM なしでも動く？
 
-A: はい。Ollamaがない場合は自動的にシンプルなテンプレート生成にフォールバックします。
+A: はい。Ollama がない場合は自動的にシンプルなテンプレート生成にフォールバックします。
 
 ### Q: リレーは変更できる？
 
@@ -572,7 +576,8 @@ A: はい。`.env`の`NOSTR_RELAYS`を編集してください。
 
 ### Q: 鍵を再生成したい
 
-A: 
+A:
+
 ```bash
 rm bots/keys.json
 python scripts/generate_keys.py
