@@ -21,6 +21,7 @@ async def main() -> None:
     states_file = Path("bots/states.json")
     
     api_endpoint = os.getenv("API_ENDPOINT", "http://localhost:8787")
+    dry_run = os.getenv("DRY_RUN", "false").lower() == "true"
     
     ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
     ollama_model = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
@@ -38,6 +39,9 @@ async def main() -> None:
         print(f"⚠️  Could not connect to Ollama: {e}")
         print("Using simple content generation instead")
     
+    if dry_run:
+        print("\n🔍 DRY RUN MODE: Posts will not be sent to the API\n")
+    
     # ボットマネージャー初期化
     manager = BotManager(
         profiles_dir=profiles_dir,
@@ -45,6 +49,7 @@ async def main() -> None:
         api_endpoint=api_endpoint,
         relays=[],  # APIが内部でリレーに接続するため不要
         llm_client=llm_client,
+        dry_run=dry_run,
     )
     
     # ボット読み込み

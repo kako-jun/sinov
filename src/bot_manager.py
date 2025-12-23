@@ -26,12 +26,14 @@ class BotManager:
         api_endpoint: str,
         relays: list[str],
         llm_client: Optional[LLMClient] = None,
+        dry_run: bool = False,
     ):
         self.profiles_dir = profiles_dir
         self.states_file = states_file
         self.api_endpoint = api_endpoint
         self.relays = relays
         self.llm_client = llm_client
+        self.dry_run = dry_run
         
         self.bots: dict[int, tuple[BotKey, BotProfile, BotState]] = {}
         self.keys: dict[int, Keys] = {}  # Nostr署名鍵
@@ -249,24 +251,29 @@ MYPACE SNSに投稿する短い文章（{profile.behavior.post_length_min}〜{pr
             # EventBuilderの正しいAPI: text_note().tags([...]).sign_with_keys()
             event = EventBuilder.text_note(content).tags([mypace_tag, client_tag]).sign_with_keys(keys)
             
-            # NostrイベントをJSON化
-            event_json = json.loads(event.as_json())
-            
-            # MYPACE APIに送信 (SSL検証を無効化、プロキシ設定は環境変数から自動取得)
-            async with httpx.AsyncClient(timeout=30.0, verify=False, trust_env=True) as client:
-                response = await client.post(
-                    f"{self.api_endpoint}/api/publish",
-                    json={"event": event_json},
-                    headers={"Content-Type": "application/json"},
-                )
+            # Dry runモード
+            if self.dry_run:
+                print(f"🔍 [DRY RUN] {profile.name} would post: {content}")
+                print(f"   Event ID: {event.id().to_hex()[:16]}...")
+            else:
+                # NostrイベントをJSON化
+                event_json = json.loads(event.as_json())
                 
-                if response.status_code != 200:
-                    error_data = response.json() if response.headers.get("content-type") == "application/json" else {}
-                    raise RuntimeError(f"API error: {response.status_code} - {error_data}")
-                
-                result = response.json()
-                if not result.get("success"):
-                    raise RuntimeError(f"Publish failed: {result}")
+                # MYPACE APIに送信 (SSL検証を無効化、プロキシ設定は環境変数から自動取得)
+                async with httpx.AsyncClient(timeout=30.0, verify=False, trust_env=True) as client:
+                    response = await client.post(
+                        f"{self.api_endpoint}/api/publish",
+                        json={"event": event_json},
+                        headers={"Content-Type": "application/json"},
+                    )
+                    
+                    if response.status_code != 200:
+                        error_data = response.json() if response.headers.get("content-type") == "application/json" else {}
+                        raise RuntimeError(f"API error: {response.status_code} - {error_data}")
+                    
+                    result = response.json()
+                    if not result.get("success"):
+                        raise RuntimeError(f"Publish failed: {result}")
             
             # 状態を更新
             current_time = int(datetime.now().timestamp())
@@ -274,6 +281,7 @@ MYPACE SNSに投稿する短い文章（{profile.behavior.post_length_min}〜{pr
             state.next_post_time = self._calculate_next_post_time(bot_id)
             state.total_posts += 1
             state.last_post_content = content
+            state.last_event_id = event.id().to_hex()
             
             next_datetime = datetime.fromtimestamp(state.next_post_time)
             print(f"📝 {profile.name} posted: {content[:50]}... (next: {next_datetime.strftime('%H:%M:%S')})")

@@ -107,3 +107,4 @@ class BotState(BaseModel):
     next_post_time: int = Field(ge=0, description="次回投稿時刻")
     total_posts: int = Field(ge=0, description="累計投稿数")
     last_post_content: Optional[str] = Field(default=None, description="最後の投稿内容")
+    last_event_id: Optional[str] = Field(default=None, description="最後の投稿のイベントID")
