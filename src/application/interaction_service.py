@@ -2,13 +2,14 @@
 相互作用サービス（リプライ・リアクション処理）
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from ..config import AffinitySettings
 from ..domain import (
     BotProfile,
     BotState,
     ContentStrategy,
+    PersonalityAnalyzer,
     PostType,
     QueueEntry,
     QueueStatus,
@@ -19,6 +20,7 @@ from ..domain.models import BotKey
 from ..domain.queue import ConversationContext, ReplyTarget
 from ..infrastructure import LLMProvider, MemoryRepository, QueueRepository
 from ..infrastructure.storage.relationship_repo import RelationshipRepository
+from .affinity_service import AffinityService
 
 
 class InteractionService:
@@ -45,6 +47,14 @@ class InteractionService:
         # 関係性データを読み込み
         self.relationship_data = relationship_repo.load_all()
         self.interaction_manager = InteractionManager(self.relationship_data)
+
+        # 好感度サービス
+        self.affinity_service = AffinityService(
+            relationship_repo=relationship_repo,
+            queue_repo=queue_repo,
+            relationship_data=self.relationship_data,
+            affinity_settings=self.affinity_settings,
+        )
 
     async def process_interactions(self, target_bot_ids: list[int]) -> int:
         """
@@ -116,7 +126,7 @@ class InteractionService:
                     if new_entry:
                         self.queue_repo.add(new_entry)
                         # 好感度を更新（元投稿者 → リプライした人）
-                        self._update_affinity_on_interaction(
+                        self.affinity_service.update_on_interaction(
                             bot_id, entry.bot_id, "reply"
                         )
                         # 記憶を強化（元投稿者の記憶）
@@ -136,7 +146,7 @@ class InteractionService:
                     if new_entry:
                         self.queue_repo.add(new_entry)
                         # 好感度を更新（元投稿者 → リアクションした人）
-                        self._update_affinity_on_interaction(
+                        self.affinity_service.update_on_interaction(
                             bot_id, entry.bot_id, "reaction"
                         )
                         # 記憶を強化（元投稿者の記憶）
@@ -278,77 +288,8 @@ class InteractionService:
         return "知り合い"
 
     def _get_personality_type(self, profile: BotProfile) -> str:
-        """プロフィールから性格タイプを推定"""
-        # 性格タイプから推定
-        personality = profile.personality
-        personality_type = personality.type.lower()
-
-        # 性格タイプ名から判定
-        if any(w in personality_type for w in ["陽気", "明るい", "楽観"]):
-            return "陽気"
-        if any(w in personality_type for w in ["クール", "冷静", "論理"]):
-            return "クール"
-        if any(w in personality_type for w in ["熱血", "情熱", "積極"]):
-            return "熱血"
-        if any(w in personality_type for w in ["内向", "静か", "控えめ"]):
-            return "内気"
-        if any(w in personality_type for w in ["のんびり", "ゆったり", "マイペース"]):
-            return "のんびり"
-        if any(w in personality_type for w in ["真面目", "誠実", "堅実"]):
-            return "真面目"
-
-        # traitsからも判定
-        traits = [t.lower() for t in personality.traits]
-        if any("陽気" in t or "明るい" in t for t in traits):
-            return "陽気"
-        if any("クール" in t or "冷静" in t for t in traits):
-            return "クール"
-
-        return "普通"
-
-    def _update_affinity_on_interaction(
-        self,
-        from_bot_id: int,
-        to_bot_id: int,
-        interaction_type: str,
-    ) -> None:
-        """
-        相互作用発生時に好感度を更新
-
-        Args:
-            from_bot_id: 反応した側のボットID
-            to_bot_id: 元投稿者のボットID（好感度が上がる側）
-            interaction_type: "reply" or "reaction"
-        """
-        # 元投稿者の好感度データを読み込み
-        to_bot_name = f"bot{to_bot_id:03d}"
-        from_bot_name = f"bot{from_bot_id:03d}"
-
-        affinity = self.relationship_repo.load_affinity(to_bot_name)
-
-        # 好感度を更新
-        if interaction_type == "reply":
-            delta = self.affinity_settings.delta_reply
-        elif interaction_type == "reaction":
-            delta = self.affinity_settings.delta_reaction
-        else:
-            return
-
-        old_value = affinity.get_affinity(from_bot_name)
-        new_value = affinity.update_affinity(from_bot_name, delta)
-
-        # 最後の相互作用日時を記録
-        affinity.record_interaction(from_bot_name, datetime.now().isoformat())
-
-        # 保存
-        self.relationship_repo.save_affinity(affinity)
-
-        # ログ出力（デバッグ用、運用時はコメントアウト可）
-        if new_value != old_value:
-            print(
-                f"         📈 {to_bot_name}の{from_bot_name}への好感度: "
-                f"{old_value:.2f} → {new_value:.2f}"
-            )
+        """プロフィールから性格タイプを推定（PersonalityAnalyzerに委譲）"""
+        return PersonalityAnalyzer.classify(profile)
 
     def _update_memory_on_feedback(
         self,
@@ -482,7 +423,7 @@ class InteractionService:
             if reply_entry:
                 self.queue_repo.add(reply_entry)
                 # 好感度を更新（リプライを送ってきた人 → 返信した人）
-                self._update_affinity_on_interaction(
+                self.affinity_service.update_on_interaction(
                     target_bot_id, entry.bot_id, "reply"
                 )
                 # 記憶を強化（リプライを送ってきた人の記憶）
@@ -563,120 +504,9 @@ class InteractionService:
         )
 
     def process_affinity_decay(self, target_bot_ids: list[int]) -> int:
-        """
-        好感度の減衰処理を実行（疎遠期間による減衰）
-
-        1週間以上相互作用がない関係について好感度を減衰させる。
-
-        Args:
-            target_bot_ids: 処理対象の住人ID一覧
-
-        Returns:
-            減衰が発生した関係の数
-        """
-        decayed_count = 0
-        now = datetime.now()
-        one_week_ago = now - timedelta(weeks=1)
-
-        for bot_id in target_bot_ids:
-            if bot_id not in self.bots:
-                continue
-
-            bot_name = format_bot_name(bot_id)
-            affinity = self.relationship_repo.load_affinity(bot_name)
-            updated = False
-
-            # 関係のある住人を取得
-            related_members = self.relationship_data.get_related_members(bot_name)
-
-            for target_name in related_members:
-                # 最後の相互作用日時を確認
-                last_interaction = affinity.get_last_interaction(target_name)
-
-                if last_interaction:
-                    try:
-                        last_dt = datetime.fromisoformat(last_interaction)
-                        if last_dt < one_week_ago:
-                            # 1週間以上相互作用がない → 減衰
-                            old_value = affinity.get_affinity(target_name)
-                            new_value = affinity.update_affinity(
-                                target_name, self.affinity_settings.decay_weekly
-                            )
-                            if new_value != old_value:
-                                decayed_count += 1
-                                updated = True
-                    except ValueError:
-                        # パースエラーは無視
-                        pass
-
-            # 変更があれば保存
-            if updated:
-                self.relationship_repo.save_affinity(affinity)
-
-        return decayed_count
+        """好感度の減衰処理を実行（AffinityServiceに委譲）"""
+        return self.affinity_service.process_decay(target_bot_ids, self.bots)
 
     def process_ignored_posts(self, target_bot_ids: list[int]) -> int:
-        """
-        無視された投稿による好感度減衰を処理
-
-        関係者がいるのに誰からも反応がなかった投稿について、
-        投稿者の関係者への好感度を微減させる。
-
-        Args:
-            target_bot_ids: 処理対象の住人ID一覧
-
-        Returns:
-            減衰が発生した数
-        """
-        decayed_count = 0
-
-        # 投稿済みエントリーを取得（通常投稿のみ）
-        posted_entries = self.queue_repo.get_all(QueueStatus.POSTED)
-        normal_posts = [
-            e for e in posted_entries
-            if e.post_type == PostType.NORMAL and e.bot_id in target_bot_ids
-        ]
-
-        for entry in normal_posts:
-            if not entry.event_id:
-                continue
-
-            bot_name = f"bot{entry.bot_id:03d}"
-
-            # この投稿へのリプライ/リアクションがあるかチェック
-            has_reaction = self._has_any_reaction(entry.event_id)
-
-            if has_reaction:
-                continue
-
-            # 反応がない場合、関係者への好感度を微減
-            related_members = self.relationship_data.get_related_members(bot_name)
-
-            if not related_members:
-                continue
-
-            affinity = self.relationship_repo.load_affinity(bot_name)
-            updated = False
-
-            for target_name in related_members:
-                old_value = affinity.get_affinity(target_name)
-                new_value = affinity.update_affinity(
-                    target_name, self.affinity_settings.delta_ignored
-                )
-                if new_value != old_value:
-                    decayed_count += 1
-                    updated = True
-
-            if updated:
-                self.relationship_repo.save_affinity(affinity)
-
-        return decayed_count
-
-    def _has_any_reaction(self, event_id: str) -> bool:
-        """指定イベントへの反応（リプライ/リアクション）があるかチェック"""
-        for status in [QueueStatus.PENDING, QueueStatus.APPROVED, QueueStatus.POSTED]:
-            entries = self.queue_repo.get_all(status)
-            for entry in entries:
-                if entry.reply_to and entry.reply_to.event_id == event_id:
-                    return True
-        return False
+        """無視された投稿による好感度減衰を処理（AffinityServiceに委譲）"""
+        return self.affinity_service.process_ignored_posts(target_bot_ids)

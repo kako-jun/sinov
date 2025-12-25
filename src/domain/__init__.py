@@ -2,6 +2,7 @@
 
 from .bot_utils import extract_bot_id, format_bot_name
 from .content import ContentStrategy
+from .personality import PersonalityAnalyzer
 from .events import EventCalendar, SeasonalEvent
 from .interaction import InteractionManager, calculate_ignore_probability, is_closing_message
 from .memory import AcquiredMemory, BotMemory, SeriesState, ShortTermMemory
@@ -43,6 +44,7 @@ from .scheduler import Scheduler
 __all__ = [
     "format_bot_name",
     "extract_bot_id",
+    "PersonalityAnalyzer",
     "BotKey",
     "Personality",
     "Interests",
