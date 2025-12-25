@@ -3,6 +3,7 @@
 ボットの鍵生成スクリプト
 100体のボットのnsecを生成して.env.keysに保存
 """
+
 from pathlib import Path
 
 from nostr_sdk import Keys

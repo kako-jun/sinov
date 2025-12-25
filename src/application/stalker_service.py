@@ -77,9 +77,7 @@ class StalkerService:
                 continue
 
             # ぶつぶつ投稿を生成
-            entry = await self._generate_mumble(
-                bot_id, profile, stalker, external_post
-            )
+            entry = await self._generate_mumble(bot_id, profile, stalker, external_post)
             if entry:
                 self.queue_repo.add(entry)
                 generated += 1
@@ -138,9 +136,7 @@ class StalkerService:
         reaction_type = self._select_reaction_type(stalker)
 
         # プロンプト生成
-        prompt = self._create_mumble_prompt(
-            profile, stalker, external_post, reaction_type
-        )
+        prompt = self._create_mumble_prompt(profile, stalker, external_post, reaction_type)
 
         # LLMで生成
         content = await self.llm_provider.generate(

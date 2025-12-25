@@ -46,8 +46,7 @@ class ContentStrategy:
         if recent_posts and random.random() < self.settings.context_continuation_probability:
             last_post = recent_posts[-1]
             context_continuation = (
-                f'\n前回の投稿: "{last_post}"'
-                "\n→ この流れを続けるか、関連した話題にする"
+                f'\n前回の投稿: "{last_post}"' "\n→ この流れを続けるか、関連した話題にする"
             )
 
         # 共有ニュースの参照

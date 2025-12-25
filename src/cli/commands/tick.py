@@ -46,7 +46,9 @@ async def cmd_tick(args: argparse.Namespace) -> None:
 
     tick_state = tick_state_repo.load()
     print(f"\n🔄 Tick #{tick_state.total_ticks}")
-    print(f"   Processing {len(target_ids)} residents (index {start_idx}-{end_idx - 1} of {total_bots})")
+    print(
+        f"   Processing {len(target_ids)} residents (index {start_idx}-{end_idx - 1} of {total_bots})"
+    )
 
     # --- 住人の処理（順番に） ---
     generated = 0
@@ -93,7 +95,9 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     print("\n   📋 Running reviewer...")
     reviewed = await run_reviewer(service, queue_repo)
 
-    print(f"\n✅ Tick complete: {generated} generated, {total_interactions} interactions, {reviewed} reviewed")
+    print(
+        f"\n✅ Tick complete: {generated} generated, {total_interactions} interactions, {reviewed} reviewed"
+    )
 
 
 async def run_reviewer(service: BotService, queue_repo: QueueRepository) -> int:

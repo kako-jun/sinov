@@ -74,7 +74,5 @@ class QueueEntry(BaseModel):
     # 投稿タイプ関連（拡張）
     post_type: PostType = Field(default=PostType.NORMAL, description="投稿の種類")
     reply_to: ReplyTarget | None = Field(default=None, description="リプライ先")
-    conversation: ConversationContext | None = Field(
-        default=None, description="会話コンテキスト"
-    )
+    conversation: ConversationContext | None = Field(default=None, description="会話コンテキスト")
     mumble_about: MumbleAbout | None = Field(default=None, description="ぶつぶつの対象")

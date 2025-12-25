@@ -126,13 +126,9 @@ class InteractionService:
                     if new_entry:
                         self.queue_repo.add(new_entry)
                         # 好感度を更新（元投稿者 → リプライした人）
-                        self.affinity_service.update_on_interaction(
-                            bot_id, entry.bot_id, "reply"
-                        )
+                        self.affinity_service.update_on_interaction(bot_id, entry.bot_id, "reply")
                         # 記憶を強化（元投稿者の記憶）
-                        self._update_memory_on_feedback(
-                            entry.bot_id, entry.content, "reply"
-                        )
+                        self._update_memory_on_feedback(entry.bot_id, entry.content, "reply")
                         generated += 1
                         print(f"      💬 {profile.name} → {entry.bot_name}")
 
@@ -150,9 +146,7 @@ class InteractionService:
                             bot_id, entry.bot_id, "reaction"
                         )
                         # 記憶を強化（元投稿者の記憶）
-                        self._update_memory_on_feedback(
-                            entry.bot_id, entry.content, "reaction"
-                        )
+                        self._update_memory_on_feedback(entry.bot_id, entry.content, "reaction")
                         generated += 1
                         print(f"      ❤️  {profile.name} → {entry.bot_name}")
 
@@ -195,9 +189,7 @@ class InteractionService:
 
         # 関係タイプを取得
         bot_name = format_bot_name(bot_id)
-        relationship_type = self._get_relationship_type(
-            bot_name, f"bot{target_entry.bot_id:03d}"
-        )
+        relationship_type = self._get_relationship_type(bot_name, f"bot{target_entry.bot_id:03d}")
 
         # プロンプト生成
         prompt = self.content_strategy.create_reply_prompt(
@@ -423,13 +415,9 @@ class InteractionService:
             if reply_entry:
                 self.queue_repo.add(reply_entry)
                 # 好感度を更新（リプライを送ってきた人 → 返信した人）
-                self.affinity_service.update_on_interaction(
-                    target_bot_id, entry.bot_id, "reply"
-                )
+                self.affinity_service.update_on_interaction(target_bot_id, entry.bot_id, "reply")
                 # 記憶を強化（リプライを送ってきた人の記憶）
-                self._update_memory_on_feedback(
-                    entry.bot_id, entry.content, "reply"
-                )
+                self._update_memory_on_feedback(entry.bot_id, entry.content, "reply")
                 generated += 1
                 print(f"      💬 {profile.name} ↩️ {entry.bot_name}")
 
@@ -450,7 +438,7 @@ class InteractionService:
         existing_conv = incoming_entry.conversation
         new_depth = (existing_conv.depth + 1) if existing_conv else 1
 
-        new_history = (existing_conv.history.copy() if existing_conv else [])
+        new_history = existing_conv.history.copy() if existing_conv else []
         new_history.append(
             {
                 "author": incoming_entry.bot_name,
@@ -474,9 +462,7 @@ class InteractionService:
 
         # 関係タイプを取得
         bot_name = format_bot_name(bot_id)
-        relationship_type = self._get_relationship_type(
-            bot_name, f"bot{incoming_entry.bot_id:03d}"
-        )
+        relationship_type = self._get_relationship_type(bot_name, f"bot{incoming_entry.bot_id:03d}")
 
         # プロンプト生成
         prompt = self.content_strategy.create_reply_prompt(

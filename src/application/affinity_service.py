@@ -139,7 +139,8 @@ class AffinityService:
         # 投稿済みエントリーを取得（通常投稿のみ）
         posted_entries = self.queue_repo.get_all(QueueStatus.POSTED)
         normal_posts = [
-            e for e in posted_entries
+            e
+            for e in posted_entries
             if e.post_type == PostType.NORMAL and e.bot_id in target_bot_ids
         ]
 

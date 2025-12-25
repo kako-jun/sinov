@@ -74,7 +74,7 @@ def migrate():
                 if old_memory.exists():
                     new_memory = target_dir / "memory.json"
                     shutil.copy2(old_memory, new_memory)
-                    print(f"    + memory.json")
+                    print("    + memory.json")
 
                 # 状態（states.json から抽出）
                 bot_id_str = str(bot_id)
@@ -82,10 +82,10 @@ def migrate():
                     new_state = target_dir / "state.json"
                     with open(new_state, "w", encoding="utf-8") as f:
                         json.dump(old_states[bot_id_str], f, indent=2, ensure_ascii=False)
-                    print(f"    + state.json")
+                    print("    + state.json")
 
     print("\nMigration complete!")
-    print(f"\nNew structure:")
+    print("\nNew structure:")
     print(f"  Residents: {new_residents_dir}")
     print(f"  Backend: {new_backend_dir}")
 

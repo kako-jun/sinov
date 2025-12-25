@@ -195,9 +195,7 @@ class RelationshipRepository:
 
         return affinities
 
-    def initialize_affinities_from_relationships(
-        self, relationship_data: RelationshipData
-    ) -> None:
+    def initialize_affinities_from_relationships(self, relationship_data: RelationshipData) -> None:
         """関係性データから好感度の初期値を設定"""
         # 全ボットIDを収集
         all_bots = set()

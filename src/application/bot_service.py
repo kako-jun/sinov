@@ -116,8 +116,7 @@ class BotService:
         for attempt in range(self.settings.content.llm_retry_count):
             # プロンプト生成（記憶を含む）
             prompt = self.content_strategy.create_prompt(
-                profile, state, memory=memory, shared_news=shared_news,
-                event_topics=event_topics
+                profile, state, memory=memory, shared_news=shared_news, event_topics=event_topics
             )
 
             # LLMで生成
@@ -153,9 +152,7 @@ class BotService:
             f"{self.settings.content.llm_retry_count} attempts"
         )
 
-    def _update_memory_after_generate(
-        self, bot_id: int, content: str, memory: BotMemory
-    ) -> None:
+    def _update_memory_after_generate(self, bot_id: int, content: str, memory: BotMemory) -> None:
         """投稿生成後に記憶を更新"""
 
         # 短期記憶を減衰
@@ -173,9 +170,7 @@ class BotService:
             if finished:
                 print("      ✅ 連作完了")
                 # 連作完了したら長期記憶に昇格
-                memory.promote_to_long_term(
-                    f"連作「{memory.series.theme}」を完了", importance=0.7
-                )
+                memory.promote_to_long_term(f"連作「{memory.series.theme}」を完了", importance=0.7)
 
         # 記憶を保存
         self.memory_repo.save(memory)
@@ -277,6 +272,7 @@ class BotService:
                 calendar = EventCalendar(events=[])
                 for e in data.get("events", []):
                     from ..domain.events import SeasonalEvent
+
                     event = SeasonalEvent(**e)
                     calendar.events.append(event)
                 return calendar.get_event_topics()

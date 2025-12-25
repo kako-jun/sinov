@@ -127,11 +127,7 @@ class NostrPublisher:
         ]
 
         # kind:7 リアクションイベントを作成
-        event = (
-            EventBuilder(Kind(7), emoji)
-            .tags(tags)
-            .sign_with_keys(keys)
-        )
+        event = EventBuilder(Kind(7), emoji).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 

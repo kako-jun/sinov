@@ -28,7 +28,7 @@ class ProfileRepository:
         # bot001, bot002, ... の順でソート
         resident_dirs = sorted(
             [d for d in self.residents_dir.iterdir() if d.is_dir() and d.name.startswith("bot")],
-            key=lambda d: d.name
+            key=lambda d: d.name,
         )
 
         if not resident_dirs:

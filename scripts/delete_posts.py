@@ -66,6 +66,7 @@ async def delete_event(event_id: str, bot_id: int) -> bool:
 
     # MYPACE APIに送信
     import os
+
     api_endpoint = os.getenv("API_ENDPOINT", "https://api.mypace.llll-ll.com")
 
     event_json = json.loads(event.as_json())
@@ -105,7 +106,7 @@ def cmd_list(args: argparse.Namespace) -> None:
         entries = [e for e in entries if e.get("bot_id") == bot_id]
 
     # 最新N件
-    entries = entries[-args.limit:]
+    entries = entries[-args.limit :]
 
     print(f"\n📋 投稿済み ({len(entries)}件):\n")
     for entry in entries:
@@ -147,10 +148,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
             return
 
     # 削除実行
-    success = asyncio.run(delete_event(
-        target["event_id"],
-        target["bot_id"]
-    ))
+    success = asyncio.run(delete_event(target["event_id"], target["bot_id"]))
 
     if success:
         # posted.jsonから削除

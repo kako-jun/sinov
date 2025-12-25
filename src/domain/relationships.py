@@ -23,12 +23,8 @@ class RelationshipType(str, Enum):
 class GroupInteraction(BaseModel):
     """グループ内の相互作用設定"""
 
-    reply_probability: float = Field(
-        default=0.15, ge=0.0, le=1.0, description="リプライ確率"
-    )
-    reaction_probability: float = Field(
-        default=0.3, ge=0.0, le=1.0, description="リアクション確率"
-    )
+    reply_probability: float = Field(default=0.15, ge=0.0, le=1.0, description="リプライ確率")
+    reaction_probability: float = Field(default=0.3, ge=0.0, le=1.0, description="リアクション確率")
     topics: list[str] = Field(default_factory=list, description="共通の話題")
 
 
@@ -47,9 +43,7 @@ class Group(BaseModel):
 class PairInteraction(BaseModel):
     """個人間の相互作用設定"""
 
-    reply_probability: float = Field(
-        default=0.2, ge=0.0, le=1.0, description="リプライ確率"
-    )
+    reply_probability: float = Field(default=0.2, ge=0.0, le=1.0, description="リプライ確率")
     tone: str = Field(default="friendly", description="会話のトーン")
     topics: list[str] = Field(default_factory=list, description="共通の話題")
     avoid: bool = Field(default=False, description="避けるかどうか（awkward関係）")
@@ -88,12 +82,8 @@ class StalkerBehavior(BaseModel):
     """ストーカーの行動設定"""
 
     check_interval_minutes: int = Field(default=60, description="チェック間隔（分）")
-    reaction_probability: float = Field(
-        default=0.3, ge=0.0, le=1.0, description="反応確率"
-    )
-    reactions: list[StalkerReaction] = Field(
-        default_factory=list, description="反応パターン"
-    )
+    reaction_probability: float = Field(default=0.3, ge=0.0, le=1.0, description="反応確率")
+    reactions: list[StalkerReaction] = Field(default_factory=list, description="反応パターン")
 
 
 class Stalker(BaseModel):
@@ -103,9 +93,7 @@ class Stalker(BaseModel):
     resident: str = Field(description="ストーカー役のボットID")
     display_name: str = Field(description="表示名")
     target: StalkerTarget = Field(description="ターゲット")
-    behavior: StalkerBehavior = Field(
-        default_factory=StalkerBehavior, description="行動設定"
-    )
+    behavior: StalkerBehavior = Field(default_factory=StalkerBehavior, description="行動設定")
     quirks: list[str] = Field(default_factory=list, description="ストーカーらしい癖")
     constraints: list[str] = Field(default_factory=list, description="NGルール")
 

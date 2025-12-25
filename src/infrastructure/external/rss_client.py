@@ -29,6 +29,7 @@ class RSSClient:
         """feedparserが利用可能かチェック"""
         try:
             import feedparser  # noqa: F401
+
             return True
         except ImportError:
             return False
