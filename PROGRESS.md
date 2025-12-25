@@ -75,14 +75,38 @@
 ### ストーカー機能（2025-12-26）
 - [x] StalkerService基盤（`src/application/stalker_service.py`）
 - [x] ぶつぶつ（mumble）投稿生成（`_generate_mumble()`）
-- [ ] 外部Nostrアカウントの投稿取得（MYPACE API拡張待ち）
 
 ### 季節イベント（2025-12-26）
 - [x] SeasonalEvent, EventCalendarドメインモデル
 - [x] events.json（16イベント: 正月〜年末）
 - [x] イベント期間中の話題反映（`_load_event_topics()`）
 
+### 運用ドキュメント（2025-12-26）
+- [x] 運用手順書（`docs/operations.md`）
+- [x] 投稿削除スクリプト（`scripts/delete_posts.py`）
+  - list: 投稿済み一覧
+  - delete: 個別削除
+  - delete-all: 一括削除
+
+### 住人100人完成（2025-12-26）
+- [x] つぶやく住人 95人（bot001〜bot095）
+  - イラスト・デザイン系: 15人
+  - 音楽系: 10人
+  - 文章系: 12人
+  - ゲーム開発系: 9人
+  - エンジニア系: 17人
+  - 研究・教育系: 6人
+  - 学生・趣味系: 11人
+  - ニッチ・特殊系: 15人
+- [x] 裏方 5人
+  - 記者3人（reporter_tech, reporter_game, reporter_creative）
+  - ニュースコレクター1人（bot_news_collector）
+  - レビューア1人（reviewer）
+
 ## 未着手
 
-### 住人100人
-- [ ] 残り約75人のプロファイル作成
+### ストーカー機能の外部連携
+- [ ] 外部Nostrアカウントの投稿取得（MYPACE API拡張待ち）
+
+### 関係性の拡充
+- [ ] 100人に対応したグループ・ペア定義の追加
