@@ -1,0 +1,201 @@
+"""
+関係性システム
+
+グループ、個人間の関係、ストーカー、好感度を管理する。
+"""
+
+from enum import Enum
+
+from pydantic import BaseModel, Field
+
+
+class RelationshipType(str, Enum):
+    """関係の種類"""
+
+    CLOSE_FRIENDS = "close_friends"  # 親しい友人
+    COUPLE = "couple"  # 夫婦・カップル
+    SIBLINGS = "siblings"  # 兄弟姉妹
+    RIVALS = "rivals"  # ライバル
+    AWKWARD = "awkward"  # 気まずい関係（絡まない）
+    MENTOR = "mentor"  # 師弟関係
+
+
+class GroupInteraction(BaseModel):
+    """グループ内の相互作用設定"""
+
+    reply_probability: float = Field(
+        default=0.15, ge=0.0, le=1.0, description="リプライ確率"
+    )
+    reaction_probability: float = Field(
+        default=0.3, ge=0.0, le=1.0, description="リアクション確率"
+    )
+    topics: list[str] = Field(default_factory=list, description="共通の話題")
+
+
+class Group(BaseModel):
+    """仲良しグループ"""
+
+    id: str = Field(description="グループID")
+    name: str = Field(description="グループ名")
+    members: list[str] = Field(description="メンバーのボットID（bot001形式）")
+    description: str | None = Field(default=None, description="グループの説明")
+    interaction: GroupInteraction = Field(
+        default_factory=GroupInteraction, description="相互作用設定"
+    )
+
+
+class PairInteraction(BaseModel):
+    """個人間の相互作用設定"""
+
+    reply_probability: float = Field(
+        default=0.2, ge=0.0, le=1.0, description="リプライ確率"
+    )
+    tone: str = Field(default="friendly", description="会話のトーン")
+    topics: list[str] = Field(default_factory=list, description="共通の話題")
+    avoid: bool = Field(default=False, description="避けるかどうか（awkward関係）")
+
+
+class Pair(BaseModel):
+    """個人間の関係"""
+
+    id: str = Field(description="関係ID")
+    type: RelationshipType = Field(description="関係の種類")
+    members: list[str] = Field(min_length=2, max_length=2, description="2人のボットID")
+    description: str | None = Field(default=None, description="関係の説明")
+    interaction: PairInteraction = Field(
+        default_factory=PairInteraction, description="相互作用設定"
+    )
+
+
+class StalkerReaction(BaseModel):
+    """ストーカーの反応パターン"""
+
+    type: str = Field(description="反応タイプ（mumble, comment, support）")
+    probability: float = Field(ge=0.0, le=1.0, description="発生確率")
+    description: str | None = Field(default=None, description="反応の説明")
+    examples: list[str] = Field(default_factory=list, description="反応例")
+
+
+class StalkerTarget(BaseModel):
+    """ストーカーのターゲット"""
+
+    type: str = Field(default="external_nostr", description="ターゲットの種類")
+    pubkey: str | None = Field(default=None, description="NostrのPubkey")
+    display_name: str = Field(description="表示名")
+
+
+class StalkerBehavior(BaseModel):
+    """ストーカーの行動設定"""
+
+    check_interval_minutes: int = Field(default=60, description="チェック間隔（分）")
+    reaction_probability: float = Field(
+        default=0.3, ge=0.0, le=1.0, description="反応確率"
+    )
+    reactions: list[StalkerReaction] = Field(
+        default_factory=list, description="反応パターン"
+    )
+
+
+class Stalker(BaseModel):
+    """ストーカー定義"""
+
+    id: str = Field(description="ストーカーID")
+    resident: str = Field(description="ストーカー役のボットID")
+    display_name: str = Field(description="表示名")
+    target: StalkerTarget = Field(description="ターゲット")
+    behavior: StalkerBehavior = Field(
+        default_factory=StalkerBehavior, description="行動設定"
+    )
+    quirks: list[str] = Field(default_factory=list, description="ストーカーらしい癖")
+    constraints: list[str] = Field(default_factory=list, description="NGルール")
+
+
+class Affinity(BaseModel):
+    """好感度（住人間の関係値）"""
+
+    bot_id: str = Field(description="この住人のボットID")
+    targets: dict[str, float] = Field(
+        default_factory=dict,
+        description="対象ボットIDと好感度のマップ（-1.0〜1.0）",
+    )
+    last_interactions: dict[str, str] = Field(
+        default_factory=dict,
+        description="対象ボットIDと最後の相互作用日時のマップ",
+    )
+
+    def get_affinity(self, target_id: str) -> float:
+        """対象への好感度を取得（デフォルト0.0）"""
+        return self.targets.get(target_id, 0.0)
+
+    def update_affinity(self, target_id: str, delta: float) -> float:
+        """好感度を更新（範囲制限あり）"""
+        current = self.targets.get(target_id, 0.0)
+        new_value = max(-1.0, min(1.0, current + delta))
+        self.targets[target_id] = new_value
+        return new_value
+
+    def set_affinity(self, target_id: str, value: float) -> None:
+        """好感度を設定"""
+        self.targets[target_id] = max(-1.0, min(1.0, value))
+
+
+class RelationshipData(BaseModel):
+    """関係性データ全体"""
+
+    groups: list[Group] = Field(default_factory=list, description="グループ一覧")
+    pairs: list[Pair] = Field(default_factory=list, description="個人間関係一覧")
+    stalkers: list[Stalker] = Field(default_factory=list, description="ストーカー一覧")
+
+    def get_related_members(self, bot_id: str) -> list[str]:
+        """指定ボットと関係のある全メンバーを取得"""
+        related = set()
+
+        # グループメンバー
+        for group in self.groups:
+            if bot_id in group.members:
+                for member in group.members:
+                    if member != bot_id:
+                        related.add(member)
+
+        # ペア
+        for pair in self.pairs:
+            if bot_id in pair.members:
+                for member in pair.members:
+                    if member != bot_id:
+                        related.add(member)
+
+        return list(related)
+
+    def get_groups_for_bot(self, bot_id: str) -> list[Group]:
+        """指定ボットが所属するグループを取得"""
+        return [g for g in self.groups if bot_id in g.members]
+
+    def get_pairs_for_bot(self, bot_id: str) -> list[Pair]:
+        """指定ボットが関係する個人間関係を取得"""
+        return [p for p in self.pairs if bot_id in p.members]
+
+    def get_reply_probability(self, from_bot: str, to_bot: str) -> float:
+        """2人のボット間のリプライ確率を取得"""
+        max_prob = 0.0
+
+        # グループ確率
+        for group in self.groups:
+            if from_bot in group.members and to_bot in group.members:
+                max_prob = max(max_prob, group.interaction.reply_probability)
+
+        # ペア確率（より優先）
+        for pair in self.pairs:
+            if from_bot in pair.members and to_bot in pair.members:
+                if pair.interaction.avoid:
+                    return 0.0  # 避ける関係
+                max_prob = max(max_prob, pair.interaction.reply_probability)
+
+        return max_prob
+
+    def should_avoid(self, from_bot: str, to_bot: str) -> bool:
+        """2人が避ける関係かどうか"""
+        for pair in self.pairs:
+            if from_bot in pair.members and to_bot in pair.members:
+                if pair.type == RelationshipType.AWKWARD or pair.interaction.avoid:
+                    return True
+        return False

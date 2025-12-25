@@ -1,0 +1,75 @@
+{
+  "updated_at": "2025-12-26T00:06:29.402875",
+  "items": [
+    {
+      "id": "news_8dcb1316",
+      "title": "新しいWebフレームワークがリリース",
+      "summary": "開発者向けの新しいツールが登場",
+      "category": "it_テクノロジー",
+      "source": "reporter_tech",
+      "original_url": "",
+      "posted_at": "2025-12-26T00:06:29.400588",
+      "expires_at": "2025-12-28T00:06:29.400589"
+    },
+    {
+      "id": "news_490e1eea",
+      "title": "AIアシスタントの最新動向",
+      "summary": "機械学習を活用した新サービス",
+      "category": "it_テクノロジー",
+      "source": "reporter_tech",
+      "original_url": "",
+      "posted_at": "2025-12-26T00:06:29.400613",
+      "expires_at": "2025-12-28T00:06:29.400614"
+    },
+    {
+      "id": "news_1ef5883a",
+      "title": "オープンソースプロジェクトが注目を集める",
+      "summary": "コミュニティ主導の開発が活発に",
+      "category": "it_テクノロジー",
+      "source": "reporter_tech",
+      "original_url": "",
+      "posted_at": "2025-12-26T00:06:29.400626",
+      "expires_at": "2025-12-28T00:06:29.400627"
+    },
+    {
+      "id": "news_bbf2f299",
+      "title": "クラウドサービスの新機能発表",
+      "summary": "開発者向けの機能が充実",
+      "category": "it_テクノロジー",
+      "source": "reporter_tech",
+      "original_url": "",
+      "posted_at": "2025-12-26T00:06:29.400636",
+      "expires_at": "2025-12-28T00:06:29.400637"
+    },
+    {
+      "id": "news_380af617",
+      "title": "プログラミング言語の最新アップデート",
+      "summary": "パフォーマンス改善と新機能追加",
+      "category": "it_テクノロジー",
+      "source": "reporter_tech",
+      "original_url": "",
+      "posted_at": "2025-12-26T00:06:29.400646",
+      "expires_at": "2025-12-28T00:06:29.400646"
+    },
+    {
+      "id": "news_d00626a7",
+      "title": "新しいWebフレームワークがリリース",
+      "summary": "開発者向けの新しいツールが登場",
+      "category": "ゲーム",
+      "source": "reporter_game",
+      "original_url": "",
+      "posted_at": "2025-12-26T00:06:29.401593",
+      "expires_at": "2025-12-28T00:06:29.401595"
+    },
+    {
+      "id": "news_6facb3a8",
+      "title": "プログラミング言語の最新アップデート",
+      "summary": "パフォーマンス改善と新機能追加",
+      "category": "ゲーム",
+      "source": "reporter_game",
+      "original_url": "",
+      "posted_at": "2025-12-26T00:06:29.401618",
+      "expires_at": "2025-12-28T00:06:29.401618"
+    }
+  ]
+}

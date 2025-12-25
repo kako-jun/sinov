@@ -1,0 +1,38 @@
+# ストーカー定義
+# 外部アカウントをウォッチする住人
+
+stalkers:
+  # kako-junウォッチャー（アプリ作者のファン）
+  # - id: kakojun_watcher
+  #   resident: bot020  # ストーカー役のボット
+  #   display_name: 熱心なファン
+  #   target:
+  #     type: external_nostr
+  #     pubkey: "npub1..."  # kako-junのpubkey
+  #     display_name: kako-jun
+  #   behavior:
+  #     check_interval_minutes: 60
+  #     reaction_probability: 0.3
+  #     reactions:
+  #       - type: mumble
+  #         probability: 0.5
+  #         description: 引用なしでぶつぶつ言及
+  #         examples:
+  #           - "kako-junさん、また新しいの作ってるのかな..."
+  #           - "この前のアップデート良かったなあ"
+  #       - type: comment
+  #         probability: 0.3
+  #         description: 感想を述べる
+  #         examples:
+  #           - "このツールの使い方、参考になる"
+  #       - type: support
+  #         probability: 0.2
+  #         description: 応援する
+  #         examples:
+  #           - "頑張ってほしい"
+  #   quirks:
+  #     - 過去の投稿を掘り返す
+  #     - 活動時間を把握している
+  #   constraints:
+  #     - 直接リプライはしない
+  #     - 批判はしない

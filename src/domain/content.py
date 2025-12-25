@@ -7,6 +7,7 @@ import random
 from ..config import ContentSettings
 from .memory import BotMemory
 from .models import BotProfile, BotState
+from .queue import ConversationContext, ReplyTarget
 
 # 連作を開始する確率
 SERIES_START_PROBABILITY = 0.2
@@ -155,3 +156,75 @@ class ContentStrategy:
             content = content[:max_length].rsplit(" ", 1)[0] + "..."
 
         return content
+
+    def create_reply_prompt(
+        self,
+        profile: BotProfile,
+        reply_to: ReplyTarget,
+        conversation: ConversationContext | None = None,
+        relationship_type: str = "知り合い",
+        affinity: float = 0.0,
+    ) -> str:
+        """リプライ用のプロンプトを生成"""
+        depth = conversation.depth if conversation else 1
+
+        # 会話履歴を構築
+        history_text = ""
+        if conversation and conversation.history:
+            history_lines = []
+            for h in conversation.history[-5:]:  # 最新5件
+                history_lines.append(f"  {h['author']}: {h['content']}")
+            history_text = "\n".join(history_lines)
+
+        # 締めを促すかどうか
+        closing_hint = ""
+        if depth >= 3:
+            closing_hint = "\n- そろそろ会話を締めてもよい（短い返事で）"
+        elif depth >= 2:
+            closing_hint = "\n- 長くなりすぎないように"
+
+        prompt = f"""あなたは{profile.name}です。リプライを書いてください。
+
+【相手の投稿】
+{reply_to.content}
+
+【会話の流れ】
+{history_text if history_text else "  (最初のリプライ)"}
+
+【相手との関係】
+関係: {relationship_type}
+
+【返信のルール】
+- 短めでカジュアルに（20〜80文字程度）
+- 会話の文脈に沿った返信をする
+- 必ず日本語で書く
+- 記号・マークダウン禁止{closing_hint}
+
+返信:"""
+
+        return prompt
+
+    def create_mumble_prompt(
+        self,
+        profile: BotProfile,
+        target_name: str,
+        target_content: str,
+    ) -> str:
+        """ぶつぶつ（引用なしの言及）用のプロンプトを生成"""
+        prompt = f"""あなたは{profile.name}です。
+誰かの投稿を見て、独り言をつぶやいてください。
+直接返信はせず、ぶつぶつと言及するだけです。
+
+【見た投稿】
+{target_name}さん: {target_content}
+
+【ルール】
+- 直接話しかけない（「〜さん、」で始めない）
+- 「〜してるな」「〜だなあ」のような独り言
+- 20〜60文字程度
+- 必ず日本語で書く
+- 記号・マークダウン禁止
+
+独り言:"""
+
+        return prompt

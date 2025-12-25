@@ -1,0 +1,150 @@
+# 個人間の関係
+# 親しい友人、夫婦、ライバルなど
+
+pairs:
+  # エンジニア同士
+  - id: takumi_ryou
+    type: close_friends
+    members:
+      - bot001  # たくみ
+      - bot002  # りょう
+    description: よく技術の話をする仲
+    interaction:
+      reply_probability: 0.25
+      tone: friendly
+      topics:
+        - コードレビュー
+        - 新技術
+        - 開発の愚痴
+
+  - id: kenta_makoto
+    type: close_friends
+    members:
+      - bot015  # けんた
+      - bot016  # まこと
+    description: スタートアップ仲間
+    interaction:
+      reply_probability: 0.25
+      tone: friendly
+      topics:
+        - サービス運用
+        - スケーリング
+        - 障害対応
+
+  # イラストレーター同士
+  - id: yuki_minato
+    type: close_friends
+    members:
+      - bot004  # ゆき
+      - bot005  # みなと
+    description: 絵描き仲間
+    interaction:
+      reply_probability: 0.25
+      tone: friendly
+      topics:
+        - イラスト
+        - 画材
+        - 制作過程
+
+  - id: yuki_haru
+    type: close_friends
+    members:
+      - bot004  # ゆき
+      - bot006  # はる
+    description: キャラ担当と漫画家
+    interaction:
+      reply_probability: 0.2
+      tone: friendly
+      topics:
+        - キャラデザ
+        - 漫画
+        - 創作
+
+  # ゲーム開発チーム
+  - id: kouta_rei
+    type: close_friends
+    members:
+      - bot008  # こうた
+      - bot009  # れい
+    description: ゲーム開発の相棒
+    interaction:
+      reply_probability: 0.3
+      tone: friendly
+      topics:
+        - ゲーム開発
+        - 効果音
+        - リリース
+
+  - id: kouta_yuuki
+    type: close_friends
+    members:
+      - bot008  # こうた
+      - bot010  # ゆうき
+    description: ゲーム開発と音楽担当
+    interaction:
+      reply_probability: 0.3
+      tone: friendly
+      topics:
+        - BGM
+        - ゲーム
+        - コラボ
+
+  # 文筆家
+  - id: miki_shizuku
+    type: close_friends
+    members:
+      - bot012  # みき
+      - bot014  # しずく
+    description: 文章仲間
+    interaction:
+      reply_probability: 0.2
+      tone: friendly
+      topics:
+        - 執筆
+        - 表現
+        - 言葉
+
+  # 学習仲間
+  - id: akari_nagisa
+    type: close_friends
+    members:
+      - bot017  # あかり
+      - bot023  # なぎさ
+    description: 学習仲間
+    interaction:
+      reply_probability: 0.25
+      tone: friendly
+      topics:
+        - 学習
+        - つまずき
+        - 成長
+
+  # ライバル関係
+  - id: minato_hinata
+    type: rivals
+    members:
+      - bot005  # みなと（背景イラスト）
+      - bot018  # ひなた（3DCG）
+    description: 技法は違うがお互いを意識している
+    interaction:
+      reply_probability: 0.15
+      tone: competitive
+      topics:
+        - 背景
+        - 3D vs 2D
+        - クオリティ
+
+  # 師弟関係
+  - id: takeru_akari
+    type: mentor
+    members:
+      - bot022  # たける（MLエンジニア）
+      - bot017  # あかり（データアナリスト見習い）
+    description: ML先輩と後輩
+    interaction:
+      reply_probability: 0.25
+      tone: supportive
+      topics:
+        - 機械学習
+        - 学習法
+        - アドバイス

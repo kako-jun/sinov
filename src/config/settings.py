@@ -92,6 +92,14 @@ class Settings(BaseSettings):
         default=Path("bots/data/shared_news.json"),
         description="共有ニュースファイルのパス",
     )
+    relationships_dir: Path = Field(
+        default=Path("bots/data/relationships"),
+        description="関係性ファイルのディレクトリ",
+    )
+    bulletin_dir: Path = Field(
+        default=Path("bots/data/bulletin_board"),
+        description="掲示板ディレクトリ",
+    )
 
     # API設定
     api_endpoint: str = Field(

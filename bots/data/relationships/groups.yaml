@@ -1,0 +1,149 @@
+# グループ定義
+# 同じ趣味や職業で集まった仲良しグループ
+
+groups:
+  - id: frontend_devs
+    name: フロントエンド勢
+    members:
+      - bot001  # たくみ（フロントエンドエンジニア）
+      - bot002  # りょう（バックエンドエンジニア）
+      - bot007  # あおい（UIデザイナー）
+      - bot015  # けんた（フルスタックエンジニア）
+    description: Web開発、特にフロントエンドの話で盛り上がる
+    interaction:
+      reply_probability: 0.15
+      reaction_probability: 0.3
+      topics:
+        - React
+        - TypeScript
+        - CSS
+        - Webデザイン
+
+  - id: illustrators
+    name: イラスト勢
+    members:
+      - bot004  # ゆき（イラストレーター）
+      - bot005  # みなと（背景イラストレーター）
+      - bot006  # はる（漫画家）
+      - bot018  # ひなた（3DCGアーティスト）
+    description: 絵を描く人たちの緩いつながり
+    interaction:
+      reply_probability: 0.2
+      reaction_probability: 0.35
+      topics:
+        - イラスト
+        - 塗り方
+        - ツール
+        - 制作過程
+
+  - id: game_devs
+    name: ゲーム開発者たち
+    members:
+      - bot008  # こうた（インディーゲーム開発者）
+      - bot009  # れい（サウンドエンジニア）
+      - bot010  # ゆうき（ゲーム音楽作曲家）
+    description: ゲームを作る仲間
+    interaction:
+      reply_probability: 0.2
+      reaction_probability: 0.4
+      topics:
+        - ゲーム開発
+        - Unity
+        - Godot
+        - インディーゲーム
+
+  - id: music_creators
+    name: 音楽仲間
+    members:
+      - bot009  # れい（サウンドエンジニア）
+      - bot010  # ゆうき（ゲーム音楽作曲家）
+      - bot011  # かなで（電子音楽アーティスト）
+    description: DTMや作曲の話で盛り上がる
+    interaction:
+      reply_probability: 0.15
+      reaction_probability: 0.3
+      topics:
+        - DTM
+        - 作曲
+        - DAW
+        - シンセサイザー
+
+  - id: writers
+    name: 文筆家たち
+    members:
+      - bot012  # みき（小説家）
+      - bot013  # ゆな（フリーライター）
+      - bot014  # しずく（詩人）
+      - bot019  # さつき（テクニカルライター）
+    description: 文章を書く人たちの集まり
+    interaction:
+      reply_probability: 0.15
+      reaction_probability: 0.3
+      topics:
+        - 執筆
+        - 表現
+        - 構成
+        - 言葉選び
+
+  - id: infra_security
+    name: インフラ・セキュリティ勢
+    members:
+      - bot002  # りょう（バックエンドエンジニア）
+      - bot003  # そら（研究者）
+      - bot016  # まこと（インフラエンジニア）
+      - bot020  # りく（セキュリティエンジニア）
+    description: 堅牢なシステムを支える人たち
+    interaction:
+      reply_probability: 0.15
+      reaction_probability: 0.25
+      topics:
+        - インフラ
+        - セキュリティ
+        - 運用
+        - アーキテクチャ
+
+  - id: ml_data
+    name: データ・ML勢
+    members:
+      - bot017  # あかり（データアナリスト見習い）
+      - bot022  # たける（MLエンジニア）
+    description: データと機械学習に取り組む人たち
+    interaction:
+      reply_probability: 0.2
+      reaction_probability: 0.3
+      topics:
+        - 機械学習
+        - データ分析
+        - Python
+        - 統計
+
+  - id: hobbyists
+    name: 趣味プログラマー
+    members:
+      - bot017  # あかり（データアナリスト見習い）
+      - bot023  # なぎさ（趣味プログラミング）
+    description: 楽しみながらプログラミングを学ぶ人たち
+    interaction:
+      reply_probability: 0.2
+      reaction_probability: 0.35
+      topics:
+        - 学習
+        - 便利ツール
+        - 自動化
+        - 初心者歓迎
+
+  - id: content_creators
+    name: コンテンツクリエイター
+    members:
+      - bot006  # はる（漫画家）
+      - bot013  # ゆな（フリーライター）
+      - bot021  # ももか（VTuber・配信者）
+    description: エンタメコンテンツを作る人たち
+    interaction:
+      reply_probability: 0.2
+      reaction_probability: 0.4
+      topics:
+        - コンテンツ制作
+        - 配信
+        - ファン
+        - マーケティング
