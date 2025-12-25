@@ -2,8 +2,11 @@
 ストーカーサービス（外部アカウントウォッチ）
 """
 
+import os
 import random
 from typing import Any
+
+import httpx
 
 from ..domain import BotProfile, BotState, ContentStrategy, PostType, QueueEntry, QueueStatus
 from ..domain.models import BotKey
@@ -60,8 +63,8 @@ class StalkerService:
             if random.random() > stalker.behavior.reaction_probability:
                 continue
 
-            # 外部投稿を取得（TODO: MYPACE API経由で実装）
-            external_post = self._fetch_external_post(stalker)
+            # ターゲットの最新投稿を取得
+            external_post = await self._fetch_external_post(stalker)
             if not external_post:
                 continue
 
@@ -85,20 +88,41 @@ class StalkerService:
                 return None
         return None
 
-    def _fetch_external_post(self, stalker: Stalker) -> dict[str, Any] | None:
+    async def _fetch_external_post(self, stalker: Stalker) -> dict[str, Any] | None:
         """
-        外部アカウントの投稿を取得
-
-        TODO: MYPACE API経由で実装
-        現在はモック実装
+        ターゲットアカウントの最新投稿を取得（MYPACE API経由）
         """
-        # モック: ターゲットの最新投稿を模擬
         if not stalker.target.pubkey:
             return None
 
-        # 実装時はここでMYPACE APIを呼び出し
-        # 今はNoneを返して処理をスキップ
-        return None
+        api_endpoint = os.getenv("API_ENDPOINT", "https://api.mypace.llll-ll.com")
+        url = f"{api_endpoint}/api/user/{stalker.target.pubkey}/events"
+
+        try:
+            async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+                response = await client.get(url, params={"limit": 5})
+
+                if response.status_code != 200:
+                    print(f"  ⚠️ API応答: {response.status_code}")
+                    return None
+
+                data = response.json()
+                events = data.get("events", [])
+
+                if not events:
+                    return None
+
+                # 最新の投稿を返す
+                latest = events[0]
+                return {
+                    "event_id": latest.get("id", ""),
+                    "content": latest.get("content", ""),
+                    "created_at": latest.get("created_at", 0),
+                }
+
+        except Exception as e:
+            print(f"  ⚠️ 投稿取得エラー: {e}")
+            return None
 
     async def _generate_mumble(
         self,

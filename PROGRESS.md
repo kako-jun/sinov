@@ -75,6 +75,7 @@
 ### ストーカー機能（2025-12-26）
 - [x] StalkerService基盤（`src/application/stalker_service.py`）
 - [x] ぶつぶつ（mumble）投稿生成（`_generate_mumble()`）
+- [x] MYPACE API経由で投稿取得（`_fetch_external_post()`）
 
 ### 季節イベント（2025-12-26）
 - [x] SeasonalEvent, EventCalendarドメインモデル
@@ -104,9 +105,6 @@
   - レビューア1人（reviewer）
 
 ## 未着手
-
-### ストーカー機能の外部連携
-- [ ] 外部Nostrアカウントの投稿取得（MYPACE API拡張待ち）
 
 ### 関係性の拡充
 - [ ] 100人に対応したグループ・ペア定義の追加
