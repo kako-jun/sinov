@@ -4,18 +4,21 @@
 
 from datetime import datetime, timedelta
 
-from ..domain import BotProfile, BotState, ContentStrategy, PostType, QueueEntry, QueueStatus
+from ..config import AffinitySettings
+from ..domain import (
+    BotProfile,
+    BotState,
+    ContentStrategy,
+    PostType,
+    QueueEntry,
+    QueueStatus,
+    format_bot_name,
+)
 from ..domain.interaction import InteractionManager
 from ..domain.models import BotKey
 from ..domain.queue import ConversationContext, ReplyTarget
 from ..infrastructure import LLMProvider, MemoryRepository, QueueRepository
 from ..infrastructure.storage.relationship_repo import RelationshipRepository
-
-# 好感度変動値
-AFFINITY_DELTA_REPLY = 0.05  # リプライをもらった時
-AFFINITY_DELTA_REACTION = 0.02  # リアクションをもらった時
-AFFINITY_DELTA_IGNORED = -0.01  # 無視された時（未実装）
-AFFINITY_DECAY_WEEKLY = -0.02  # 疎遠期間の週次減衰（未実装）
 
 
 class InteractionService:
@@ -29,6 +32,7 @@ class InteractionService:
         content_strategy: ContentStrategy,
         bots: dict[int, tuple[BotKey, BotProfile, BotState]],
         memory_repo: MemoryRepository | None = None,
+        affinity_settings: AffinitySettings | None = None,
     ):
         self.llm_provider = llm_provider
         self.queue_repo = queue_repo
@@ -36,6 +40,7 @@ class InteractionService:
         self.content_strategy = content_strategy
         self.bots = bots
         self.memory_repo = memory_repo
+        self.affinity_settings = affinity_settings or AffinitySettings()
 
         # 関係性データを読み込み
         self.relationship_data = relationship_repo.load_all()
@@ -67,7 +72,7 @@ class InteractionService:
                 continue
 
             _, profile, _ = self.bots[bot_id]
-            bot_name = f"bot{bot_id:03d}"
+            bot_name = format_bot_name(bot_id)
 
             # 好感度を読み込み
             affinity = self.relationship_repo.load_affinity(bot_name)
@@ -179,7 +184,7 @@ class InteractionService:
         )
 
         # 関係タイプを取得
-        bot_name = f"bot{bot_id:03d}"
+        bot_name = format_bot_name(bot_id)
         relationship_type = self._get_relationship_type(
             bot_name, f"bot{target_entry.bot_id:03d}"
         )
@@ -323,9 +328,9 @@ class InteractionService:
 
         # 好感度を更新
         if interaction_type == "reply":
-            delta = AFFINITY_DELTA_REPLY
+            delta = self.affinity_settings.delta_reply
         elif interaction_type == "reaction":
-            delta = AFFINITY_DELTA_REACTION
+            delta = self.affinity_settings.delta_reaction
         else:
             return
 
@@ -527,7 +532,7 @@ class InteractionService:
         )
 
         # 関係タイプを取得
-        bot_name = f"bot{bot_id:03d}"
+        bot_name = format_bot_name(bot_id)
         relationship_type = self._get_relationship_type(
             bot_name, f"bot{incoming_entry.bot_id:03d}"
         )
@@ -577,7 +582,7 @@ class InteractionService:
             if bot_id not in self.bots:
                 continue
 
-            bot_name = f"bot{bot_id:03d}"
+            bot_name = format_bot_name(bot_id)
             affinity = self.relationship_repo.load_affinity(bot_name)
             updated = False
 
@@ -595,7 +600,7 @@ class InteractionService:
                             # 1週間以上相互作用がない → 減衰
                             old_value = affinity.get_affinity(target_name)
                             new_value = affinity.update_affinity(
-                                target_name, AFFINITY_DECAY_WEEKLY
+                                target_name, self.affinity_settings.decay_weekly
                             )
                             if new_value != old_value:
                                 decayed_count += 1
@@ -655,7 +660,9 @@ class InteractionService:
 
             for target_name in related_members:
                 old_value = affinity.get_affinity(target_name)
-                new_value = affinity.update_affinity(target_name, AFFINITY_DELTA_IGNORED)
+                new_value = affinity.update_affinity(
+                    target_name, self.affinity_settings.delta_ignored
+                )
                 if new_value != old_value:
                     decayed_count += 1
                     updated = True

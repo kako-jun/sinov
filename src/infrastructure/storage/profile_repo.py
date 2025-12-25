@@ -6,6 +6,7 @@ from pathlib import Path
 
 import yaml
 
+from ...domain.bot_utils import format_bot_name
 from ...domain.models import BotProfile
 
 
@@ -62,7 +63,7 @@ class ProfileRepository:
 
     def load_by_id(self, bot_id: int) -> BotProfile | None:
         """IDで住人プロフィールを読み込み"""
-        resident_dir = self.residents_dir / f"bot{bot_id:03d}"
+        resident_dir = self.residents_dir / format_bot_name(bot_id)
         profile_file = resident_dir / "profile.yaml"
 
         if not profile_file.exists():
@@ -72,4 +73,4 @@ class ProfileRepository:
 
     def get_resident_dir(self, bot_id: int) -> Path:
         """住人のフォルダパスを取得"""
-        return self.residents_dir / f"bot{bot_id:03d}"
+        return self.residents_dir / format_bot_name(bot_id)

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from .application import BotService, InteractionService
 from .config import Settings
-from .domain import QueueEntry, QueueStatus
+from .domain import QueueEntry, QueueStatus, extract_bot_id
 from .infrastructure import (
     MemoryRepository,
     NostrPublisher,
@@ -89,7 +89,7 @@ async def cmd_generate(args: argparse.Namespace) -> None:
     if args.all:
         bot_ids = list(service.bots.keys())
     elif args.bot:
-        bot_id = _parse_bot_name(args.bot)
+        bot_id = extract_bot_id(args.bot)
         if bot_id is None or bot_id not in service.bots:
             print(f"Bot not found: {args.bot}")
             return
@@ -122,24 +122,11 @@ async def cmd_generate(args: argparse.Namespace) -> None:
     print(f"\n✅ Generated {generated} posts → {target_status.value}.json")
 
 
-def _parse_bot_name(name: str) -> int | None:
-    """bot001 -> 1, 1 -> 1"""
-    if name.startswith("bot"):
-        try:
-            return int(name[3:])
-        except ValueError:
-            return None
-    try:
-        return int(name)
-    except ValueError:
-        return None
-
-
 def _get_target_pubkey(resident: str) -> str | None:
     """住人名（bot001形式）からpubkeyを取得"""
     from .domain import BotKey
 
-    bot_id = _parse_bot_name(resident)
+    bot_id = extract_bot_id(resident)
     if bot_id is None:
         return None
 
@@ -408,6 +395,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
         content_strategy=service.content_strategy,
         bots=service.bots,
         memory_repo=service.memory_repo,
+        affinity_settings=settings.affinity,
     )
     interactions = await interaction_service.process_interactions(target_ids)
     chain_replies = await interaction_service.process_reply_chains(target_ids)

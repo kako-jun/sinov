@@ -8,7 +8,15 @@ from typing import Any
 
 import httpx
 
-from ..domain import BotProfile, BotState, ContentStrategy, PostType, QueueEntry, QueueStatus
+from ..domain import (
+    BotProfile,
+    BotState,
+    ContentStrategy,
+    PostType,
+    QueueEntry,
+    QueueStatus,
+    extract_bot_id,
+)
 from ..domain.models import BotKey
 from ..domain.queue import MumbleAbout
 from ..domain.relationships import Stalker
@@ -53,7 +61,7 @@ class StalkerService:
 
         for stalker in self.stalkers:
             # ストーカー役のボットを取得
-            bot_id = self._parse_bot_id(stalker.resident)
+            bot_id = extract_bot_id(stalker.resident)
             if bot_id is None or bot_id not in self.bots:
                 continue
 
@@ -78,15 +86,6 @@ class StalkerService:
                 print(f"      👁️ {profile.name} → {stalker.target.display_name}")
 
         return generated
-
-    def _parse_bot_id(self, resident: str) -> int | None:
-        """bot001 -> 1"""
-        if resident.startswith("bot"):
-            try:
-                return int(resident[3:])
-            except ValueError:
-                return None
-        return None
 
     async def _fetch_external_post(self, stalker: Stalker) -> dict[str, Any] | None:
         """

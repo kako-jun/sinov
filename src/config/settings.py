@@ -27,6 +27,14 @@ class ContentSettings(BaseSettings):
         description="共有ニュースを参照する確率",
     )
 
+    # 連作開始の確率
+    series_start_probability: float = Field(
+        default=0.2,
+        ge=0.0,
+        le=1.0,
+        description="連作つぶやきを開始する確率",
+    )
+
     # 興味の進化（何投稿ごとに新トピック発見）
     evolution_interval: int = Field(
         default=10,
@@ -53,6 +61,62 @@ class ContentSettings(BaseSettings):
         default=20,
         gt=0,
         description="保持する投稿履歴の最大件数",
+    )
+
+
+class AffinitySettings(BaseSettings):
+    """好感度の設定"""
+
+    # 好感度変動値
+    delta_reply: float = Field(
+        default=0.05,
+        description="リプライをもらった時の好感度上昇",
+    )
+    delta_reaction: float = Field(
+        default=0.02,
+        description="リアクションをもらった時の好感度上昇",
+    )
+    delta_ignored: float = Field(
+        default=-0.01,
+        description="無視された時の好感度減少",
+    )
+    decay_weekly: float = Field(
+        default=-0.02,
+        description="疎遠期間の週次減衰",
+    )
+
+
+class MemorySettings(BaseSettings):
+    """記憶の設定"""
+
+    # 短期記憶の最大件数
+    max_short_term: int = Field(
+        default=20,
+        gt=0,
+        description="短期記憶の最大保持件数",
+    )
+
+    # 長期記憶の最大件数
+    max_long_term: int = Field(
+        default=50,
+        gt=0,
+        description="長期記憶の最大保持件数",
+    )
+
+    # 長期記憶昇格の閾値
+    promotion_threshold: float = Field(
+        default=0.95,
+        ge=0.0,
+        le=1.0,
+        description="短期→長期記憶昇格の強度閾値",
+    )
+
+    # アクティブな興味の強度閾値
+    active_interests_threshold: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="アクティブな興味と判定する強度閾値",
     )
 
 
@@ -117,6 +181,12 @@ class Settings(BaseSettings):
 
     # コンテンツ設定
     content: ContentSettings = Field(default_factory=ContentSettings)
+
+    # 好感度設定
+    affinity: AffinitySettings = Field(default_factory=AffinitySettings)
+
+    # 記憶設定
+    memory: MemorySettings = Field(default_factory=MemorySettings)
 
     # 新しいトピック候補プール
     topic_pool: list[str] = Field(

@@ -18,6 +18,7 @@ from ..domain import (
     ContentStrategy,
     EventCalendar,
     Scheduler,
+    format_bot_name,
 )
 from ..infrastructure import (
     LLMProvider,
@@ -66,7 +67,7 @@ class BotService:
             try:
                 bot_key = BotKey.from_env(bot_id)
             except Exception as e:
-                print(f"⚠️  Keys not found for bot{bot_id:03d}: {e}, skipping...")
+                print(f"⚠️  Keys not found for {format_bot_name(bot_id)}: {e}, skipping...")
                 continue
 
             # 状態読み込み（存在しない場合は初期化）

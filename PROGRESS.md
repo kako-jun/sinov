@@ -118,6 +118,18 @@
 - [x] feedparserがない場合のフォールバック（サンプルデータ）
 - [x] collect_news.pyを新クライアントに移行
 
+### コードベースリファクタリング（2025-12-26）
+- [x] ボットIDユーティリティ（`src/domain/bot_utils.py`）
+  - `format_bot_name()`: ID→名前変換（14箇所の重複を解消）
+  - `extract_bot_id()`: 名前→ID変換（3箇所の重複を解消）
+- [x] ベースリポジトリ（`src/infrastructure/storage/base_repo.py`）
+  - `ResidentJsonRepository`: JSON操作の共通化
+  - MemoryRepository, StateRepositoryが継承
+- [x] 設定の拡充（`src/config/settings.py`）
+  - `AffinitySettings`: 好感度変動値（delta_reply, delta_reaction等）
+  - `MemorySettings`: 記憶関連（max_short_term, promotion_threshold等）
+  - `ContentSettings.series_start_probability`: 連作開始確率
+
 ## 未着手
 
 ### 関係性の拡充

@@ -2,24 +2,20 @@
 記憶リポジトリ - ボットの記憶をJSONファイルで永続化
 """
 
-import json
 from datetime import datetime
 from pathlib import Path
 
+from ...domain.bot_utils import format_bot_name
 from ...domain.memory import BotMemory
+from .base_repo import ResidentJsonRepository
 
 
-class MemoryRepository:
+class MemoryRepository(ResidentJsonRepository):
     """ボットの記憶をファイルで管理（住人フォルダごと）"""
-
-    def __init__(self, residents_dir: Path):
-        self.residents_dir = residents_dir
 
     def _get_file_path(self, bot_id: int) -> Path:
         """ボットIDに対応するファイルパス"""
-        resident_dir = self.residents_dir / f"bot{bot_id:03d}"
-        resident_dir.mkdir(parents=True, exist_ok=True)
-        return resident_dir / "memory.json"
+        return self._get_resident_file(bot_id, "memory.json")
 
     def load(self, bot_id: int) -> BotMemory:
         """記憶を読み込み（ファイルがなければデフォルト）"""
@@ -29,20 +25,19 @@ class MemoryRepository:
             return BotMemory(bot_id=bot_id)
 
         try:
-            with open(file_path, encoding="utf-8") as f:
-                data = json.load(f)
+            data = self._load_json(file_path)
+            if data is None:
+                return BotMemory(bot_id=bot_id)
             return BotMemory.model_validate(data)
         except Exception as e:
-            print(f"⚠️  Failed to load memory for bot{bot_id:03d}: {e}")
+            print(f"⚠️  Failed to load memory for {format_bot_name(bot_id)}: {e}")
             return BotMemory(bot_id=bot_id)
 
     def save(self, memory: BotMemory) -> None:
         """記憶を保存"""
         file_path = self._get_file_path(memory.bot_id)
         memory.last_updated = datetime.now().isoformat()
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(memory.model_dump(mode="json"), f, indent=2, ensure_ascii=False)
+        self._save_json(file_path, memory.model_dump(mode="json"))
 
     def load_all(self) -> dict[int, BotMemory]:
         """全ボットの記憶を読み込み"""
