@@ -2,7 +2,7 @@
 相互作用サービス（リプライ・リアクション処理）
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from ..domain import BotProfile, BotState, ContentStrategy, PostType, QueueEntry, QueueStatus
 from ..domain.interaction import InteractionManager
@@ -556,3 +556,120 @@ class InteractionService:
             reply_to=reply_to,
             conversation=conversation,
         )
+
+    def process_affinity_decay(self, target_bot_ids: list[int]) -> int:
+        """
+        好感度の減衰処理を実行（疎遠期間による減衰）
+
+        1週間以上相互作用がない関係について好感度を減衰させる。
+
+        Args:
+            target_bot_ids: 処理対象の住人ID一覧
+
+        Returns:
+            減衰が発生した関係の数
+        """
+        decayed_count = 0
+        now = datetime.now()
+        one_week_ago = now - timedelta(weeks=1)
+
+        for bot_id in target_bot_ids:
+            if bot_id not in self.bots:
+                continue
+
+            bot_name = f"bot{bot_id:03d}"
+            affinity = self.relationship_repo.load_affinity(bot_name)
+            updated = False
+
+            # 関係のある住人を取得
+            related_members = self.relationship_data.get_related_members(bot_name)
+
+            for target_name in related_members:
+                # 最後の相互作用日時を確認
+                last_interaction = affinity.get_last_interaction(target_name)
+
+                if last_interaction:
+                    try:
+                        last_dt = datetime.fromisoformat(last_interaction)
+                        if last_dt < one_week_ago:
+                            # 1週間以上相互作用がない → 減衰
+                            old_value = affinity.get_affinity(target_name)
+                            new_value = affinity.update_affinity(
+                                target_name, AFFINITY_DECAY_WEEKLY
+                            )
+                            if new_value != old_value:
+                                decayed_count += 1
+                                updated = True
+                    except ValueError:
+                        # パースエラーは無視
+                        pass
+
+            # 変更があれば保存
+            if updated:
+                self.relationship_repo.save_affinity(affinity)
+
+        return decayed_count
+
+    def process_ignored_posts(self, target_bot_ids: list[int]) -> int:
+        """
+        無視された投稿による好感度減衰を処理
+
+        関係者がいるのに誰からも反応がなかった投稿について、
+        投稿者の関係者への好感度を微減させる。
+
+        Args:
+            target_bot_ids: 処理対象の住人ID一覧
+
+        Returns:
+            減衰が発生した数
+        """
+        decayed_count = 0
+
+        # 投稿済みエントリーを取得（通常投稿のみ）
+        posted_entries = self.queue_repo.get_all(QueueStatus.POSTED)
+        normal_posts = [
+            e for e in posted_entries
+            if e.post_type == PostType.NORMAL and e.bot_id in target_bot_ids
+        ]
+
+        for entry in normal_posts:
+            if not entry.event_id:
+                continue
+
+            bot_name = f"bot{entry.bot_id:03d}"
+
+            # この投稿へのリプライ/リアクションがあるかチェック
+            has_reaction = self._has_any_reaction(entry.event_id)
+
+            if has_reaction:
+                continue
+
+            # 反応がない場合、関係者への好感度を微減
+            related_members = self.relationship_data.get_related_members(bot_name)
+
+            if not related_members:
+                continue
+
+            affinity = self.relationship_repo.load_affinity(bot_name)
+            updated = False
+
+            for target_name in related_members:
+                old_value = affinity.get_affinity(target_name)
+                new_value = affinity.update_affinity(target_name, AFFINITY_DELTA_IGNORED)
+                if new_value != old_value:
+                    decayed_count += 1
+                    updated = True
+
+            if updated:
+                self.relationship_repo.save_affinity(affinity)
+
+        return decayed_count
+
+    def _has_any_reaction(self, event_id: str) -> bool:
+        """指定イベントへの反応（リプライ/リアクション）があるかチェック"""
+        for status in [QueueStatus.PENDING, QueueStatus.APPROVED, QueueStatus.POSTED]:
+            entries = self.queue_repo.get_all(status)
+            for entry in entries:
+                if entry.reply_to and entry.reply_to.event_id == event_id:
+                    return True
+        return False

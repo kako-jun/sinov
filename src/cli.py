@@ -135,6 +135,22 @@ def _parse_bot_name(name: str) -> int | None:
         return None
 
 
+def _get_target_pubkey(resident: str) -> str | None:
+    """住人名（bot001形式）からpubkeyを取得"""
+    from .domain import BotKey
+
+    bot_id = _parse_bot_name(resident)
+    if bot_id is None:
+        return None
+
+    try:
+        target_key = BotKey.from_env(bot_id)
+        return target_key.pubkey
+    except ValueError:
+        # 鍵が見つからない場合
+        return None
+
+
 # =============================================================================
 # queue コマンド
 # =============================================================================
@@ -278,21 +294,32 @@ async def cmd_post(args: argparse.Namespace) -> None:
             # 投稿タイプに応じて処理を分岐
             if entry.post_type == PostType.REPLY and entry.reply_to:
                 # リプライ投稿
+                # ターゲットのpubkeyを取得（住人の場合）
+                target_pubkey = _get_target_pubkey(entry.reply_to.resident)
                 event_id = await publisher.publish_reply(
                     keys=keys,
                     content=entry.content,
                     bot_name=entry.bot_name,
                     reply_to_event_id=entry.reply_to.event_id,
-                    reply_to_pubkey=None,  # TODO: pubkeyを取得する仕組みが必要
+                    reply_to_pubkey=target_pubkey,
                 )
                 print(f"  💬 {entry.bot_name}: {entry.content[:40]}...")
 
             elif entry.post_type == PostType.REACTION and entry.reply_to:
                 # リアクション投稿
-                # TODO: 対象のpubkeyを取得する仕組みが必要
-                # 現時点ではリアクションはスキップ（pubkey必須のため）
-                print(f"  ⏭️  {entry.bot_name}: Reaction skipped (pubkey required)")
-                continue
+                target_pubkey = _get_target_pubkey(entry.reply_to.resident)
+                if not target_pubkey:
+                    print(f"  ⏭️  {entry.bot_name}: Reaction skipped (pubkey not found)")
+                    continue
+
+                event_id = await publisher.publish_reaction(
+                    keys=keys,
+                    emoji=entry.content,
+                    bot_name=entry.bot_name,
+                    target_event_id=entry.reply_to.event_id,
+                    target_pubkey=target_pubkey,
+                )
+                print(f"  ❤️  {entry.bot_name}: {entry.content} → {entry.reply_to.resident}")
 
             else:
                 # 通常投稿
@@ -385,6 +412,12 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     interactions = await interaction_service.process_interactions(target_ids)
     chain_replies = await interaction_service.process_reply_chains(target_ids)
     total_interactions = interactions + chain_replies
+
+    # --- 好感度減衰処理 ---
+    decay_count = interaction_service.process_affinity_decay(target_ids)
+    ignored_count = interaction_service.process_ignored_posts(target_ids)
+    if decay_count > 0 or ignored_count > 0:
+        print(f"   📉 Affinity decay: {decay_count} (distant), {ignored_count} (ignored)")
 
     # --- レビューア処理 ---
     print("\n   📋 Running reviewer...")

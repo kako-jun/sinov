@@ -218,18 +218,38 @@ class BotService:
                 print(f"🌱 {profile.name}が新しいトピックに興味: {new_topic}")
 
     def _load_shared_news(self) -> list[str]:
-        """共有ニュースを読み込む"""
-        news_file = Path(self.settings.shared_news_file)
-        if not news_file.exists():
+        """掲示板ニュースを読み込む"""
+        bulletin_file = Path(self.settings.bulletin_dir) / "news.json"
+        if not bulletin_file.exists():
             return []
 
         try:
-            with open(news_file) as f:
+            with open(bulletin_file) as f:
                 data = json.load(f)
-                news: list[str] = data.get("news", [])
+                items = data.get("items", [])
+                news: list[str] = []
+                now = datetime.now()
+                for item in items:
+                    # 期限切れチェック
+                    expires_str = item.get("expires_at", "")
+                    if expires_str:
+                        try:
+                            expires = datetime.fromisoformat(expires_str)
+                            if now > expires:
+                                continue
+                        except ValueError:
+                            pass
+
+                    title = item.get("title", "")
+                    summary = item.get("summary", "")
+                    if title:
+                        news_text = title
+                        if summary:
+                            news_text += f": {summary}"
+                        news.append(news_text)
                 return news
         except Exception as e:
-            print(f"⚠️  Failed to load shared news: {e}")
+            print(f"⚠️  Failed to load bulletin news: {e}")
             return []
 
     async def review_content(self, content: str) -> tuple[bool, str | None]:

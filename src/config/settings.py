@@ -88,10 +88,6 @@ class Settings(BaseSettings):
         default=Path("bots/data/tick_state.json"),
         description="tick状態ファイルのパス",
     )
-    shared_news_file: Path = Field(
-        default=Path("bots/data/shared_news.json"),
-        description="共有ニュースファイルのパス",
-    )
     relationships_dir: Path = Field(
         default=Path("bots/data/relationships"),
         description="関係性ファイルのディレクトリ",
