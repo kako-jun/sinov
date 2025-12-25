@@ -72,15 +72,17 @@
 ### 掲示板ニュース→住人の統合（2025-12-26）
 - [x] 掲示板ニュースを住人がつぶやきに参照（`_load_shared_news()`）
 
+### ストーカー機能（2025-12-26）
+- [x] StalkerService基盤（`src/application/stalker_service.py`）
+- [x] ぶつぶつ（mumble）投稿生成（`_generate_mumble()`）
+- [ ] 外部Nostrアカウントの投稿取得（MYPACE API拡張待ち）
+
+### 季節イベント（2025-12-26）
+- [x] SeasonalEvent, EventCalendarドメインモデル
+- [x] events.json（16イベント: 正月〜年末）
+- [x] イベント期間中の話題反映（`_load_event_topics()`）
+
 ## 未着手
-
-### ストーカー機能
-- [ ] 外部Nostrアカウントの投稿取得
-- [ ] ぶつぶつ（mumble）投稿生成
-
-### 季節イベント
-- [ ] events.jsonの作成
-- [ ] イベント期間中の話題反映
 
 ### 住人100人
 - [ ] 残り約75人のプロファイル作成

@@ -1,6 +1,7 @@
 """ドメイン層（ビジネスロジック）"""
 
 from .content import ContentStrategy
+from .events import EventCalendar, SeasonalEvent
 from .interaction import InteractionManager, calculate_ignore_probability, is_closing_message
 from .memory import AcquiredMemory, BotMemory, SeriesState, ShortTermMemory
 from .models import (
@@ -54,6 +55,8 @@ __all__ = [
     "BotMemory",
     "Scheduler",
     "ContentStrategy",
+    "SeasonalEvent",
+    "EventCalendar",
     "InteractionManager",
     "calculate_ignore_probability",
     "is_closing_message",

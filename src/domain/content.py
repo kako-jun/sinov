@@ -25,16 +25,19 @@ class ContentStrategy:
         state: BotState,
         memory: BotMemory | None = None,
         shared_news: list[str] | None = None,
+        event_topics: list[str] | None = None,
     ) -> str:
         """LLM用のプロンプトを生成"""
         # 連作中かどうかチェック
         if memory and memory.series.active:
             return self._create_series_prompt(profile, memory)
 
-        # トピック選択: 通常の興味 + 新しく発見したトピック + 短期記憶
+        # トピック選択: 通常の興味 + 新しく発見したトピック + 短期記憶 + イベントトピック
         all_topics = profile.interests.topics + state.discovered_topics
         if memory:
             all_topics += memory.get_active_interests()
+        if event_topics:
+            all_topics += event_topics
         topic = random.choice(all_topics) if all_topics else "プログラミング"
 
         # 前回投稿との文脈継続（記憶から取得）

@@ -155,6 +155,10 @@ class RelationshipRepository:
 
         return stalkers
 
+    def load_stalkers(self) -> list[Stalker]:
+        """ストーカー定義を読み込み（公開メソッド）"""
+        return self._load_stalkers()
+
     def load_affinity(self, bot_id: str) -> Affinity:
         """指定ボットの好感度を読み込み"""
         affinity_file = self.affinity_dir / f"{bot_id}.json"

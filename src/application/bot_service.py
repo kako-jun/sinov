@@ -10,7 +10,15 @@ from pathlib import Path
 from nostr_sdk import Keys
 
 from ..config import Settings
-from ..domain import BotKey, BotMemory, BotProfile, BotState, ContentStrategy, Scheduler
+from ..domain import (
+    BotKey,
+    BotMemory,
+    BotProfile,
+    BotState,
+    ContentStrategy,
+    EventCalendar,
+    Scheduler,
+)
 from ..infrastructure import (
     LLMProvider,
     MemoryRepository,
@@ -100,11 +108,15 @@ class BotService:
         # 共有ニュース読み込み
         shared_news = self._load_shared_news()
 
+        # イベントトピック読み込み
+        event_topics = self._load_event_topics()
+
         # 最大リトライ回数
         for attempt in range(self.settings.content.llm_retry_count):
             # プロンプト生成（記憶を含む）
             prompt = self.content_strategy.create_prompt(
-                profile, state, memory=memory, shared_news=shared_news
+                profile, state, memory=memory, shared_news=shared_news,
+                event_topics=event_topics
             )
 
             # LLMで生成
@@ -250,6 +262,25 @@ class BotService:
                 return news
         except Exception as e:
             print(f"⚠️  Failed to load bulletin news: {e}")
+            return []
+
+    def _load_event_topics(self) -> list[str]:
+        """現在有効なイベントのトピックを読み込む"""
+        events_file = Path(self.settings.bulletin_dir) / "events.json"
+        if not events_file.exists():
+            return []
+
+        try:
+            with open(events_file) as f:
+                data = json.load(f)
+                calendar = EventCalendar(events=[])
+                for e in data.get("events", []):
+                    from ..domain.events import SeasonalEvent
+                    event = SeasonalEvent(**e)
+                    calendar.events.append(event)
+                return calendar.get_event_topics()
+        except Exception as e:
+            print(f"⚠️  Failed to load events: {e}")
             return []
 
     async def review_content(self, content: str) -> tuple[bool, str | None]:
