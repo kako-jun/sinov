@@ -120,3 +120,11 @@ class BotState(BaseModel):
     discovered_topics: list[str] = Field(
         default_factory=list, description="新しく興味を持ったトピック"
     )
+
+
+class TickState(BaseModel):
+    """tickコマンドのラウンドロビン状態"""
+
+    next_index: int = Field(default=0, ge=0, description="次に処理するボットのインデックス")
+    last_run_at: str | None = Field(default=None, description="最後の実行時刻（ISO形式）")
+    total_ticks: int = Field(default=0, ge=0, description="累計tick回数")

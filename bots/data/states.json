@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "last_post_time": 0,
+    "next_post_time": 0,
+    "total_posts": 0,
+    "last_post_content": null,
+    "last_event_id": null
+  },
+  {
+    "id": 2,
+    "last_post_time": 0,
+    "next_post_time": 0,
+    "total_posts": 0,
+    "last_post_content": null,
+    "last_event_id": null
+  },
+  {
+    "id": 3,
+    "last_post_time": 0,
+    "next_post_time": 0,
+    "total_posts": 0,
+    "last_post_content": null,
+    "last_event_id": null
+  }
+]

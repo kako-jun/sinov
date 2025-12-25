@@ -2,7 +2,13 @@
 
 from .llm import LLMProvider, OllamaProvider
 from .nostr import NostrPublisher
-from .storage import ProfileRepository, QueueRepository, StateRepository
+from .storage import (
+    MemoryRepository,
+    ProfileRepository,
+    QueueRepository,
+    StateRepository,
+    TickStateRepository,
+)
 
 __all__ = [
     "LLMProvider",
@@ -11,4 +17,6 @@ __all__ = [
     "ProfileRepository",
     "StateRepository",
     "QueueRepository",
+    "TickStateRepository",
+    "MemoryRepository",
 ]

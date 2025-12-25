@@ -4,7 +4,6 @@ CLIツール - ボット投稿管理
 
 import argparse
 import asyncio
-from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -12,11 +11,13 @@ from .application import BotService
 from .config import Settings
 from .domain import QueueEntry, QueueStatus
 from .infrastructure import (
+    MemoryRepository,
     NostrPublisher,
     OllamaProvider,
     ProfileRepository,
     QueueRepository,
     StateRepository,
+    TickStateRepository,
 )
 
 
@@ -47,6 +48,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
     publisher = NostrPublisher(settings.api_endpoint, dry_run=True)
     profile_repo = ProfileRepository(settings.profiles_dir)
     state_repo = StateRepository(settings.states_file)
+    memory_repo = MemoryRepository(settings.memories_dir)
 
     service = BotService(
         settings=settings,
@@ -54,6 +56,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
         publisher=publisher,
         profile_repo=profile_repo,
         state_repo=state_repo,
+        memory_repo=memory_repo,
     )
 
     print("Loading bots...")
@@ -76,7 +79,7 @@ async def cmd_generate(args: argparse.Namespace) -> None:
         return
 
     service = await init_service(settings, llm)
-    queue_repo = QueueRepository(Path("bots/queue"))
+    queue_repo = QueueRepository(settings.queue_dir)
 
     # dry_run の場合は dry_run.json に追加
     target_status = QueueStatus.DRY_RUN if args.dry_run else QueueStatus.PENDING
@@ -138,7 +141,8 @@ def _parse_bot_name(name: str) -> int | None:
 
 def cmd_queue(args: argparse.Namespace) -> None:
     """キューの状態を表示"""
-    queue_repo = QueueRepository(Path("bots/queue"))
+    settings = init_env()
+    queue_repo = QueueRepository(settings.queue_dir)
 
     if args.summary:
         # サマリー表示
@@ -179,7 +183,8 @@ def cmd_queue(args: argparse.Namespace) -> None:
 
 def cmd_review(args: argparse.Namespace) -> None:
     """エントリーをレビュー（approve/reject）"""
-    queue_repo = QueueRepository(Path("bots/queue"))
+    settings = init_env()
+    queue_repo = QueueRepository(settings.queue_dir)
 
     if args.action == "approve":
         if args.dry_run:
@@ -234,7 +239,7 @@ def cmd_review(args: argparse.Namespace) -> None:
 async def cmd_post(args: argparse.Namespace) -> None:
     """approvedのエントリーを投稿"""
     settings = init_env()
-    queue_repo = QueueRepository(Path("bots/queue"))
+    queue_repo = QueueRepository(settings.queue_dir)
 
     entries = queue_repo.get_all(QueueStatus.APPROVED)
 
@@ -281,6 +286,103 @@ async def cmd_post(args: argparse.Namespace) -> None:
 
 
 # =============================================================================
+# tick コマンド
+# =============================================================================
+
+
+async def cmd_tick(args: argparse.Namespace) -> None:
+    """1周の処理: 住人N人を順番に処理 + 最後にレビューア"""
+    settings = init_env()
+    llm = init_llm(settings)
+    if not llm:
+        return
+
+    service = await init_service(settings, llm)
+    queue_repo = QueueRepository(settings.queue_dir)
+    tick_state_repo = TickStateRepository(settings.tick_state_file)
+
+    # 対象ボットの一覧を取得（IDでソート）
+    all_bot_ids = sorted(service.bots.keys())
+    total_bots = len(all_bot_ids)
+
+    if total_bots == 0:
+        print("No bots found")
+        return
+
+    # レビューア枠を除いた住人数を計算
+    # count=10 なら 住人9人 + レビューア1回
+    resident_count = max(1, args.count - 1)
+
+    # ラウンドロビンで対象範囲を取得
+    start_idx, end_idx = tick_state_repo.advance(resident_count, total_bots)
+
+    # 対象の住人を取得
+    target_ids = all_bot_ids[start_idx:end_idx]
+
+    # 端で折り返す場合
+    if end_idx <= start_idx and start_idx < total_bots:
+        target_ids = all_bot_ids[start_idx:]
+
+    tick_state = tick_state_repo.load()
+    print(f"\n🔄 Tick #{tick_state.total_ticks}")
+    print(f"   Processing {len(target_ids)} residents (index {start_idx}-{end_idx - 1} of {total_bots})")
+
+    # --- 住人の処理（順番に） ---
+    generated = 0
+    for bot_id in target_ids:
+        _, profile, _ = service.bots[bot_id]
+        try:
+            content = await service.generate_post_content(bot_id)
+
+            entry = QueueEntry(
+                bot_id=bot_id,
+                bot_name=profile.name,
+                content=content,
+                status=QueueStatus.PENDING,
+            )
+            queue_repo.add(entry)
+
+            print(f"   ✏️  {profile.name}: {content[:40]}...")
+            generated += 1
+        except Exception as e:
+            print(f"   ⚠️  {profile.name}: {e}")
+
+    # --- レビューア処理 ---
+    print("\n   📋 Running reviewer...")
+    reviewed = await run_reviewer(service, queue_repo)
+
+    print(f"\n✅ Tick complete: {generated} generated, {reviewed} reviewed")
+
+
+async def run_reviewer(service: "BotService", queue_repo: QueueRepository) -> int:
+    """pending のエントリーをレビュー（Gemmaを使用）"""
+    pending_entries = queue_repo.get_all(QueueStatus.PENDING)
+
+    if not pending_entries:
+        print("      No pending entries")
+        return 0
+
+    reviewed = 0
+    for entry in pending_entries:
+        try:
+            # LLMでレビュー
+            is_approved, reason = await service.review_content(entry.content)
+
+            if is_approved:
+                queue_repo.approve(entry.id, reason)
+                print(f"      ✅ {entry.bot_name}")
+            else:
+                queue_repo.reject(entry.id, reason)
+                print(f"      ❌ {entry.bot_name}: {reason}")
+
+            reviewed += 1
+        except Exception as e:
+            print(f"      ⚠️  {entry.bot_name}: {e}")
+
+    return reviewed
+
+
+# =============================================================================
 # メイン
 # =============================================================================
 
@@ -317,6 +419,12 @@ def main() -> None:
         "--dry-run", "-n", action="store_true", help="Show what would be posted"
     )
 
+    # tick コマンド
+    tick_parser = subparsers.add_parser("tick", help="Run one tick: process N residents + reviewer")
+    tick_parser.add_argument(
+        "--count", "-c", type=int, default=10, help="Number of bots to process (default: 10)"
+    )
+
     # 旧 preview コマンド（後方互換）
     preview_parser = subparsers.add_parser(
         "preview", help="(Legacy) Preview posts - use 'generate --dry-run' instead"
@@ -338,6 +446,8 @@ def main() -> None:
         cmd_review(args)
     elif args.command == "post":
         asyncio.run(cmd_post(args))
+    elif args.command == "tick":
+        asyncio.run(cmd_tick(args))
     elif args.command == "preview":
         # 後方互換: generate --dry-run にリダイレクト
         args.dry_run = True

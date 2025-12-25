@@ -2,7 +2,6 @@
 ボットサービス（アプリケーションユースケース）
 """
 
-import asyncio
 import json
 import random
 from datetime import datetime
@@ -11,9 +10,10 @@ from pathlib import Path
 from nostr_sdk import Keys
 
 from ..config import Settings
-from ..domain import BotKey, BotProfile, BotState, ContentStrategy, Scheduler
+from ..domain import BotKey, BotMemory, BotProfile, BotState, ContentStrategy, Scheduler
 from ..infrastructure import (
     LLMProvider,
+    MemoryRepository,
     NostrPublisher,
     ProfileRepository,
     StateRepository,
@@ -30,12 +30,14 @@ class BotService:
         publisher: NostrPublisher,
         profile_repo: ProfileRepository,
         state_repo: StateRepository,
+        memory_repo: MemoryRepository,
     ):
         self.settings = settings
         self.llm_provider = llm_provider
         self.publisher = publisher
         self.profile_repo = profile_repo
         self.state_repo = state_repo
+        self.memory_repo = memory_repo
         self.content_strategy = ContentStrategy(settings.content)
 
         # ボットデータ
@@ -86,13 +88,24 @@ class BotService:
         if not self.llm_provider:
             raise RuntimeError("LLM provider is not available")
 
+        # 記憶を読み込み
+        memory = self.memory_repo.load(bot_id)
+
+        # 連作を開始するか判定（連作中でなければ）
+        if not memory.series.active and self.content_strategy.should_start_series():
+            theme, total = self.content_strategy.generate_series_theme(profile)
+            memory.start_series(theme, total)
+            print(f"      📝 連作開始: {theme} ({total}投稿)")
+
         # 共有ニュース読み込み
         shared_news = self._load_shared_news()
 
         # 最大リトライ回数
         for attempt in range(self.settings.content.llm_retry_count):
-            # プロンプト生成
-            prompt = self.content_strategy.create_prompt(profile, state, shared_news)
+            # プロンプト生成（記憶を含む）
+            prompt = self.content_strategy.create_prompt(
+                profile, state, memory=memory, shared_news=shared_news
+            )
 
             # LLMで生成
             content = await self.llm_provider.generate(
@@ -117,12 +130,42 @@ class BotService:
                 profile.behavior.post_length_max,
             )
 
+            # 記憶を更新
+            self._update_memory_after_generate(bot_id, content, memory)
+
             return content
 
         raise RuntimeError(
             f"Failed to generate valid content after "
             f"{self.settings.content.llm_retry_count} attempts"
         )
+
+    def _update_memory_after_generate(
+        self, bot_id: int, content: str, memory: BotMemory
+    ) -> None:
+        """投稿生成後に記憶を更新"""
+
+        # 短期記憶を減衰
+        memory.decay_short_term(decay_rate=0.1)
+
+        # 新しい投稿を短期記憶に追加
+        memory.add_short_term(content, source="post")
+
+        # 最近の投稿に追加
+        memory.add_recent_post(content)
+
+        # 連作中なら進める
+        if memory.series.active:
+            finished = memory.advance_series(content)
+            if finished:
+                print("      ✅ 連作完了")
+                # 連作完了したら長期記憶に昇格
+                memory.promote_to_long_term(
+                    f"連作「{memory.series.theme}」を完了", importance=0.7
+                )
+
+        # 記憶を保存
+        self.memory_repo.save(memory)
 
     async def post(self, bot_id: int, content: str) -> None:
         """投稿を実行"""
@@ -189,33 +232,53 @@ class BotService:
             print(f"⚠️  Failed to load shared news: {e}")
             return []
 
+    async def review_content(self, content: str) -> tuple[bool, str | None]:
+        """
+        投稿内容をレビュー（NGルールに違反していないかチェック）
+
+        Returns:
+            (is_approved, reason): 承認されたかどうかと理由
+        """
+        if not self.llm_provider:
+            raise RuntimeError("LLM provider is not available")
+
+        review_prompt = f"""あなたはSNS投稿のレビューアです。以下の投稿がルールに違反していないかチェックしてください。
+
+【投稿内容】
+{content}
+
+【NGルール】
+- 実在の個人名（芸能人、政治家、一般人）が含まれている
+- 政治的・宗教的な主張がある
+- 事件の加害者・被害者への言及がある
+- 攻撃的・差別的な表現がある
+- 誹謗中傷がある
+
+【回答形式】
+1行目: OK または NG
+2行目以降: NGの場合はその理由を簡潔に
+
+【回答例1】
+OK
+
+【回答例2】
+NG
+政治家の名前が含まれています
+"""
+
+        response = await self.llm_provider.generate(review_prompt, max_length=100)
+        response = response.strip()
+
+        lines = response.split("\n")
+        first_line = lines[0].strip().upper()
+
+        if first_line == "OK":
+            return True, None
+        else:
+            reason = "\n".join(lines[1:]).strip() if len(lines) > 1 else "NG判定"
+            return False, reason
+
     def _save_states(self) -> None:
         """全ボットの状態を保存"""
         states = {bot_id: state for bot_id, (_, _, state) in self.bots.items()}
         self.state_repo.save_all(states)
-
-    async def run_once(self) -> None:
-        """全ボットをチェックして投稿が必要なら投稿"""
-        for bot_id, (_, profile, state) in self.bots.items():
-            if Scheduler.should_post_now(profile, state):
-                try:
-                    content = await self.generate_post_content(bot_id)
-                    await self.post(bot_id, content)
-                except Exception as e:
-                    print(f"❌ Error posting for {profile.name}: {e}")
-
-        # 状態を保存
-        self._save_states()
-
-    async def run_forever(self) -> None:
-        """定期的に投稿をチェックして実行（メインループ）"""
-        print(f"\n🤖 Starting bot service (checking every {self.settings.check_interval}s)...")
-        print("Press Ctrl+C to stop\n")
-
-        try:
-            while True:
-                await self.run_once()
-                await asyncio.sleep(self.settings.check_interval)
-        except KeyboardInterrupt:
-            print("\n\n🛑 Shutting down...")
-            self._save_states()

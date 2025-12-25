@@ -20,6 +20,9 @@ dev = [
     "types-pyyaml>=6.0",
 ]
 
+[project.scripts]
+sinov = "src.cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

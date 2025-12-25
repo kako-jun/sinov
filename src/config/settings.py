@@ -61,17 +61,35 @@ class Settings(BaseSettings):
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
-    # パス設定
+    # パス設定（初期設定）
     profiles_dir: Path = Field(
         default=Path("bots/profiles"),
         description="ボットプロフィールのディレクトリ",
     )
+
+    # パス設定（実行時データ）
+    data_dir: Path = Field(
+        default=Path("bots/data"),
+        description="実行時データのディレクトリ",
+    )
     states_file: Path = Field(
-        default=Path("bots/states.json"),
+        default=Path("bots/data/states.json"),
         description="ボット状態ファイルのパス",
     )
+    memories_dir: Path = Field(
+        default=Path("bots/data/memories"),
+        description="記憶ファイルのディレクトリ",
+    )
+    queue_dir: Path = Field(
+        default=Path("bots/data/queue"),
+        description="キューファイルのディレクトリ",
+    )
+    tick_state_file: Path = Field(
+        default=Path("bots/data/tick_state.json"),
+        description="tick状態ファイルのパス",
+    )
     shared_news_file: Path = Field(
-        default=Path("bots/shared_news.json"),
+        default=Path("bots/data/shared_news.json"),
         description="共有ニュースファイルのパス",
     )
 
@@ -95,13 +113,6 @@ class Settings(BaseSettings):
     ollama_model: str = Field(
         default="llama3.2:3b",
         description="使用するOllamaモデル",
-    )
-
-    # スケジューリング
-    check_interval: int = Field(
-        default=60,
-        gt=0,
-        description="投稿チェック間隔（秒）",
     )
 
     # コンテンツ設定
