@@ -15,7 +15,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.domain.news import NewsItem, ReporterConfig
 from src.infrastructure.storage.bulletin_repo import BulletinRepository
 
-
 # 記者設定
 REPORTERS = {
     "reporter_tech": ReporterConfig(

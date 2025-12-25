@@ -20,21 +20,23 @@ import argparse
 import asyncio
 import json
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 
 
-def load_posted_entries() -> list[dict]:
+def load_posted_entries() -> list[dict[str, Any]]:
     """posted.jsonから投稿済みエントリーを読み込む"""
     posted_file = Path("bots/data/queue/posted.json")
     if not posted_file.exists():
         return []
 
     with open(posted_file) as f:
-        return json.load(f)
+        data: list[dict[str, Any]] = json.load(f)
+        return data
 
 
-def save_posted_entries(entries: list[dict]) -> None:
+def save_posted_entries(entries: list[dict[str, Any]]) -> None:
     """posted.jsonを保存"""
     posted_file = Path("bots/data/queue/posted.json")
     with open(posted_file, "w") as f:
@@ -132,7 +134,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
         print(f"❌ イベントが見つかりません: {args.event_id}")
         return
 
-    print(f"削除対象:")
+    print("削除対象:")
     print(f"  ボット: {target.get('bot_name')}")
     print(f"  内容: {target.get('content', '')[:60]}...")
     print(f"  event_id: {target.get('event_id')}")
