@@ -47,9 +47,9 @@ def init_llm(settings: Settings) -> OllamaProvider | None:
 async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
     """BotServiceを初期化"""
     publisher = NostrPublisher(settings.api_endpoint, dry_run=True)
-    profile_repo = ProfileRepository(settings.profiles_dir)
-    state_repo = StateRepository(settings.states_file)
-    memory_repo = MemoryRepository(settings.memories_dir)
+    profile_repo = ProfileRepository(settings.residents_dir, settings.backend_dir)
+    state_repo = StateRepository(settings.residents_dir)
+    memory_repo = MemoryRepository(settings.residents_dir)
 
     service = BotService(
         settings=settings,

@@ -1,5 +1,6 @@
 """インフラストラクチャ層（外部システム連携）"""
 
+from .external import RSSClient, RSSItem
 from .llm import LLMProvider, OllamaProvider
 from .nostr import NostrPublisher
 from .storage import (
@@ -23,4 +24,6 @@ __all__ = [
     "MemoryRepository",
     "RelationshipRepository",
     "BulletinRepository",
+    "RSSClient",
+    "RSSItem",
 ]

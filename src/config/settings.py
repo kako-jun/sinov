@@ -61,24 +61,20 @@ class Settings(BaseSettings):
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
-    # パス設定（初期設定）
-    profiles_dir: Path = Field(
-        default=Path("bots/profiles"),
-        description="ボットプロフィールのディレクトリ",
+    # パス設定（住人ごとのフォルダ）
+    residents_dir: Path = Field(
+        default=Path("bots/residents"),
+        description="住人フォルダのルートディレクトリ",
+    )
+    backend_dir: Path = Field(
+        default=Path("bots/backend"),
+        description="裏方ボットフォルダのルートディレクトリ",
     )
 
-    # パス設定（実行時データ）
+    # パス設定（共有データ）
     data_dir: Path = Field(
         default=Path("bots/data"),
-        description="実行時データのディレクトリ",
-    )
-    states_file: Path = Field(
-        default=Path("bots/data/states.json"),
-        description="ボット状態ファイルのパス",
-    )
-    memories_dir: Path = Field(
-        default=Path("bots/data/memories"),
-        description="記憶ファイルのディレクトリ",
+        description="共有データのディレクトリ",
     )
     queue_dir: Path = Field(
         default=Path("bots/data/queue"),

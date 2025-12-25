@@ -34,9 +34,9 @@
   - NewsItem, BulletinBoard, ReporterConfig
 - [x] リポジトリ（`src/infrastructure/storage/bulletin_repo.py`）
 - [x] プロファイル
-  - `bots/profiles/reporter_tech.yaml`
-  - `bots/profiles/reporter_game.yaml`
-  - `bots/profiles/reporter_creative.yaml`
+  - `bots/backend/reporter_tech/profile.yaml`
+  - `bots/backend/reporter_game/profile.yaml`
+  - `bots/backend/reporter_creative/profile.yaml`
 - [x] 収集スクリプト（`scripts/collect_news.py`）
 
 ### tickへの相互作用統合（2025-12-26）
@@ -103,6 +103,20 @@
   - 記者3人（reporter_tech, reporter_game, reporter_creative）
   - ニュースコレクター1人（bot_news_collector）
   - レビューア1人（reviewer）
+
+### フォルダ構造リファクタリング（2025-12-26）
+- [x] 住民ごとのフォルダ構造に変更
+  - 旧: `bots/profiles/bot001.yaml`, `bots/data/memories/bot001.json`, `bots/data/states.json`
+  - 新: `bots/residents/bot001/profile.yaml`, `memory.json`, `state.json`
+- [x] ProfileRepository、MemoryRepository、StateRepository を新構造に対応
+- [x] 裏方は `bots/backend/` へ移動
+- [x] 移行スクリプト（`scripts/migrate_to_resident_folders.py`）
+
+### RSS取得リファクタリング（2025-12-26）
+- [x] RSSClientクラス（`src/infrastructure/external/rss_client.py`）
+- [x] RSSItemデータクラス
+- [x] feedparserがない場合のフォールバック（サンプルデータ）
+- [x] collect_news.pyを新クライアントに移行
 
 ## 未着手
 

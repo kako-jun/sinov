@@ -207,33 +207,41 @@ stalker_fan:
 ## 街の場所（ファイル構造）
 
 ```
-town/
-├── bulletin_board/          # 掲示板（全員が見られる）
-│   ├── news.json            # 記者が仕入れたニュース
-│   └── events.json          # 街で起こるイベント
-│
-├── drafts/                  # 下書き置き場（1人1ファイル）
-│   ├── illustrator_yuki.json
+bots/
+├── residents/               # 住人（95人）
+│   ├── bot001/
+│   │   ├── profile.yaml     # プロフィール・性格・興味
+│   │   ├── memory.json      # 記憶（短期・長期）
+│   │   └── state.json       # 状態（投稿数など）
+│   ├── bot002/
+│   │   └── ...
 │   └── ...
 │
-├── memories/                # 記憶置き場（1人1ファイル）
-│   ├── illustrator_yuki.json
-│   └── ...
+├── backend/                 # 裏方（5人）
+│   ├── reporter_tech/       # IT記者
+│   │   └── profile.yaml
+│   ├── reporter_game/       # ゲーム記者
+│   │   └── profile.yaml
+│   ├── reporter_creative/   # 創作記者
+│   │   └── profile.yaml
+│   ├── reviewer/            # レビューア
+│   │   └── profile.yaml
+│   └── bot_news_collector/  # ニュース収集
+│       └── profile.yaml
 │
-├── relationships/           # 関係性
-│   ├── groups.yaml          # グループ定義
-│   ├── pairs.yaml           # 個人間の関係
-│   ├── stalkers.yaml        # ストーカー定義
-│   └── affinity/            # 好感度（1人1ファイル）
-│       └── ...
-│
-├── residents/               # 住人のプロフィール
-│   ├── _common.yaml         # 全員共通のプロンプト
-│   ├── illustrator_yuki.yaml
-│   └── ...
-│
-└── rules/                   # 街のルール
-    └── ng_rules.yaml        # NGルール（共通）
+└── data/                    # 共有データ
+    ├── queue/               # 投稿キュー
+    │   ├── pending.json
+    │   ├── approved.json
+    │   └── posted.json
+    ├── relationships/       # 関係性
+    │   ├── groups.yaml
+    │   ├── pairs.yaml
+    │   └── stalkers.yaml
+    ├── bulletin_board/      # 掲示板
+    │   ├── news.json
+    │   └── events.json
+    └── tick_state.json      # tick状態
 ```
 
 ## 投稿の流れ

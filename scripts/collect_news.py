@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.domain.news import NewsItem, ReporterConfig
+from src.infrastructure.external import RSSClient
 from src.infrastructure.storage.bulletin_repo import BulletinRepository
 
 # 記者設定
@@ -50,48 +51,19 @@ REPORTERS = {
 }
 
 
-def fetch_rss(url: str) -> list[dict]:
-    """RSSフィードを取得（実際のRSS取得はfeedparserが必要）"""
-    # 注意: 本番環境ではfeedparserを使用
-    # pip install feedparser
-    try:
-        import feedparser
-        feed = feedparser.parse(url)
-        items = []
-        for entry in feed.entries[:10]:
-            items.append({
-                "title": entry.get("title", ""),
-                "summary": entry.get("summary", ""),
-                "link": entry.get("link", ""),
-            })
-        return items
-    except ImportError:
-        # feedparserがない場合はサンプルデータを返す
-        return get_sample_news()
-
-
-def get_sample_news() -> list[dict]:
-    """サンプルニュースデータ（開発・テスト用）"""
-    return [
-        {"title": "新しいWebフレームワークがリリース", "summary": "開発者向けの新しいツールが登場", "link": ""},
-        {"title": "AIアシスタントの最新動向", "summary": "機械学習を活用した新サービス", "link": ""},
-        {"title": "オープンソースプロジェクトが注目を集める", "summary": "コミュニティ主導の開発が活発に", "link": ""},
-        {"title": "クラウドサービスの新機能発表", "summary": "開発者向けの機能が充実", "link": ""},
-        {"title": "プログラミング言語の最新アップデート", "summary": "パフォーマンス改善と新機能追加", "link": ""},
-    ]
-
-
-def collect_news_for_reporter(reporter_id: str, config: ReporterConfig) -> list[NewsItem]:
+def collect_news_for_reporter(
+    reporter_id: str, config: ReporterConfig, rss_client: RSSClient
+) -> list[NewsItem]:
     """記者ごとにニュースを収集"""
     all_items = []
 
     for source in config.sources:
         print(f"  Fetching from {source['name']}...")
-        raw_items = fetch_rss(source["url"])
+        rss_items = rss_client.fetch(source["url"], limit=10)
 
-        for item in raw_items:
-            title = item.get("title", "")
-            summary = item.get("summary", "")
+        for item in rss_items:
+            title = item.title
+            summary = item.summary
 
             # フィルタリング
             if not config.should_include(title + " " + summary):
@@ -103,7 +75,7 @@ def collect_news_for_reporter(reporter_id: str, config: ReporterConfig) -> list[
                 summary=summary[:100] if summary else None,
                 category=config.specialty.lower().replace("・", "_"),
                 source=reporter_id,
-                original_url=item.get("link"),
+                original_url=item.link or None,
                 posted_at=datetime.now(),
                 expires_at=datetime.now() + timedelta(days=2),
             )
@@ -117,6 +89,7 @@ def main():
     print("📰 Collecting news from all reporters...")
 
     bulletin_repo = BulletinRepository(Path("bots/data/bulletin_board"))
+    rss_client = RSSClient()
 
     # 期限切れニュースを削除
     removed = bulletin_repo.cleanup_expired()
@@ -128,7 +101,7 @@ def main():
     for reporter_id, config in REPORTERS.items():
         print(f"\n📝 {reporter_id} ({config.specialty}):")
 
-        news_items = collect_news_for_reporter(reporter_id, config)
+        news_items = collect_news_for_reporter(reporter_id, config, rss_client)
 
         for item in news_items[:5]:  # 各記者最大5件
             bulletin_repo.add_news_item(item)

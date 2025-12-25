@@ -10,15 +10,16 @@ from ...domain.memory import BotMemory
 
 
 class MemoryRepository:
-    """ボットの記憶をファイルで管理（1ボット1ファイル）"""
+    """ボットの記憶をファイルで管理（住人フォルダごと）"""
 
-    def __init__(self, memories_dir: Path):
-        self.memories_dir = memories_dir
-        self.memories_dir.mkdir(parents=True, exist_ok=True)
+    def __init__(self, residents_dir: Path):
+        self.residents_dir = residents_dir
 
     def _get_file_path(self, bot_id: int) -> Path:
         """ボットIDに対応するファイルパス"""
-        return self.memories_dir / f"bot{bot_id:03d}.json"
+        resident_dir = self.residents_dir / f"bot{bot_id:03d}"
+        resident_dir.mkdir(parents=True, exist_ok=True)
+        return resident_dir / "memory.json"
 
     def load(self, bot_id: int) -> BotMemory:
         """記憶を読み込み（ファイルがなければデフォルト）"""
@@ -47,13 +48,22 @@ class MemoryRepository:
         """全ボットの記憶を読み込み"""
         memories: dict[int, BotMemory] = {}
 
-        for file_path in self.memories_dir.glob("bot*.json"):
+        if not self.residents_dir.exists():
+            return memories
+
+        for resident_dir in self.residents_dir.iterdir():
+            if not resident_dir.is_dir() or not resident_dir.name.startswith("bot"):
+                continue
+
+            memory_file = resident_dir / "memory.json"
+            if not memory_file.exists():
+                continue
+
             try:
-                # ファイル名から bot_id を抽出 (bot001.json -> 1)
-                bot_id = int(file_path.stem[3:])
+                bot_id = int(resident_dir.name[3:])
                 memories[bot_id] = self.load(bot_id)
             except (ValueError, Exception) as e:
-                print(f"⚠️  Failed to load {file_path.name}: {e}")
+                print(f"⚠️  Failed to load memory from {resident_dir.name}: {e}")
 
         return memories
 
