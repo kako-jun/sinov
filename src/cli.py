@@ -7,7 +7,7 @@ import asyncio
 
 from dotenv import load_dotenv
 
-from .application import BotService
+from .application import BotService, InteractionService
 from .config import Settings
 from .domain import QueueEntry, QueueStatus
 from .infrastructure import (
@@ -16,6 +16,7 @@ from .infrastructure import (
     OllamaProvider,
     ProfileRepository,
     QueueRepository,
+    RelationshipRepository,
     StateRepository,
     TickStateRepository,
 )
@@ -250,7 +251,8 @@ async def cmd_post(args: argparse.Namespace) -> None:
     if args.dry_run:
         print(f"\n🔍 [DRY RUN] Would post {len(entries)} entries:\n")
         for entry in entries:
-            print(f"  [{entry.id}] {entry.bot_name}: {entry.content[:50]}...")
+            post_type = entry.post_type.value if entry.post_type else "normal"
+            print(f"  [{entry.id}] {entry.bot_name} ({post_type}): {entry.content[:50]}...")
         return
 
     # 実投稿
@@ -260,7 +262,7 @@ async def cmd_post(args: argparse.Namespace) -> None:
     load_dotenv(".env.keys")
     from nostr_sdk import Keys
 
-    from .domain import BotKey
+    from .domain import BotKey, PostType
 
     print(f"\n📤 Posting {len(entries)} entries...\n")
     posted = 0
@@ -271,14 +273,36 @@ async def cmd_post(args: argparse.Namespace) -> None:
             bot_key = BotKey.from_env(entry.bot_id)
             keys = Keys.parse(bot_key.nsec)
 
-            # 投稿
-            event_id = await publisher.publish(keys, entry.content, entry.bot_name)
+            event_id: str | None = None
+
+            # 投稿タイプに応じて処理を分岐
+            if entry.post_type == PostType.REPLY and entry.reply_to:
+                # リプライ投稿
+                event_id = await publisher.publish_reply(
+                    keys=keys,
+                    content=entry.content,
+                    bot_name=entry.bot_name,
+                    reply_to_event_id=entry.reply_to.event_id,
+                    reply_to_pubkey=None,  # TODO: pubkeyを取得する仕組みが必要
+                )
+                print(f"  💬 {entry.bot_name}: {entry.content[:40]}...")
+
+            elif entry.post_type == PostType.REACTION and entry.reply_to:
+                # リアクション投稿
+                # TODO: 対象のpubkeyを取得する仕組みが必要
+                # 現時点ではリアクションはスキップ（pubkey必須のため）
+                print(f"  ⏭️  {entry.bot_name}: Reaction skipped (pubkey required)")
+                continue
+
+            else:
+                # 通常投稿
+                event_id = await publisher.publish(keys, entry.content, entry.bot_name)
+                print(f"  ✅ {entry.bot_name}: {entry.content[:40]}...")
 
             # キューを更新
             queue_repo.mark_posted(entry.id, event_id)
-
-            print(f"  ✅ {entry.bot_name}: {entry.content[:40]}...")
             posted += 1
+
         except Exception as e:
             print(f"  ❌ {entry.bot_name}: {e}")
 
@@ -291,7 +315,7 @@ async def cmd_post(args: argparse.Namespace) -> None:
 
 
 async def cmd_tick(args: argparse.Namespace) -> None:
-    """1周の処理: 住人N人を順番に処理 + 最後にレビューア"""
+    """1周の処理: 住人N人を順番に処理 + 相互作用 + 最後にレビューア"""
     settings = init_env()
     llm = init_llm(settings)
     if not llm:
@@ -300,6 +324,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     service = await init_service(settings, llm)
     queue_repo = QueueRepository(settings.queue_dir)
     tick_state_repo = TickStateRepository(settings.tick_state_file)
+    relationship_repo = RelationshipRepository(settings.relationships_dir)
 
     # 対象ボットの一覧を取得（IDでソート）
     all_bot_ids = sorted(service.bots.keys())
@@ -347,11 +372,25 @@ async def cmd_tick(args: argparse.Namespace) -> None:
         except Exception as e:
             print(f"   ⚠️  {profile.name}: {e}")
 
+    # --- 相互作用処理 ---
+    print("\n   💬 Processing interactions...")
+    interaction_service = InteractionService(
+        llm_provider=llm,
+        queue_repo=queue_repo,
+        relationship_repo=relationship_repo,
+        content_strategy=service.content_strategy,
+        bots=service.bots,
+        memory_repo=service.memory_repo,
+    )
+    interactions = await interaction_service.process_interactions(target_ids)
+    chain_replies = await interaction_service.process_reply_chains(target_ids)
+    total_interactions = interactions + chain_replies
+
     # --- レビューア処理 ---
     print("\n   📋 Running reviewer...")
     reviewed = await run_reviewer(service, queue_repo)
 
-    print(f"\n✅ Tick complete: {generated} generated, {reviewed} reviewed")
+    print(f"\n✅ Tick complete: {generated} generated, {total_interactions} interactions, {reviewed} reviewed")
 
 
 async def run_reviewer(service: "BotService", queue_repo: QueueRepository) -> int:

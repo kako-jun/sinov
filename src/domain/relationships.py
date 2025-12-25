@@ -120,7 +120,7 @@ class Affinity(BaseModel):
     )
     last_interactions: dict[str, str] = Field(
         default_factory=dict,
-        description="対象ボットIDと最後の相互作用日時のマップ",
+        description="対象ボットIDと最後の相互作用日時のマップ（ISO形式）",
     )
 
     def get_affinity(self, target_id: str) -> float:
@@ -137,6 +137,14 @@ class Affinity(BaseModel):
     def set_affinity(self, target_id: str, value: float) -> None:
         """好感度を設定"""
         self.targets[target_id] = max(-1.0, min(1.0, value))
+
+    def record_interaction(self, target_id: str, timestamp: str) -> None:
+        """最後の相互作用日時を記録"""
+        self.last_interactions[target_id] = timestamp
+
+    def get_last_interaction(self, target_id: str) -> str | None:
+        """最後の相互作用日時を取得"""
+        return self.last_interactions.get(target_id)
 
 
 class RelationshipData(BaseModel):

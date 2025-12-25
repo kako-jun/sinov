@@ -42,7 +42,7 @@ class ConversationContext(BaseModel):
 
     thread_id: str = Field(description="スレッドID")
     depth: int = Field(default=0, ge=0, description="会話の深さ（0=元投稿）")
-    history: list[dict] = Field(
+    history: list[dict[str, str | int]] = Field(
         default_factory=list, description="会話履歴（author, content, depth）"
     )
 

@@ -99,11 +99,45 @@ class BotMemory(BaseModel):
             self.short_term.sort(key=lambda m: m.strength, reverse=True)
             self.short_term = self.short_term[:20]
 
-    def reinforce_short_term(self, keyword: str, boost: float = 0.3) -> None:
-        """キーワードに関連する短期記憶を強化（リアクションをもらった時など）"""
+    def reinforce_short_term(self, keyword: str, boost: float = 0.3) -> bool:
+        """
+        キーワードに関連する短期記憶を強化（リアクションをもらった時など）
+
+        Returns:
+            強化された記憶があればTrue
+        """
+        reinforced = False
         for memory in self.short_term:
             if keyword.lower() in memory.content.lower():
+                old_strength = memory.strength
                 memory.strength = min(1.0, memory.strength + boost)
+                if memory.strength > old_strength:
+                    reinforced = True
+        return reinforced
+
+    def check_and_promote(self, threshold: float = 0.95) -> list[str]:
+        """
+        strength閾値を超えた短期記憶を長期記憶に昇格
+
+        Returns:
+            昇格した記憶のリスト
+        """
+        promoted = []
+        remaining = []
+
+        for memory in self.short_term:
+            if memory.strength >= threshold:
+                # 長期記憶に昇格
+                self.promote_to_long_term(
+                    content=memory.content,
+                    importance=0.6,  # リアクションで強化されたので重要度高め
+                )
+                promoted.append(memory.content)
+            else:
+                remaining.append(memory)
+
+        self.short_term = remaining
+        return promoted
 
     def promote_to_long_term(self, content: str, importance: float = 0.5) -> None:
         """短期記憶を長期記憶に昇格"""

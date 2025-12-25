@@ -2,7 +2,6 @@
 
 from .content import ContentStrategy
 from .interaction import InteractionManager, calculate_ignore_probability, is_closing_message
-from .news import BulletinBoard, NewsItem, ReporterConfig
 from .memory import AcquiredMemory, BotMemory, SeriesState, ShortTermMemory
 from .models import (
     Background,
@@ -15,6 +14,7 @@ from .models import (
     Social,
     TickState,
 )
+from .news import BulletinBoard, NewsItem, ReporterConfig
 from .queue import (
     ConversationContext,
     MumbleAbout,
