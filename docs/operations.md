@@ -224,9 +224,85 @@ uv run python -m src.cli generate --all --dry-run
 
 ---
 
+## 投稿の削除
+
+試運転中は失敗投稿が多くなる。削除スクリプトで対応する。
+
+### 投稿済み一覧を確認
+
+```bash
+# 最近の投稿を確認
+python scripts/delete_posts.py list
+
+# 特定ボットの投稿のみ
+python scripts/delete_posts.py list --bot bot001
+
+# 件数指定
+python scripts/delete_posts.py list --limit 50
+```
+
+### 個別削除
+
+```bash
+# イベントIDを指定して削除（前方一致OK）
+python scripts/delete_posts.py delete abc123
+
+# 確認をスキップ
+python scripts/delete_posts.py delete abc123 --yes
+```
+
+### 一括削除
+
+```bash
+# 特定ボットの全投稿を削除
+python scripts/delete_posts.py delete-all --bot bot001 --confirm
+
+# 全ボットの全投稿を削除（危険）
+python scripts/delete_posts.py delete-all --confirm
+```
+
+### 削除の仕組み
+
+1. Nostrでは投稿を完全に消すことはできない
+2. kind:5（削除イベント）を発行し、対応クライアントに非表示を依頼
+3. 多くのクライアントは削除イベントを尊重するが、一部は無視する可能性あり
+4. 削除後、`posted.json`からもエントリーを除去
+
+---
+
+## 試運転の推奨手順
+
+初めて動かすときは以下の手順で慎重に：
+
+```bash
+# 1. dry-runで生成内容を確認
+uv run python -m src.cli generate --bot bot001 --dry-run
+
+# 2. 1人だけでtickを試す
+uv run python -m src.cli tick --count 2  # 住人1人 + レビュー1回
+
+# 3. 承認済みを確認
+uv run python -m src.cli queue --status approved
+
+# 4. dry-runで投稿内容を確認
+uv run python -m src.cli post --dry-run
+
+# 5. 問題なければ本番投稿
+uv run python -m src.cli post
+
+# 6. 投稿を確認
+python scripts/delete_posts.py list
+
+# 7. 問題があれば削除
+python scripts/delete_posts.py delete <event_id>
+```
+
+---
+
 ## 注意事項
 
 1. **鍵の管理**: `.env.keys`は絶対にコミットしない
 2. **レート制限**: 短時間に大量投稿するとリレーからBANされる可能性
 3. **内容確認**: 本番投稿前に`--dry-run`で確認推奨
 4. **バックアップ**: `bots/data/`を定期的にバックアップ
+5. **削除の限界**: Nostrの削除は「お願い」であり、完全削除は保証されない
