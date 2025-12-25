@@ -1,0 +1,126 @@
+"""
+アプリケーション設定（環境変数から読み込み）
+"""
+
+from pathlib import Path
+
+from pydantic import Field
+from pydantic_settings import BaseSettings
+
+
+class ContentSettings(BaseSettings):
+    """投稿コンテンツ生成の設定"""
+
+    # 文脈継続の確率（前回投稿の続きを書く）
+    context_continuation_probability: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="前回投稿の続きを書く確率",
+    )
+
+    # 共有ニュース参照の確率
+    news_reference_probability: float = Field(
+        default=0.2,
+        ge=0.0,
+        le=1.0,
+        description="共有ニュースを参照する確率",
+    )
+
+    # 興味の進化（何投稿ごとに新トピック発見）
+    evolution_interval: int = Field(
+        default=10,
+        gt=0,
+        description="新しいトピックを発見する投稿間隔",
+    )
+
+    # LLM生成のリトライ回数
+    llm_retry_count: int = Field(
+        default=3,
+        gt=0,
+        description="LLM生成失敗時のリトライ回数",
+    )
+
+    # 重複防止で参照する過去投稿数
+    history_check_count: int = Field(
+        default=5,
+        ge=0,
+        description="重複チェックで参照する過去投稿数",
+    )
+
+    # 保持する投稿履歴の最大件数
+    max_history_size: int = Field(
+        default=20,
+        gt=0,
+        description="保持する投稿履歴の最大件数",
+    )
+
+
+class Settings(BaseSettings):
+    """アプリケーション全体の設定"""
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    # パス設定
+    profiles_dir: Path = Field(
+        default=Path("bots/profiles"),
+        description="ボットプロフィールのディレクトリ",
+    )
+    states_file: Path = Field(
+        default=Path("bots/states.json"),
+        description="ボット状態ファイルのパス",
+    )
+    shared_news_file: Path = Field(
+        default=Path("bots/shared_news.json"),
+        description="共有ニュースファイルのパス",
+    )
+
+    # API設定
+    api_endpoint: str = Field(
+        default="http://localhost:8787",
+        description="MYPACE APIエンドポイント",
+    )
+
+    # 実行モード
+    dry_run: bool = Field(
+        default=False,
+        description="Dry runモード（投稿しない）",
+    )
+
+    # LLM設定
+    ollama_host: str = Field(
+        default="http://localhost:11434",
+        description="OllamaホストURL",
+    )
+    ollama_model: str = Field(
+        default="llama3.2:3b",
+        description="使用するOllamaモデル",
+    )
+
+    # スケジューリング
+    check_interval: int = Field(
+        default=60,
+        gt=0,
+        description="投稿チェック間隔（秒）",
+    )
+
+    # コンテンツ設定
+    content: ContentSettings = Field(default_factory=ContentSettings)
+
+    # 新しいトピック候補プール
+    topic_pool: list[str] = Field(
+        default=[
+            "機械学習",
+            "Webデザイン",
+            "データベース",
+            "セキュリティ",
+            "クラウド",
+            "Docker",
+            "Kubernetes",
+            "CI/CD",
+            "アジャイル開発",
+            "オープンソース",
+            "ブロックチェーン",
+        ],
+        description="興味進化時の新トピック候補",
+    )

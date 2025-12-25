@@ -3,110 +3,113 @@
 ## システム概要
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Sinov Bot Manager                        │
-│                    (Single Python Process)                   │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │                  Bot Manager                           │ │
-│  │                                                        │ │
-│  │  - 100 Bot Profiles (YAML)                            │ │
-│  │  - 100 Bot States (JSON)                              │ │
-│  │  - 100 Nostr Keys                                     │ │
-│  │  - Scheduler (60s loop)                               │ │
-│  └────┬───────────────────────────────────────────────┬───┘ │
-│       │                                               │     │
-│       ▼                                               ▼     │
-│  ┌─────────────┐                              ┌──────────┐  │
-│  │ LLM Client  │                              │  Nostr   │  │
-│  │  (Ollama)   │                              │ Clients  │  │
-│  └─────────────┘                              │  (100)   │  │
-│                                               └──────────┘  │
-└─────────────────────────────────────────────────────────────┘
-         │                                           │
-         ▼                                           ▼
-┌─────────────────┐                    ┌──────────────────────┐
-│ Ollama Server   │                    │   Nostr Relays       │
-│ (localhost:     │                    │  - wss://nos.lol     │
-│  11434)         │                    │  - wss://relay.      │
-│                 │                    │    damus.io          │
-│ Model:          │                    │  - wss://relay.      │
-│  llama3.2:3b    │                    │    nostr.band        │
-└─────────────────┘                    └──────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      Sinov Bot System                            │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    CLI (src/cli.py)                       │   │
+│  │   generate | queue | review | post                        │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                              │                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │              Application Layer                            │   │
+│  │                BotService                                 │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                              │                                   │
+│  ┌─────────────┬─────────────┬─────────────┬────────────────┐   │
+│  │   Domain    │   Domain    │   Domain    │    Domain      │   │
+│  │   Models    │  Scheduler  │  Content    │    Queue       │   │
+│  └─────────────┴─────────────┴─────────────┴────────────────┘   │
+│                              │                                   │
+│  ┌─────────────┬─────────────┬─────────────┬────────────────┐   │
+│  │     LLM     │    Nostr    │   Profile   │    State       │   │
+│  │  Provider   │  Publisher  │    Repo     │    Repo        │   │
+│  └─────────────┴─────────────┴─────────────┴────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+         │                │                │
+         ▼                ▼                ▼
+┌─────────────────┐  ┌──────────────┐  ┌─────────────────┐
+│  Ollama Server  │  │  MYPACE API  │  │  Local Files    │
+│  (localhost:    │  │              │  │  - profiles/    │
+│   11434)        │  │  → Nostr     │  │  - states.json  │
+└─────────────────┘  │    Relays    │  │  - queue/       │
+                     └──────────────┘  └─────────────────┘
+```
+
+## レイヤード アーキテクチャ
+
+### ディレクトリ構造
+
+```
+src/
+├── main.py                 # メインエントリーポイント
+├── cli.py                  # CLIツール
+├── config/                 # 設定層
+│   └── settings.py         # Pydantic Settings
+├── domain/                 # ドメイン層（純粋ビジネスロジック）
+│   ├── models.py           # BotProfile, BotState 等
+│   ├── scheduler.py        # スケジューリングロジック
+│   ├── content.py          # プロンプト生成・コンテンツ戦略
+│   └── queue.py            # キューエントリーモデル
+├── infrastructure/         # インフラ層（外部システム連携）
+│   ├── llm/
+│   │   ├── base.py         # LLMProvider 抽象基底クラス
+│   │   └── ollama.py       # Ollama 実装
+│   ├── nostr/
+│   │   └── publisher.py    # Nostr 投稿
+│   └── storage/
+│       ├── profile_repo.py # YAML プロフィール読み込み
+│       ├── state_repo.py   # 状態永続化
+│       └── queue_repo.py   # キュー管理
+└── application/            # アプリケーション層
+    └── bot_service.py      # メインサービス
 ```
 
 ## コンポーネント
 
-### 1. Bot Manager (`src/bot_manager.py`)
+### 1. Config Layer (`src/config/`)
 
 **責務:**
 
-- ボットの鍵・プロフィール・状態の管理
-- Nostr クライアントの初期化と管理
-- スケジューリング（どのボットがいつ投稿するか）
-- 投稿内容の生成
-- 投稿の実行
-- 状態の永続化
+- 環境変数からの設定読み込み
+- Pydantic Settings による型安全な設定管理
+- デフォルト値の提供
 
-**主要メソッド:**
+**主要クラス:**
 
 ```python
-class BotManager:
-    async def load_bots() -> None
-        # 鍵・プロフィール・状態を読み込み
+class Settings(BaseSettings):
+    profiles_dir: Path
+    states_file: Path
+    api_endpoint: str
+    dry_run: bool
+    ollama_host: str
+    ollama_model: str
+    check_interval: int
+    content: ContentSettings
+    topic_pool: list[str]
 
-    async def initialize_clients() -> None
-        # 100個のNostrクライアントを作成・接続
-
-    def should_post_now(bot_id: int) -> bool
-        # このボットが今投稿すべきか判定
-
-    def _calculate_next_post_time(bot_id: int) -> int
-        # 次回投稿時刻をランダムに計算
-
-    async def generate_post_content(bot_id: int) -> str
-        # LLMまたはテンプレートで投稿内容生成
-
-    async def post(bot_id: int, content: str) -> None
-        # Nostrに投稿
-
-    async def run_once() -> None
-        # 全ボットをチェックして必要なら投稿
-
-    async def run_forever(check_interval: int) -> None
-        # メインループ
+class ContentSettings(BaseSettings):
+    context_continuation_probability: float  # 0.7
+    news_reference_probability: float        # 0.2
+    evolution_interval: int                  # 10
+    llm_retry_count: int                     # 3
+    history_check_count: int                 # 5
+    max_history_size: int                    # 20
 ```
 
-### 2. LLM Client (`src/llm.py`)
+### 2. Domain Layer (`src/domain/`)
 
 **責務:**
 
-- Ollama との通信
-- プロンプトから投稿文の生成
-- エラーハンドリング（LLM 利用不可時のフォールバック）
+- ビジネスロジックの実装
+- 外部依存なしの純粋な処理
+- 型定義とバリデーション
 
-**主要メソッド:**
-
-```python
-class LLMClient:
-    async def generate(prompt: str, max_length: int) -> str
-        # プロンプトから文章生成
-
-    def is_available() -> bool
-        # Ollamaが利用可能かチェック
-```
-
-### 3. Type Definitions (`src/types.py`)
-
-**責務:**
-
-- 全データ構造の型定義
-- Pydantic によるバリデーション
-- YAML と JSON のシリアライズ
-
-**モデル:**
+**主要クラス:**
 
 ```python
+# models.py
 BotKey          # 鍵情報（id, name, pubkey, nsec）
 BotProfile      # 履歴書（性格、興味、行動、社交性、背景）
   ├─ Personality
@@ -114,324 +117,226 @@ BotProfile      # 履歴書（性格、興味、行動、社交性、背景）
   ├─ Behavior
   ├─ Social
   └─ Background
-BotState        # 実行時状態（投稿時刻、カウント）
+BotState        # 実行時状態
+
+# scheduler.py
+class Scheduler:
+    @staticmethod
+    def should_post_now(profile, state) -> bool
+    @staticmethod
+    def calculate_next_post_time(profile) -> int
+
+# content.py
+class ContentStrategy:
+    def create_prompt(profile, state, shared_news) -> str
+    def clean_content(content) -> str
+    def validate_content(content) -> bool
+    def adjust_length(content, min, max) -> str
+
+# queue.py
+class QueueStatus(Enum):
+    PENDING, APPROVED, REJECTED, POSTED, DRY_RUN
+
+class QueueEntry(BaseModel):
+    id, bot_id, bot_name, content, created_at, status, ...
 ```
 
-### 4. Main Entry Point (`src/main.py`)
+### 3. Infrastructure Layer (`src/infrastructure/`)
 
 **責務:**
 
-- 環境変数の読み込み
-- Bot Manager の初期化
-- メインループの開始
+- 外部システムとの連携
+- 副作用を持つ処理
+- 抽象化によるテスタビリティ確保
+
+**主要クラス:**
+
+```python
+# llm/base.py
+class LLMProvider(ABC):
+    async def generate(prompt, max_length) -> str
+    def is_available() -> bool
+
+# llm/ollama.py
+class OllamaProvider(LLMProvider):
+    # Ollama 実装
+
+# nostr/publisher.py
+class NostrPublisher:
+    async def publish(keys, content, bot_name) -> str | None
+
+# storage/profile_repo.py
+class ProfileRepository:
+    def load_all() -> list[BotProfile]
+    def load(profile_file) -> BotProfile
+
+# storage/state_repo.py
+class StateRepository:
+    def load_all() -> dict[int, BotState]
+    def save_all(states) -> None
+
+# storage/queue_repo.py
+class QueueRepository:
+    def add(entry) -> None
+    def get_all(status) -> list[QueueEntry]
+    def approve(entry_id, note) -> QueueEntry | None
+    def reject(entry_id, note) -> QueueEntry | None
+    def mark_posted(entry_id, event_id) -> QueueEntry | None
+```
+
+### 4. Application Layer (`src/application/`)
+
+**責務:**
+
+- ユースケースの実装
+- 依存関係の調整
+- ワークフローの制御
+
+**主要クラス:**
+
+```python
+class BotService:
+    async def load_bots() -> None
+    async def initialize_keys() -> None
+    async def generate_post_content(bot_id) -> str
+    async def post(bot_id, content) -> None
+    async def run_once() -> None
+    async def run_forever() -> None
+```
+
+### 5. CLI (`src/cli.py`)
+
+**責務:**
+
+- ユーザーインターフェース
+- コマンドライン引数の解析
+- サービス層の呼び出し
+
+**コマンド:**
+
+```bash
+# 投稿生成
+uv run python -m src.cli generate --all
+uv run python -m src.cli generate --bot bot001
+uv run python -m src.cli generate --all --dry-run
+
+# キュー確認
+uv run python -m src.cli queue --summary
+uv run python -m src.cli queue --status pending
+
+# レビュー
+uv run python -m src.cli review approve <id>
+uv run python -m src.cli review reject <id>
+
+# 投稿
+uv run python -m src.cli post
+```
 
 ## データフロー
 
-### 起動時（初期化）
+### 投稿キューシステム
 
 ```
-1. .env 読み込み
-   ↓
-2. bots/keys.json 読み込み
-   ├─ Pydanticでバリデーション → BotKey[]
-   ↓
-3. bots/profiles/*.yaml 読み込み
-   ├─ Pydanticでバリデーション → BotProfile[]
-   ↓
-4. bots/states.json 読み込み（存在すれば）
-   ├─ Pydanticでバリデーション → BotState[]
-   └─ 存在しない → 初期値で作成
-   ↓
-5. 各ボットのNostrクライアント作成
-   ├─ Keys.parse(nsec)
-   ├─ Client(keys)
-   ├─ add_relay() × N
-   └─ connect()
-   ↓
-6. Ollama接続テスト（オプション）
-   ├─ 成功 → LLMClient作成
-   └─ 失敗 → None（テンプレート生成）
+┌─────────────────────────────────────────────────────────────┐
+│                    Queue Workflow                            │
+│                                                              │
+│   generate           generate --dry-run                      │
+│       │                      │                               │
+│       ▼                      ▼                               │
+│  ┌─────────┐           ┌──────────┐                         │
+│  │ pending │           │ dry_run  │                         │
+│  └────┬────┘           └──────────┘                         │
+│       │                                                      │
+│       │ review approve                                       │
+│       ├──────────────────┐                                  │
+│       │                  │ review reject                     │
+│       ▼                  ▼                                   │
+│  ┌──────────┐      ┌──────────┐                             │
+│  │ approved │      │ rejected │                             │
+│  └────┬─────┘      └──────────┘                             │
+│       │                                                      │
+│       │ post                                                 │
+│       ▼                                                      │
+│  ┌─────────┐                                                │
+│  │ posted  │                                                │
+│  └─────────┘                                                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### メインループ（60 秒ごと）
+### ファイル構造
 
 ```
-1. run_once()
-   ↓
-2. for each bot:
-   ├─ should_post_now(bot_id)?
-   │  ├─ 活動時間帯チェック
-   │  └─ next_post_time <= 現在時刻?
-   ↓
-3. 投稿すべきボットが見つかる
-   ↓
-4. generate_post_content(bot_id)
-   ├─ LLMあり:
-   │  ├─ _create_prompt() → プロンプト生成
-   │  └─ llm_client.generate() → 文章生成
-   └─ LLMなし:
-      └─ _generate_simple_content() → テンプレート選択
-   ↓
-5. post(bot_id, content)
-   ├─ Tag作成（#mypace, client:sinov）
-   ├─ EventBuilder(kind:1, content, tags)
-   ├─ client.send_event_builder()
-   ├─ state更新:
-   │  ├─ last_post_time = now
-   │  ├─ next_post_time = _calculate_next_post_time()
-   │  └─ total_posts += 1
-   └─ ログ出力
-   ↓
-6. _save_states()
-   └─ bots/states.json に保存
-   ↓
-7. sleep(60)
+bots/
+├── profiles/           # ボット履歴書（YAML）
+│   ├── bot001.yaml
+│   └── ...
+├── states.json         # 実行時状態
+└── queue/              # 投稿キュー
+    ├── pending.json    # レビュー待ち
+    ├── approved.json   # 承認済み
+    ├── rejected.json   # 拒否
+    ├── posted.json     # 投稿済み
+    └── dry_run.json    # プレビュー
 ```
 
-### 投稿時刻の計算
+## 依存性注入
 
 ```python
-# 1日の投稿頻度から平均間隔を計算
-avg_interval = 86400 / post_frequency  # 秒
+# main.py
+async def main():
+    settings = Settings()
 
-# ばらつきを考慮したランダム間隔
-variance = post_frequency_variance  # 0.0 ~ 1.0
-actual_interval = avg_interval * random.uniform(1 - variance, 1 + variance)
+    # 依存関係の構築
+    llm_provider = OllamaProvider(settings.ollama_host, settings.ollama_model)
+    publisher = NostrPublisher(settings.api_endpoint, settings.dry_run)
+    profile_repo = ProfileRepository(settings.profiles_dir)
+    state_repo = StateRepository(settings.states_file)
 
-# 次回投稿時刻
-next_time = current_time + int(actual_interval)
-```
-
-**例:**
-
-- `post_frequency = 5` → 平均 4.8 時間間隔
-- `post_frequency_variance = 0.3` → ±30%のばらつき
-- 実際の間隔: 3.36 時間 ~ 6.24 時間
-
-## 並行処理
-
-### 現在の実装（シングルスレッド）
-
-```python
-async def run_forever():
-    while True:
-        await run_once()  # 全ボットを順番にチェック
-        await asyncio.sleep(60)
-```
-
-- 1 つのイベントループで全ボット管理
-- Nostr 送信は非同期（`await client.send_event_builder()`）
-- LLM 生成も非同期（`await llm_client.generate()`）
-
-### 将来の拡張（並列化）
-
-投稿数が増えた場合、複数ボットを並列処理可能：
-
-```python
-async def run_once():
-    tasks = []
-    for bot_id in self.bots.keys():
-        if self.should_post_now(bot_id):
-            task = self.process_bot(bot_id)
-            tasks.append(task)
-
-    await asyncio.gather(*tasks)
-```
-
-## エラーハンドリング
-
-### レベル 1: 起動時バリデーション
-
-```python
-# YAML読み込み時
-try:
-    profile = BotProfile.model_validate(data)
-except ValidationError as e:
-    print(f"Invalid profile: {e}")
-    continue  # このボットはスキップ
-```
-
-### レベル 2: 投稿時エラー
-
-```python
-async def run_once():
-    for bot_id in self.bots.keys():
-        try:
-            if self.should_post_now(bot_id):
-                content = await self.generate_post_content(bot_id)
-                await self.post(bot_id, content)
-        except Exception as e:
-            print(f"Error for {bot_id}: {e}")
-            # 他のボットは継続
-```
-
-### レベル 3: LLM フォールバック
-
-```python
-if self.llm_client:
-    try:
-        content = await self.llm_client.generate(prompt)
-    except Exception:
-        content = self._generate_simple_content(profile)
-else:
-    content = self._generate_simple_content(profile)
-```
-
-## 状態管理
-
-### ステートフルなデータ
-
-**メモリ内:**
-
-- `self.bots: dict[int, tuple[BotKey, BotProfile, BotState]]`
-- `self.clients: dict[int, Client]`
-
-**永続化:**
-
-- `bots/states.json` - 60 秒ごと & 終了時に保存
-
-### ステートレスなデータ
-
-**起動時のみ読み込み:**
-
-- `bots/keys.json` - 鍵は変更されない
-- `bots/profiles/*.yaml` - 履歴書は変更されない（手動編集後は再起動）
-
-### 状態の復元
-
-```python
-# 前回の実行状態を復元
-if states_file.exists():
-    state = BotState.model_validate(state_dict)
-else:
-    # 新規作成
-    state = BotState(
-        id=bot_id,
-        last_post_time=0,
-        next_post_time=0,  # 初回は即座に投稿
-        total_posts=0,
+    # サービスに注入
+    service = BotService(
+        settings=settings,
+        llm_provider=llm_provider,
+        publisher=publisher,
+        profile_repo=profile_repo,
+        state_repo=state_repo,
     )
 ```
 
-## セキュリティ考慮
+## 拡張ポイント
+
+### LLM プロバイダーの追加
+
+```python
+# infrastructure/llm/openai.py
+class OpenAIProvider(LLMProvider):
+    async def generate(self, prompt: str, max_length: int | None = None) -> str:
+        # OpenAI API 実装
+        ...
+
+    def is_available(self) -> bool:
+        ...
+```
+
+### 新しいコマンドの追加
+
+```python
+# cli.py
+def main():
+    # 新しいサブコマンド
+    new_parser = subparsers.add_parser("new-command", help="...")
+    new_parser.add_argument(...)
+```
+
+## セキュリティ
 
 ### 秘密鍵の保護
 
-- `bots/keys.json`は`.gitignore`に追加
-- ファイルパーミッションは`600`推奨
-- 秘密鍵は外部に送信しない（Nostr 署名はローカル）
+- `.env.keys` に nsec を保存
+- `.gitignore` で除外
+- `BotKey.from_env()` で環境変数から読み込み
 
-### Nostr 署名
+### 投稿フロー
 
-```python
-keys = Keys.parse(nsec)  # nostr-sdk内部で秘密鍵を管理
-client = Client(keys)    # クライアントに紐付け
-event_builder = EventBuilder(kind, content, tags)
-await client.send_event_builder(event_builder)  # 内部で署名して送信
-```
-
-### LLM プロンプト
-
-- ボットの履歴書情報のみ送信
-- ユーザー入力は含まれない（自律型）
-- プロンプトインジェクションのリスクは低い
-
-## スケーラビリティ
-
-### 現在のスペック
-
-- ボット数: 100 体
-- 平均投稿頻度: 5 回/日/ボット → 500 投稿/日
-- チェック間隔: 60 秒
-- メモリ使用量: ~100MB（100 クライアント + 状態）
-
-### ボトルネック
-
-1. **Nostr 接続数**: 100 個の WebSocket 接続
-2. **LLM 生成速度**: 1 投稿あたり数秒
-3. **メモリ**: 各クライアントがリレー接続を保持
-
-### スケーリング戦略
-
-**ボット数を増やす（1000 体など）:**
-
-- 複数プロセスに分割（bot001-300, bot301-600...）
-- 各プロセスは独立して動作
-- 状態ファイルも分割
-
-**投稿頻度を上げる:**
-
-- 並列投稿（`asyncio.gather()`）
-- LLM のバッチ生成
-
-**リレー分散:**
-
-- ボットごとに異なるリレーセット
-- ロードバランシング
-
-## モニタリング
-
-### ログ出力
-
-```
-Loading bot keys...
-Loading bot profiles and states...
-✅ Loaded 100 bots
-Initializing Nostr clients...
-✅ Connected 100 bots to relays
-✅ Ollama is available (model: llama3.2:3b)
-
-🤖 Starting bot manager (checking every 60s)...
-Press Ctrl+C to stop
-
-📝 bot001 posted: TypeScriptで新しいプロジェクト始めた！... (next: 15:23:45)
-📝 bot042 posted: アルゴリズムの勉強中... (next: 18:07:12)
-```
-
-### 将来の拡張
-
-- [ ] 構造化ログ（JSON）
-- [ ] メトリクス収集（投稿数、成功率）
-- [ ] Prometheus エクスポーター
-- [ ] ダッシュボード（Grafana）
-
-## テスト戦略
-
-### ユニットテスト
-
-```python
-# 次回投稿時刻の計算
-def test_calculate_next_post_time():
-    manager = BotManager(...)
-    next_time = manager._calculate_next_post_time(bot_id=1)
-    assert next_time > time.time()
-
-# プロンプト生成
-def test_create_prompt():
-    manager = BotManager(...)
-    prompt = manager._create_prompt(profile)
-    assert "陽気" in prompt
-    assert "TypeScript" in prompt
-```
-
-### 統合テスト
-
-```python
-# ボット読み込み
-async def test_load_bots():
-    manager = BotManager(...)
-    await manager.load_bots()
-    assert len(manager.bots) == 100
-
-# Nostr投稿（テストリレー）
-async def test_post():
-    manager = BotManager(test_relays=[...])
-    await manager.initialize_clients()
-    await manager.post(bot_id=1, content="test")
-```
-
-### E2E テスト
-
-- テスト用の履歴書（1 体のみ）
-- テスト用リレー
-- 実際に起動して投稿を確認
+- 生成 → レビュー → 投稿の段階的プロセス
+- レビューなしの直接投稿は不可
+- dry-run で事前確認可能

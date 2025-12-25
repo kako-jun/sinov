@@ -9,39 +9,42 @@
 git clone <repository-url>
 cd sinov
 
-# 2. 依存関係のインストール
-pip install nostr-sdk pyyaml python-dotenv httpx ollama pydantic pydantic-settings
+# 2. uv のインストール
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 3. 環境設定
+# 3. 依存関係のインストール
+uv sync
+
+# 4. 環境設定
 cp .env.example .env
 cp .env.keys.example .env.keys
-# .envを編集（API_ENDPOINT, OLLAMA_HOST, OLLAMA_MODEL, DRY_RUN）
+# .envを編集（API_ENDPOINT, OLLAMA_HOST, OLLAMA_MODEL）
 
-# 4. ボットの鍵を生成
-python scripts/generate_keys.py
+# 5. ボットの鍵を生成
+uv run python scripts/generate_keys.py
 
-# 5. ボット履歴書を作成
+# 6. ボット履歴書を作成
 # bots/profiles/bot001.yaml, bot002.yaml などを作成
 
-# 6. Ollama起動（オプション）
+# 7. Ollama起動（必須）
 ollama serve
 # 別ターミナルで:
-ollama pull llama3.2:3b
+ollama pull gemma2:2b
 
-# 7. 実行
-python -m src.main
+# 8. テスト実行（dry-run）
+uv run python -m src.cli generate --all --dry-run
+uv run python -m src.cli queue --status dry_run
 ```
 
 ### 2 回目以降
 
 ```bash
-# Ollama起動（使う場合）
+# Ollama起動（必須）
 ollama serve
 
 # 別ターミナルで実行
 cd sinov
-source .venv/bin/activate  # 仮想環境使用時
-python -m src.main
+uv run python -m src.main
 ```
 
 ### 停止
@@ -49,6 +52,38 @@ python -m src.main
 ```bash
 # Ctrl+C で停止
 # 状態は自動的に bots/states.json に保存される
+```
+
+## CLIワークフロー
+
+投稿は必ずレビュープロセスを経てから本番投稿されます。
+
+### 基本的な流れ
+
+```bash
+# 1. 投稿を生成（pending.json へ）
+uv run python -m src.cli generate --all
+
+# 2. キューを確認
+uv run python -m src.cli queue --summary
+uv run python -m src.cli review list
+
+# 3. レビュー（承認/拒否）
+uv run python -m src.cli review approve <entry_id>
+uv run python -m src.cli review reject <entry_id> --note "修正必要"
+
+# 4. 承認済みエントリーを投稿
+uv run python -m src.cli post
+```
+
+### プレビュー（dry-run）
+
+```bash
+# レビュー不要で dry_run.json に直接保存
+uv run python -m src.cli generate --all --dry-run
+
+# 内容を確認
+uv run python -m src.cli queue --status dry_run
 ```
 
 ## systemd サービス化（Linux）
@@ -72,8 +107,7 @@ After=network.target
 Type=simple
 User=your-username
 WorkingDirectory=/path/to/sinov
-Environment="PATH=/path/to/sinov/.venv/bin"
-ExecStart=/path/to/sinov/.venv/bin/python -m src.main
+ExecStart=/home/your-username/.local/bin/uv run python -m src.main
 Restart=always
 RestartSec=10
 
@@ -124,15 +158,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# uv のインストール
+RUN pip install uv
+
 # 依存関係のインストール
-RUN pip install --no-cache-dir \
-    nostr-sdk \
-    pyyaml \
-    python-dotenv \
-    httpx \
-    ollama \
-    pydantic \
-    pydantic-settings
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
 # アプリケーションのコピー
 COPY src/ ./src/
@@ -141,7 +172,7 @@ COPY bots/ ./bots/
 COPY .env .env
 
 # 実行
-CMD ["python", "-m", "src.main"]
+CMD ["uv", "run", "python", "-m", "src.main"]
 ```
 
 ### docker-compose.yml
@@ -156,8 +187,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./bots:/app/bots
+      - ./.env:/app/.env
+      - ./.env.keys:/app/.env.keys
     environment:
-      - NOSTR_RELAYS=wss://nos.lol,wss://relay.damus.io
       - OLLAMA_HOST=http://ollama:11434
     depends_on:
       - ollama
@@ -199,31 +231,48 @@ docker-compose logs -f sinov
 docker-compose down
 
 # Ollamaモデルのダウンロード
-docker-compose exec ollama ollama pull llama3.2:3b
+docker-compose exec ollama ollama pull gemma2:2b
+```
+
+### Docker 内での CLI コマンド
+
+```bash
+# 投稿生成
+docker-compose exec sinov uv run python -m src.cli generate --all --dry-run
+
+# キュー確認
+docker-compose exec sinov uv run python -m src.cli queue --summary
+
+# レビュー
+docker-compose exec sinov uv run python -m src.cli review list
+docker-compose exec sinov uv run python -m src.cli review approve <id>
+
+# 投稿
+docker-compose exec sinov uv run python -m src.cli post
 ```
 
 ## VPS デプロイ
 
 ### 推奨スペック
 
-**最小構成（LLM なし）:**
+**最小構成:**
 
-- CPU: 1 コア
-- メモリ: 512MB
-- ストレージ: 10GB
+- CPU: 2 コア
+- メモリ: 4GB（LLM 使用時）
+- ストレージ: 20GB
 
-**推奨構成（LLM 使用）:**
+**推奨構成:**
 
-- CPU: 2 コア以上
-- メモリ: 4GB 以上（llama3.2:3b 使用時）
-- ストレージ: 20GB 以上
+- CPU: 4 コア以上
+- メモリ: 8GB 以上
+- ストレージ: 40GB 以上
 
 ### VPS プロバイダ例
 
 - DigitalOcean Droplet
 - Vultr
 - Linode
-- AWS EC2 t3.small
+- AWS EC2 t3.medium
 - Hetzner Cloud
 
 ### デプロイ手順
@@ -246,11 +295,18 @@ sudo apt install -y python3.11 python3-pip python3-venv
 # Git
 sudo apt install -y git
 
-# Ollama（オプション）
+# Ollama（必須）
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-#### 3. アプリケーションのデプロイ
+#### 3. uv のインストール
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc  # または再ログイン
+```
+
+#### 4. アプリケーションのデプロイ
 
 ```bash
 # プロジェクトのクローン
@@ -259,40 +315,37 @@ sudo git clone <repository-url> sinov
 sudo chown -R $USER:$USER /opt/sinov
 cd sinov
 
-# 仮想環境作成
-python3.11 -m venv .venv
-source .venv/bin/activate
-
 # 依存関係インストール
-pip install nostr-sdk pyyaml python-dotenv httpx ollama pydantic pydantic-settings
+uv sync
 
 # 環境設定
 cp .env.example .env
+cp .env.keys.example .env.keys
 nano .env
 
 # 鍵生成
-python scripts/generate_keys.py
+uv run python scripts/generate_keys.py
 
 # ボット履歴書を配置
 # （ローカルから scp でアップロード）
 scp -r bots/profiles/* user@your-vps-ip:/opt/sinov/bots/profiles/
 ```
 
-#### 4. Ollama モデルのダウンロード（使う場合）
+#### 5. Ollama モデルのダウンロード
 
 ```bash
 # Ollama起動
-ollama serve &
+sudo systemctl start ollama
 
 # モデルダウンロード
-ollama pull llama3.2:3b
+ollama pull gemma2:2b
 ```
 
-#### 5. systemd サービス化
+#### 6. systemd サービス化
 
 上記の「systemd サービス化」セクションを参照。
 
-#### 6. ファイアウォール設定（必要に応じて）
+#### 7. ファイアウォール設定（必要に応じて）
 
 ```bash
 sudo ufw allow ssh
@@ -313,8 +366,7 @@ cd /opt/sinov
 git pull
 
 # 依存関係更新（必要に応じて）
-source .venv/bin/activate
-pip install --upgrade nostr-sdk pyyaml python-dotenv httpx ollama pydantic
+uv sync
 
 # サービス再起動
 sudo systemctl start sinov
@@ -363,6 +415,19 @@ cat bots/states.json | jq '[.[].total_posts] | add'
 cat bots/states.json | jq 'max_by(.last_post_time)'
 ```
 
+### キューの確認
+
+```bash
+# サマリー
+uv run python -m src.cli queue --summary
+
+# ペンディング一覧
+uv run python -m src.cli queue --status pending
+
+# 投稿済み一覧
+uv run python -m src.cli queue --status posted
+```
+
 ### リソース使用量
 
 ```bash
@@ -383,9 +448,10 @@ du -sh /opt/sinov
 
 ```bash
 # バックアップすべきファイル
-bots/keys.json         # 秘密鍵（最重要）
+.env.keys              # 秘密鍵（最重要）
 bots/states.json       # 実行状態
 bots/profiles/*.yaml   # ボット履歴書
+bots/queue/*.json      # キューファイル
 .env                   # 環境設定
 ```
 
@@ -403,9 +469,10 @@ mkdir -p "$BACKUP_DIR"
 
 tar -czf "$BACKUP_DIR/sinov_backup_$DATE.tar.gz" \
   -C "$SOURCE_DIR" \
-  bots/keys.json \
+  .env.keys \
   bots/states.json \
   bots/profiles/ \
+  bots/queue/ \
   .env
 
 # 古いバックアップを削除（30日以上前）
@@ -444,8 +511,7 @@ sudo journalctl -u sinov -n 100
 
 # 手動実行してエラー確認
 cd /opt/sinov
-source .venv/bin/activate
-python -m src.main
+uv run python -m src.main
 ```
 
 ### 投稿が送信されない
@@ -463,7 +529,13 @@ python -m src.main
    cat .env
    ```
 
-3. **状態ファイル確認**
+3. **キュー確認**
+   ```bash
+   uv run python -m src.cli queue --summary
+   # approved が 0 なら、レビューが必要
+   ```
+
+4. **状態ファイル確認**
    ```bash
    cat bots/states.json | jq '.[0].next_post_time'
    # 未来の時刻が設定されているか確認
@@ -493,48 +565,13 @@ systemctl restart ollama
 journalctl -u ollama -f
 ```
 
-## パフォーマンスチューニング
-
-### 投稿チェック間隔の調整
-
-```python
-# src/main.py
-await manager.run_forever(check_interval=30)  # 30秒に変更
-```
-
-### 並列投稿
-
-大量のボットを並列処理する場合：
-
-```python
-# src/bot_manager.py の run_once() を修正
-async def run_once(self) -> None:
-    tasks = []
-    for bot_id in self.bots.keys():
-        if self.should_post_now(bot_id):
-            task = self._process_single_bot(bot_id)
-            tasks.append(task)
-
-    if tasks:
-        await asyncio.gather(*tasks, return_exceptions=True)
-
-    self._save_states()
-
-async def _process_single_bot(self, bot_id: int) -> None:
-    try:
-        content = await self.generate_post_content(bot_id)
-        await self.post(bot_id, content)
-    except Exception as e:
-        print(f"Error for bot {bot_id}: {e}")
-```
-
 ## セキュリティ
 
 ### ファイルパーミッション
 
 ```bash
 # 秘密鍵ファイルを保護
-chmod 600 bots/keys.json
+chmod 600 .env.keys
 
 # ディレクトリ権限
 chmod 700 bots/
@@ -546,10 +583,10 @@ chmod 700 bots/
 
 ```bash
 # 良い例
-NOSTR_RELAYS=wss://nos.lol,wss://relay.damus.io
+# .env.keys に nsec を保存
 
 # 悪い例（コード内にハードコード）
-RELAYS = ["wss://nos.lol"]
+NSEC = "nsec1..."
 ```
 
 ### SSH 鍵認証
@@ -567,21 +604,22 @@ sudo systemctl restart sshd
 
 A: いいえ。必要な数だけ履歴書を作成すれば OK です。`bots/profiles/`にある YAML ファイルの数だけボットが起動します。
 
-### Q: LLM なしでも動く？
+### Q: レビューなしで直接投稿できる？
 
-A: はい。Ollama がない場合は自動的にシンプルなテンプレート生成にフォールバックします。
+A: 現在の設計ではレビュープロセスが必須です。`generate` → `review approve` → `post` の流れになります。プレビュー目的なら `generate --dry-run` を使用してください。
 
 ### Q: リレーは変更できる？
 
-A: はい。`.env`の`NOSTR_RELAYS`を編集してください。
+A: はい。`.env`の`API_ENDPOINT`を編集してください。
 
 ### Q: 鍵を再生成したい
 
 A:
 
 ```bash
-rm bots/keys.json
-python scripts/generate_keys.py
+# .env.keys を編集して該当の鍵を削除
+# または全削除してから再生成
+uv run python scripts/generate_keys.py
 ```
 
 **注意**: 新しい鍵になるため、以前の投稿とは別のアカウントになります。
@@ -589,3 +627,16 @@ python scripts/generate_keys.py
 ### Q: ボットの行動を変更するには？
 
 A: `bots/profiles/botXXX.yaml`を編集して、アプリケーションを再起動してください。
+
+### Q: キューをクリアしたい
+
+A:
+
+```bash
+# 全キューをクリア
+rm -f bots/queue/*.json
+
+# 特定ステータスのみクリア
+rm -f bots/queue/pending.json
+rm -f bots/queue/rejected.json
+```

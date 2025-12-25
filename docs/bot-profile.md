@@ -485,5 +485,10 @@ postLengthMax: 200
 
 7. **バリデーション**
    ```bash
-   python -m src.main  # 起動時に自動チェック
+   # 起動時に自動チェック
+   uv run python -m src.main
+
+   # または dry-run で投稿プレビュー
+   uv run python -m src.cli generate --bot bot004 --dry-run
+   uv run python -m src.cli queue --status dry_run
    ```
