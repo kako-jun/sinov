@@ -15,6 +15,7 @@ from ..domain import (
     PostType,
     QueueEntry,
     QueueStatus,
+    TextProcessor,
     extract_bot_id,
 )
 from ..domain.models import BotKey
@@ -143,6 +144,11 @@ class StalkerService:
             prompt, max_length=profile.behavior.post_length_max
         )
         content = self.content_strategy.clean_content(content)
+
+        # 文章スタイル加工
+        if profile.writing_style:
+            text_processor = TextProcessor(profile.writing_style)
+            content = text_processor.process(content)
 
         # MumbleAboutを作成
         mumble_about = MumbleAbout(

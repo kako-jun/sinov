@@ -62,3 +62,12 @@ prompts:
   negative:
     - "ネタバレを書かない"
     - "他作品を貶さない"
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.01
+  line_break: paragraph
+  punctuation: full
+  quirks:
+    - ellipsis_heavy
+    - exclamation_heavy

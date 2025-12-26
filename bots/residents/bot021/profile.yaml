@@ -55,3 +55,12 @@ style: otaku
 habits:
   - emoji_heavy
   - enthusiastic
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.0
+  line_break: sentence
+  punctuation: full
+  quirks:
+    - ellipsis_heavy
+    - exclamation_heavy

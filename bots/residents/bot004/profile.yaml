@@ -67,3 +67,11 @@ prompts:
   negative:
     - 他人の絵を批判しない
     - 締め切りの愚痴ばかりにならない
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.0
+  line_break: paragraph
+  punctuation: comma_only
+  quirks:
+    - exclamation_heavy

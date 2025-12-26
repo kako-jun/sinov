@@ -6,8 +6,9 @@ import random
 
 from ..config import ContentSettings
 from .memory import BotMemory
-from .models import BotProfile, BotState, HabitType, Interests, Prompts, StyleType
+from .models import BotProfile, BotState, HabitType, Interests, Prompts, StyleType, WritingStyle
 from .queue import ConversationContext, ReplyTarget
+from .text_processor import get_writing_style_prompt_instructions
 
 # 連作を開始する確率
 SERIES_START_PROBABILITY = 0.2
@@ -99,6 +100,9 @@ class ContentStrategy:
         # 習慣の反映
         habit_instructions = self._get_habit_instructions(profile.habits)
 
+        # 文章スタイルの癖（プロンプトで指示するもの）
+        writing_style_instructions = self._get_writing_style_instructions(profile.writing_style)
+
         # プロンプト（positive/negative）
         prompt_instructions = self._get_prompt_instructions(merged_prompts)
 
@@ -122,7 +126,7 @@ class ContentStrategy:
 【条件】
 - 必ず日本語で書け（中国語は絶対に使うな）
 - 1文か2文の文
-{prompt_instructions}{habit_instructions}{history_constraint}{rejection_feedback}
+{prompt_instructions}{habit_instructions}{writing_style_instructions}{history_constraint}{rejection_feedback}
 
 投稿:"""
 
@@ -143,6 +147,20 @@ class ContentStrategy:
             if desc:
                 lines.append(f"- {desc}")
         return "\n".join(lines) if len(lines) > 1 else ""
+
+    def _get_writing_style_instructions(self, writing_style: WritingStyle | None) -> str:
+        """文章スタイルの指示を取得（プロンプトで指示すべきもののみ）"""
+        if not writing_style:
+            return ""
+
+        instructions = get_writing_style_prompt_instructions(writing_style)
+        if not instructions:
+            return ""
+
+        lines = ["\n【文章の癖】"]
+        for instruction in instructions:
+            lines.append(f"- {instruction}")
+        return "\n".join(lines)
 
     def _get_prompt_instructions(self, prompts: Prompts | None) -> str:
         """positive/negativeプロンプトの指示を取得"""
@@ -324,6 +342,9 @@ class ContentStrategy:
         # 文体スタイル
         style_instruction = self._get_style_instruction(profile.style)
 
+        # 文章スタイルの癖
+        writing_style_instructions = self._get_writing_style_instructions(profile.writing_style)
+
         # 禁止事項（negativeプロンプトのみ使用）
         negative_instructions = ""
         if merged_prompts and merged_prompts.negative:
@@ -346,7 +367,7 @@ class ContentStrategy:
 【返信のルール】
 - 短めに（20〜80文字程度）
 - 会話の文脈に沿った返信をする
-- 必ず日本語で書く{closing_hint}{negative_instructions}
+- 必ず日本語で書く{closing_hint}{negative_instructions}{writing_style_instructions}
 
 返信:"""
 
@@ -362,6 +383,9 @@ class ContentStrategy:
         """ぶつぶつ（引用なしの言及）用のプロンプトを生成"""
         # 文体スタイル
         style_instruction = self._get_style_instruction(profile.style)
+
+        # 文章スタイルの癖
+        writing_style_instructions = self._get_writing_style_instructions(profile.writing_style)
 
         # 禁止事項（negativeプロンプトのみ使用）
         negative_instructions = ""
@@ -382,7 +406,7 @@ class ContentStrategy:
 - 直接話しかけない（「〜さん、」で始めない）
 - 「〜してるな」「〜だなあ」のような独り言
 - 20〜60文字程度
-- 必ず日本語で書く{negative_instructions}
+- 必ず日本語で書く{negative_instructions}{writing_style_instructions}
 
 独り言:"""
 

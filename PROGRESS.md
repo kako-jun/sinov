@@ -214,6 +214,28 @@
 - [x] 各サービスへの統合
   - BotService, InteractionService, tick.py
 
+### 文章スタイルシステム（2025-12-26 完了）
+- [x] WritingStyleモデルの実装（`src/domain/models.py`）
+  - `typo_rate`: 誤字率（0.0〜0.1）
+  - `LineBreakStyle`: 改行スタイル（none, minimal, sentence, paragraph）
+  - `PunctuationStyle`: 句読点スタイル（full, comma_only, period_only, none）
+  - `WritingQuirk`: 文章の癖（w_heavy, kusa, ellipsis_heavy, suffix_ne等12種）
+- [x] TextProcessorクラス（`src/domain/text_processor.py`）
+  - 誤字挿入（TYPO_MAP使用）
+  - 改行スタイル適用
+  - 句読点スタイル適用
+  - 癖の適用（確率的処理）
+- [x] プロンプト指示の統合
+  - ContentStrategy._get_writing_style_instructions()
+  - create_prompt, create_reply_prompt, create_mumble_promptに反映
+- [x] コンテンツ生成後の加工
+  - BotService.generate_post_content()にTextProcessor統合
+  - InteractionService（リプライ生成）にTextProcessor統合
+  - StalkerService（ぶつぶつ生成）にTextProcessor統合
+- [x] 95人分のwriting_style設定
+  - scripts/add_writing_style.py による一括追加
+  - 性格・職業・文体に基づく自動設定
+
 ## 未着手
 
 ### 関係性の拡充

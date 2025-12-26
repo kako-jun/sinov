@@ -63,3 +63,11 @@ prompts:
     - "技術的な話題を共有する"
   negative:
     - "特定のプラットフォームを批判しない"
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.0
+  line_break: paragraph
+  punctuation: comma_only
+  quirks:
+    - exclamation_heavy

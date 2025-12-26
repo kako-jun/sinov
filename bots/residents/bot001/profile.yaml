@@ -64,3 +64,11 @@ prompts:
   negative:
     - 他の技術を批判しない
     - 愚痴っぽくならない
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.0
+  line_break: minimal
+  punctuation: full
+  quirks:
+    - arrow

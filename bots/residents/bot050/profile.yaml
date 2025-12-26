@@ -55,3 +55,11 @@ style: polite
 habits:
   - tip_sharer
   - wip_poster
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.0
+  line_break: minimal
+  punctuation: full
+  quirks:
+    - suffix_ne

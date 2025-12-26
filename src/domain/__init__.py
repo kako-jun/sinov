@@ -20,12 +20,16 @@ from .models import (
     BotState,
     HabitType,
     Interests,
+    LineBreakStyle,
     Personality,
     PersonalityTraits,
     Prompts,
+    PunctuationStyle,
     Social,
     StyleType,
     TickState,
+    WritingQuirk,
+    WritingStyle,
 )
 from .news import BulletinBoard, NewsItem, ReporterConfig
 from .personality import PersonalityAnalyzer
@@ -51,6 +55,7 @@ from .relationships import (
     StalkerTarget,
 )
 from .scheduler import Scheduler
+from .text_processor import TextProcessor, get_writing_style_prompt_instructions
 
 __all__ = [
     "format_bot_name",
@@ -68,6 +73,10 @@ __all__ = [
     "TickState",
     "StyleType",
     "HabitType",
+    "LineBreakStyle",
+    "PunctuationStyle",
+    "WritingQuirk",
+    "WritingStyle",
     "Prompts",
     "ShortTermMemory",
     "AcquiredMemory",
@@ -105,4 +114,6 @@ __all__ = [
     "LogEntry",
     "DailyLog",
     "ActivityLogger",
+    "TextProcessor",
+    "get_writing_style_prompt_instructions",
 ]

@@ -53,3 +53,11 @@ style: normal
 
 # 特殊な習慣
 habits: []
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.01
+  line_break: minimal
+  punctuation: full
+  quirks:
+    - abbreviation

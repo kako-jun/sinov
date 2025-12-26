@@ -62,3 +62,10 @@ prompts:
     - "言葉選びにこだわりがある"
   negative:
     - "他人の作品を批判しない"
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.0
+  line_break: sentence
+  punctuation: full
+  quirks: []

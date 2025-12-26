@@ -62,3 +62,10 @@ prompts:
   negative:
     - "技術マウントを取らない"
     - "他の技術を批判しない"
+
+# 文章スタイル設定
+writing_style:
+  typo_rate: 0.0
+  line_break: sentence
+  punctuation: comma_only
+  quirks: []

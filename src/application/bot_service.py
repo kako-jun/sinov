@@ -19,6 +19,7 @@ from ..domain import (
     ContentStrategy,
     EventCalendar,
     Scheduler,
+    TextProcessor,
     format_bot_name,
 )
 from ..infrastructure import (
@@ -165,6 +166,11 @@ class BotService:
                 profile.behavior.post_length_min,
                 profile.behavior.post_length_max,
             )
+
+            # 文章スタイル加工（誤字、改行、句読点、癖）
+            if profile.writing_style:
+                text_processor = TextProcessor(profile.writing_style)
+                content = text_processor.process(content)
 
             # 記憶を更新
             self._update_memory_after_generate(bot_id, content, memory)

@@ -15,6 +15,7 @@ from ..domain import (
     PostType,
     QueueEntry,
     QueueStatus,
+    TextProcessor,
     format_bot_name,
 )
 from ..domain.interaction import InteractionManager
@@ -314,6 +315,11 @@ class InteractionService:
             prompt, max_length=profile.behavior.post_length_max
         )
         content = self.content_strategy.clean_content(content)
+
+        # 文章スタイル加工
+        if profile.writing_style:
+            text_processor = TextProcessor(profile.writing_style)
+            content = text_processor.process(content)
 
         # 会話コンテキストを作成
         conversation = ConversationContext(
@@ -647,6 +653,11 @@ class InteractionService:
             prompt, max_length=profile.behavior.post_length_max
         )
         content = self.content_strategy.clean_content(content)
+
+        # 文章スタイル加工
+        if profile.writing_style:
+            text_processor = TextProcessor(profile.writing_style)
+            content = text_processor.process(content)
 
         return QueueEntry(
             bot_id=bot_id,

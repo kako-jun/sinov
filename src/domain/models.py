@@ -32,6 +32,58 @@ class HabitType(str, Enum):
     ENTHUSIASTIC = "enthusiastic"  # テンション高め
 
 
+class LineBreakStyle(str, Enum):
+    """改行スタイル"""
+
+    NONE = "none"  # 改行なし（陰キャ、長文一気書き）
+    MINIMAL = "minimal"  # 最小限（必要な時だけ）
+    SENTENCE = "sentence"  # 一文ごとに改行
+    PARAGRAPH = "paragraph"  # 段落形式（複数改行で区切る）
+
+
+class PunctuationStyle(str, Enum):
+    """句読点スタイル"""
+
+    FULL = "full"  # 「、」「。」両方使う
+    COMMA_ONLY = "comma_only"  # 「、」だけ使う
+    PERIOD_ONLY = "period_only"  # 「。」だけ使う
+    NONE = "none"  # 使わない
+
+
+class WritingQuirk(str, Enum):
+    """文章の癖"""
+
+    W_HEAVY = "w_heavy"  # 「w」を多用
+    KUSA = "kusa"  # 「草」を使う
+    ELLIPSIS_HEAVY = "ellipsis_heavy"  # 「…」を多用
+    SUFFIX_NE = "suffix_ne"  # 語尾に「ね」
+    SUFFIX_NA = "suffix_na"  # 語尾に「な」
+    EXCLAMATION_HEAVY = "exclamation_heavy"  # 「！」を多用
+    QUESTION_HEAVY = "question_heavy"  # 「？」を多用
+    TILDE_HEAVY = "tilde_heavy"  # 「〜」を多用
+    PARENTHESES = "parentheses"  # （）で補足を入れる
+    ARROW = "arrow"  # 「→」を使う
+    KATAKANA_ENGLISH = "katakana_english"  # カタカナ英語を使う
+    ABBREVIATION = "abbreviation"  # 略語を使う（それな、わかる、など）
+
+
+class WritingStyle(BaseModel):
+    """文章スタイル設定"""
+
+    typo_rate: float = Field(
+        default=0.0, ge=0.0, le=0.1, description="誤字率（0.0〜0.1）"
+    )
+    line_break: LineBreakStyle = Field(
+        default=LineBreakStyle.MINIMAL, description="改行スタイル"
+    )
+    punctuation: PunctuationStyle = Field(
+        default=PunctuationStyle.FULL, description="句読点スタイル"
+    )
+    quirks: list[WritingQuirk] = Field(
+        default_factory=list, description="文章の癖リスト"
+    )
+
+
 class PersonalityTraits(BaseModel):
     """詳細な性格パラメータ（0.0〜1.0）"""
 
@@ -176,6 +228,9 @@ class BotProfile(BaseModel):
     )
     style: StyleType = Field(default=StyleType.NORMAL, description="文体スタイル")
     habits: list[HabitType] = Field(default_factory=list, description="特殊な習慣")
+    writing_style: WritingStyle | None = Field(
+        default=None, description="文章スタイル設定（誤字率、改行、句読点など）"
+    )
     prompts: Prompts | None = Field(default=None, description="個人プロンプト設定")
 
 
