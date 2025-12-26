@@ -212,8 +212,12 @@ class NpcService:
             finished = memory.advance_series(content)
             if finished:
                 print("      ✅ 連作完了")
-                # 連作完了したら長期記憶に昇格
-                memory.promote_to_long_term(f"連作「{theme}」を完了", importance=0.7)
+                # 連作完了したら長期記憶に昇格（テーマをタグとして付与）
+                memory.promote_to_long_term(
+                    f"連作「{theme}」を完了",
+                    importance=0.7,
+                    tags=[theme] if theme else [],
+                )
                 # ログ記録
                 if self.log_repo and theme:
                     self.log_repo.add_entry(npc_id, ActivityLogger.log_series_end(theme))

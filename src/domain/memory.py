@@ -6,9 +6,31 @@
 連作状態: シリーズ投稿の管理。
 """
 
+import re
 from datetime import datetime
 
 from pydantic import BaseModel, Field
+
+
+def extract_tags_from_content(content: str) -> list[str]:
+    """
+    記憶内容からタグを抽出（想起用）
+
+    シンプルな実装: 日本語の名詞っぽい単語を抽出
+    """
+    # カタカナ語（技術用語など）を抽出
+    katakana = re.findall(r"[ァ-ヶー]+", content)
+
+    # 英単語を抽出
+    english = re.findall(r"[A-Za-z]{3,}", content)
+
+    # 「〜を」「〜に」「〜が」で終わる名詞句を抽出
+    nouns = re.findall(r"([一-龯ぁ-んァ-ヶ]+)[をにがはで]", content)
+
+    # 重複を除去して返す
+    tags = list(set(katakana + english + nouns))
+    # 短すぎるものを除外
+    return [t for t in tags if len(t) >= 2][:10]
 
 
 class ShortTermMemory(BaseModel):
@@ -26,6 +48,7 @@ class AcquiredMemory(BaseModel):
     content: str = Field(description="記憶の内容")
     acquired_at: str = Field(description="獲得日時（ISO形式）")
     importance: float = Field(default=0.5, ge=0.0, le=1.0, description="重要度")
+    tags: list[str] = Field(default_factory=list, description="関連タグ（想起用）")
 
 
 class SeriesState(BaseModel):
@@ -137,10 +160,12 @@ class NpcMemory(BaseModel):
 
         for memory in self.short_term:
             if memory.strength >= threshold:
-                # 長期記憶に昇格
+                # 長期記憶に昇格（タグを自動抽出）
+                tags = extract_tags_from_content(memory.content)
                 self.promote_to_long_term(
                     content=memory.content,
                     importance=0.6,  # リアクションで強化されたので重要度高め
+                    tags=tags,
                 )
                 promoted.append(memory.content)
             else:
@@ -149,19 +174,49 @@ class NpcMemory(BaseModel):
         self.short_term = remaining
         return promoted
 
-    def promote_to_long_term(self, content: str, importance: float = 0.5) -> None:
+    def promote_to_long_term(
+        self, content: str, importance: float = 0.5, tags: list[str] | None = None
+    ) -> None:
         """短期記憶を長期記憶に昇格"""
         self.long_term_acquired.append(
             AcquiredMemory(
                 content=content,
                 acquired_at=datetime.now().isoformat(),
                 importance=importance,
+                tags=tags or [],
             )
         )
         # 最大50件に制限
         if len(self.long_term_acquired) > 50:
             self.long_term_acquired.sort(key=lambda m: m.importance, reverse=True)
             self.long_term_acquired = self.long_term_acquired[:50]
+
+    def get_relevant_long_term(self, topic: str, limit: int = 3) -> list[str]:
+        """
+        今の話題に関連する長期記憶を取得（想起）
+
+        Args:
+            topic: 現在の話題
+            limit: 取得する最大件数
+
+        Returns:
+            関連する記憶の内容リスト
+        """
+        topic_lower = topic.lower()
+
+        # タグまたは内容がトピックに関連する記憶を抽出
+        relevant = []
+        for memory in self.long_term_acquired:
+            # タグでマッチ
+            if any(tag.lower() in topic_lower or topic_lower in tag.lower() for tag in memory.tags):
+                relevant.append(memory)
+            # 内容でマッチ（タグがない場合のフォールバック）
+            elif topic_lower in memory.content.lower():
+                relevant.append(memory)
+
+        # 重要度順にソート
+        relevant.sort(key=lambda m: m.importance, reverse=True)
+        return [m.content for m in relevant[:limit]]
 
     def add_recent_post(self, content: str) -> None:
         """最近の投稿を追加"""

@@ -80,12 +80,19 @@ class ContentStrategy:
             news_item = random.choice(shared_news)
             news_context = f"\n最近のニュース: {news_item}\n→ これに関連した話題もOK"
 
-        # 短期記憶から興味を取得
+        # 短期記憶から興味を取得（上位N件のみ）
         memory_context = ""
         if memory and memory.short_term:
             active_interests = memory.get_active_interests()[:3]
             if active_interests:
                 memory_context = "\n最近興味があること: " + "、".join(active_interests)
+
+        # 長期記憶から関連する経験を想起
+        long_term_context = ""
+        if memory and memory.long_term_acquired:
+            relevant_memories = memory.get_relevant_long_term(topic, limit=2)
+            if relevant_memories:
+                long_term_context = "\n過去の経験: " + "、".join(relevant_memories)
 
         # 過去投稿の制約（重複防止）
         history_constraint = ""
@@ -117,7 +124,7 @@ class ContentStrategy:
 
         prompt = f"""以下の条件でSNS投稿を1つ書け:
 
-テーマ: {topic}{context_continuation}{news_context}{memory_context}
+テーマ: {topic}{context_continuation}{news_context}{memory_context}{long_term_context}
 文字数: 最大{profile.behavior.post_length_max}文字
 
 【文体】
