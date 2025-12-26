@@ -100,8 +100,7 @@
   - 学生・趣味系: 11人
   - ニッチ・特殊系: 15人
 - [x] 裏方 5人
-  - 記者3人（reporter_tech, reporter_game, reporter_creative）
-  - ニュースコレクター1人（bot_news_collector）
+  - 記者4人（reporter_tech, reporter_game, reporter_creative, reporter_general）
   - レビューア1人（reviewer）
 
 ### フォルダ構造リファクタリング（2025-12-26）
@@ -201,6 +200,19 @@
   - `BotService._load_rejected_posts()` で変換
   - `ContentStrategy._get_rejection_feedback()` でプロンプトに反映
   - 最新2件のNG例と理由をプロンプトに含める
+
+### 活動ログシステム（2025-12-26 完了）
+- [x] 日報形式のログ（作者確認用、LLM入力には使わない）
+  - `src/domain/activity_log.py`: LogEntry, DailyLog, ActivityLogger
+  - `src/infrastructure/storage/log_repo.py`: LogRepository（7日分保持）
+- [x] 記録内容
+  - 投稿生成（プロンプト要約、生成内容、連作情報）
+  - レビュー結果（承認/却下、理由）
+  - 投稿完了（event_id）
+  - リプライ/リアクション送受信（パラメータ変化含む）
+  - 連作開始/完了
+- [x] 各サービスへの統合
+  - BotService, InteractionService, tick.py
 
 ## 未着手
 
