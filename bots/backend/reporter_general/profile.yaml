@@ -1,9 +1,9 @@
-# 一般時事担当記者（IT・創作に絞る）
+# 一般時事担当記者（IT・エンタメフィルター）
 
 id: 104
 name: "reporter_general"
 role: 記者
-specialty: 一般時事（IT・創作フィルター）
+specialty: 一般時事（IT・ゲーム・アニメ・漫画）
 special: true
 posts: false
 
@@ -15,8 +15,8 @@ personality:
 interests:
   topics:
     - 社会トレンド
-    - ビジネス
-    - 経済
+    - エンタメ
+    - テクノロジー
     - 文化
   keywords:
     - トレンド
@@ -42,7 +42,7 @@ social:
 
 background:
   occupation: "一般記者"
-  experience: "一般ニュースをIT・創作視点でフィルタリング"
+  experience: "一般ニュースをIT・エンタメ視点でフィルタリング"
   hobbies: []
   favoriteQuotes: []
 
@@ -53,30 +53,58 @@ sources:
     type: rss
     priority: 1
 
-  - name: Yahoo!ニュース（IT）
-    url: https://news.yahoo.co.jp/rss/topics/it.xml
+  - name: Yahoo!ニュース（エンタメ）
+    url: https://news.yahoo.co.jp/rss/topics/entertainment.xml
     type: rss
     priority: 2
 
 filter:
-  # IT・創作に関連するもののみ通す
+  # IT・ゲーム・アニメ・漫画など（創作に絞らず広く）
   include_keywords:
+    # IT系
     - IT
     - テクノロジー
     - アプリ
     - サービス
     - AI
     - スタートアップ
-    - クリエイター
-    - イラスト
-    - アニメ
-    - ゲーム
-    - 漫画
-    - 音楽
-    - 動画
-    - 配信
     - SNS
     - インターネット
+    - スマホ
+    - PC
+    # ゲーム（全般）
+    - ゲーム
+    - Nintendo
+    - 任天堂
+    - PlayStation
+    - PS5
+    - Xbox
+    - Steam
+    - eスポーツ
+    - ソシャゲ
+    - スマホゲー
+    # アニメ（全般）
+    - アニメ
+    - 声優
+    - 放送
+    - 劇場版
+    - 映画化
+    # 漫画（全般）
+    - 漫画
+    - マンガ
+    - コミック
+    - 連載
+    - ジャンプ
+    - マガジン
+    - サンデー
+    # その他エンタメ
+    - Vtuber
+    - 配信
+    - YouTube
+    - 動画
+    - 音楽
+    - ライブ
+    - フェス
 
   # 避けるべきトピック
   exclude_keywords:
