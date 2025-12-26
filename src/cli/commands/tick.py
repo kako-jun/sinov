@@ -81,6 +81,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
         memory_repo=service.memory_repo,
         affinity_settings=settings.affinity,
         profile_repo=service.profile_repo,
+        log_repo=service.log_repo,
     )
     interactions = await interaction_service.process_interactions(target_ids)
     chain_replies = await interaction_service.process_reply_chains(target_ids)
@@ -121,6 +122,9 @@ async def run_reviewer(service: BotService, queue_repo: QueueRepository) -> int:
             else:
                 queue_repo.reject(entry.id, reason)
                 print(f"      ❌ {entry.bot_name}: {reason}")
+
+            # ログ記録
+            service.log_review(entry.bot_id, entry.content, is_approved, reason)
 
             reviewed += 1
         except Exception as e:

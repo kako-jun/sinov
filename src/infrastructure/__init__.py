@@ -5,6 +5,7 @@ from .llm import LLMProvider, OllamaProvider
 from .nostr import NostrPublisher
 from .storage import (
     BulletinRepository,
+    LogRepository,
     MemoryRepository,
     ProfileRepository,
     QueueRepository,
@@ -26,4 +27,5 @@ __all__ = [
     "BulletinRepository",
     "RSSClient",
     "RSSItem",
+    "LogRepository",
 ]

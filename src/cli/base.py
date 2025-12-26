@@ -8,6 +8,7 @@ from ..application import BotService
 from ..config import Settings
 from ..domain import extract_bot_id
 from ..infrastructure import (
+    LogRepository,
     MemoryRepository,
     NostrPublisher,
     OllamaProvider,
@@ -46,6 +47,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
     state_repo = StateRepository(settings.residents_dir)
     memory_repo = MemoryRepository(settings.residents_dir)
     queue_repo = QueueRepository(settings.queue_dir)
+    log_repo = LogRepository(str(settings.residents_dir))
 
     service = BotService(
         settings=settings,
@@ -55,6 +57,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
         state_repo=state_repo,
         memory_repo=memory_repo,
         queue_repo=queue_repo,
+        log_repo=log_repo,
     )
 
     print("Loading bots...")

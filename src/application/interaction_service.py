@@ -6,9 +6,11 @@ from datetime import datetime
 
 from ..config import AffinitySettings
 from ..domain import (
+    ActivityLogger,
     BotProfile,
     BotState,
     ContentStrategy,
+    ParameterChange,
     PersonalityAnalyzer,
     PostType,
     QueueEntry,
@@ -18,7 +20,13 @@ from ..domain import (
 from ..domain.interaction import InteractionManager
 from ..domain.models import BotKey
 from ..domain.queue import ConversationContext, ReplyTarget
-from ..infrastructure import LLMProvider, MemoryRepository, ProfileRepository, QueueRepository
+from ..infrastructure import (
+    LLMProvider,
+    LogRepository,
+    MemoryRepository,
+    ProfileRepository,
+    QueueRepository,
+)
 from ..infrastructure.storage.relationship_repo import RelationshipRepository
 from .affinity_service import AffinityService
 
@@ -36,6 +44,7 @@ class InteractionService:
         memory_repo: MemoryRepository | None = None,
         affinity_settings: AffinitySettings | None = None,
         profile_repo: ProfileRepository | None = None,
+        log_repo: LogRepository | None = None,
     ):
         self.llm_provider = llm_provider
         self.queue_repo = queue_repo
@@ -45,6 +54,7 @@ class InteractionService:
         self.memory_repo = memory_repo
         self.affinity_settings = affinity_settings or AffinitySettings()
         self.profile_repo = profile_repo
+        self.log_repo = log_repo
 
         # 関係性データを読み込み
         self.relationship_data = relationship_repo.load_all()
@@ -134,13 +144,56 @@ class InteractionService:
                     if new_entry:
                         self.queue_repo.add(new_entry)
                         # 好感度を更新（元投稿者 → リプライした人）
+                        old_affinity = target_affinity
                         self.affinity_service.update_on_interaction(bot_id, entry.bot_id, "reply")
+                        new_affinity = self._get_affinity(entry.bot_id, bot_id)
                         # 記憶を強化（元投稿者の記憶）
                         self._update_memory_on_feedback(entry.bot_id, entry.content, "reply")
                         # 気分を更新（元投稿者）
+                        old_mood = self._get_mood(entry.bot_id)
                         self._update_mood_on_feedback(entry.bot_id, "reply")
+                        new_mood = self._get_mood(entry.bot_id)
                         generated += 1
                         print(f"      💬 {profile.name} → {entry.bot_name}")
+
+                        # ログ記録
+                        if self.log_repo:
+                            rel_type = self._get_relationship_type(bot_name, target_bot_name)
+                            # 送信側のログ（リプライ送信）
+                            self.log_repo.add_entry(
+                                bot_id,
+                                ActivityLogger.log_reply_sent(
+                                    entry.bot_name,
+                                    new_entry.content,
+                                    rel_type,
+                                ),
+                            )
+                            # 受信側のログ（リプライ受信 + パラメータ変化）
+                            changes = []
+                            if old_affinity != new_affinity:
+                                changes.append(ParameterChange(
+                                    name="好感度",
+                                    old_value=old_affinity,
+                                    new_value=new_affinity,
+                                    reason="リプライを受けた",
+                                    target=profile.name,
+                                ))
+                            if old_mood != new_mood:
+                                changes.append(ParameterChange(
+                                    name="気分",
+                                    old_value=old_mood,
+                                    new_value=new_mood,
+                                    reason="リプライを受けた",
+                                ))
+                            self.log_repo.add_entry(
+                                entry.bot_id,
+                                ActivityLogger.log_reply_received(
+                                    profile.name,
+                                    new_entry.content,
+                                    rel_type,
+                                    changes,
+                                ),
+                            )
 
                 elif reaction_type == "reaction":
                     # リアクションを生成
@@ -152,15 +205,53 @@ class InteractionService:
                     if new_entry:
                         self.queue_repo.add(new_entry)
                         # 好感度を更新（元投稿者 → リアクションした人）
+                        old_affinity = target_affinity
                         self.affinity_service.update_on_interaction(
                             bot_id, entry.bot_id, "reaction"
                         )
+                        new_affinity = self._get_affinity(entry.bot_id, bot_id)
                         # 記憶を強化（元投稿者の記憶）
                         self._update_memory_on_feedback(entry.bot_id, entry.content, "reaction")
                         # 気分を更新（元投稿者）
+                        old_mood = self._get_mood(entry.bot_id)
                         self._update_mood_on_feedback(entry.bot_id, "reaction")
+                        new_mood = self._get_mood(entry.bot_id)
                         generated += 1
                         print(f"      ❤️  {profile.name} → {entry.bot_name}")
+
+                        # ログ記録
+                        if self.log_repo:
+                            emoji = new_entry.content  # リアクションは絵文字
+                            # 送信側のログ
+                            self.log_repo.add_entry(
+                                bot_id,
+                                ActivityLogger.log_reaction_sent(
+                                    entry.bot_name, emoji, entry.content
+                                ),
+                            )
+                            # 受信側のログ
+                            changes = []
+                            if old_affinity != new_affinity:
+                                changes.append(ParameterChange(
+                                    name="好感度",
+                                    old_value=old_affinity,
+                                    new_value=new_affinity,
+                                    reason="リアクションを受けた",
+                                    target=profile.name,
+                                ))
+                            if old_mood != new_mood:
+                                changes.append(ParameterChange(
+                                    name="気分",
+                                    old_value=old_mood,
+                                    new_value=new_mood,
+                                    reason="リアクションを受けた",
+                                ))
+                            self.log_repo.add_entry(
+                                entry.bot_id,
+                                ActivityLogger.log_reaction_received(
+                                    profile.name, emoji, entry.content, changes
+                                ),
+                            )
 
         return generated
 
@@ -395,6 +486,20 @@ class InteractionService:
         # ボットデータを更新（stateは参照なので自動的に反映）
         if new_mood != old_mood:
             print(f"         😊 bot{bot_id:03d}の気分: {old_mood:.2f} → {new_mood:.2f}")
+
+    def _get_mood(self, bot_id: int) -> float:
+        """ボットの現在の気分を取得"""
+        if bot_id not in self.bots:
+            return 0.0
+        _, _, state = self.bots[bot_id]
+        return state.mood
+
+    def _get_affinity(self, from_bot_id: int, to_bot_id: int) -> float:
+        """ボット間の好感度を取得"""
+        from_name = format_bot_name(from_bot_id)
+        to_name = format_bot_name(to_bot_id)
+        affinity_map = self.relationship_repo.load_affinity(from_name)
+        return affinity_map.get_affinity(to_name)
 
     async def process_reply_chains(self, target_bot_ids: list[int]) -> int:
         """

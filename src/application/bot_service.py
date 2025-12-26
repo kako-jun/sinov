@@ -11,6 +11,7 @@ from nostr_sdk import Keys
 
 from ..config import Settings
 from ..domain import (
+    ActivityLogger,
     BotKey,
     BotMemory,
     BotProfile,
@@ -22,6 +23,7 @@ from ..domain import (
 )
 from ..infrastructure import (
     LLMProvider,
+    LogRepository,
     MemoryRepository,
     NostrPublisher,
     ProfileRepository,
@@ -42,6 +44,7 @@ class BotService:
         state_repo: StateRepository,
         memory_repo: MemoryRepository,
         queue_repo: QueueRepository | None = None,
+        log_repo: LogRepository | None = None,
     ):
         self.settings = settings
         self.llm_provider = llm_provider
@@ -50,6 +53,7 @@ class BotService:
         self.state_repo = state_repo
         self.memory_repo = memory_repo
         self.queue_repo = queue_repo
+        self.log_repo = log_repo
         self.content_strategy = ContentStrategy(settings.content)
 
         # ボットデータ
@@ -108,6 +112,11 @@ class BotService:
             theme, total = self.content_strategy.generate_series_theme(profile)
             memory.start_series(theme, total)
             print(f"      📝 連作開始: {theme} ({total}投稿)")
+            # ログ記録
+            if self.log_repo:
+                self.log_repo.add_entry(
+                    bot_id, ActivityLogger.log_series_start(theme, total)
+                )
 
         # 共有ニュース読み込み
         shared_news = self._load_shared_news()
@@ -160,6 +169,18 @@ class BotService:
             # 記憶を更新
             self._update_memory_after_generate(bot_id, content, memory)
 
+            # ログ記録（投稿生成）
+            if self.log_repo:
+                # プロンプトを要約（最初の100文字）
+                prompt_summary = prompt[:100] + "..." if len(prompt) > 100 else prompt
+                series_info = None
+                if memory.series.active:
+                    series_info = f"連作「{memory.series.theme}」{memory.series.current_index + 1}/{memory.series.total_planned}"
+                self.log_repo.add_entry(
+                    bot_id,
+                    ActivityLogger.log_post_generate(content, prompt_summary, series_info),
+                )
+
             return content
 
         raise RuntimeError(
@@ -181,11 +202,15 @@ class BotService:
 
         # 連作中なら進める
         if memory.series.active:
+            theme = memory.series.theme  # 完了前に保存
             finished = memory.advance_series(content)
             if finished:
                 print("      ✅ 連作完了")
                 # 連作完了したら長期記憶に昇格
-                memory.promote_to_long_term(f"連作「{memory.series.theme}」を完了", importance=0.7)
+                memory.promote_to_long_term(f"連作「{theme}」を完了", importance=0.7)
+                # ログ記録
+                if self.log_repo and theme:
+                    self.log_repo.add_entry(bot_id, ActivityLogger.log_series_end(theme))
 
         # 記憶を保存
         self.memory_repo.save(memory)
@@ -220,6 +245,12 @@ class BotService:
                 f"📝 {profile.name} posted: {content[:50]}... "
                 f"(next: {next_datetime.strftime('%H:%M:%S')})"
             )
+
+            # ログ記録（投稿完了）
+            if self.log_repo and event_id:
+                self.log_repo.add_entry(
+                    bot_id, ActivityLogger.log_post_published(content, event_id)
+                )
         except Exception as e:
             _, profile, _ = self.bots[bot_id]
             print(f"❌ Failed to post for {profile.name}: {e}")
@@ -355,6 +386,13 @@ NG
         else:
             reason = "\n".join(lines[1:]).strip() if len(lines) > 1 else "NG判定"
             return False, reason
+
+    def log_review(self, bot_id: int, content: str, approved: bool, reason: str | None) -> None:
+        """レビュー結果をログに記録"""
+        if self.log_repo:
+            self.log_repo.add_entry(
+                bot_id, ActivityLogger.log_review(content, approved, reason)
+            )
 
     def _save_states(self) -> None:
         """全ボットの状態を保存"""

@@ -1,5 +1,12 @@
 """ドメイン層（ビジネスロジック）"""
 
+from .activity_log import (
+    ActivityLogger,
+    DailyLog,
+    LogEntry,
+    LogEventType,
+    ParameterChange,
+)
 from .bot_utils import extract_bot_id, format_bot_name
 from .content import ContentStrategy
 from .events import EventCalendar, SeasonalEvent
@@ -93,4 +100,9 @@ __all__ = [
     "Stalker",
     "Affinity",
     "RelationshipData",
+    "LogEventType",
+    "ParameterChange",
+    "LogEntry",
+    "DailyLog",
+    "ActivityLogger",
 ]
