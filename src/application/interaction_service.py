@@ -18,7 +18,7 @@ from ..domain import (
 from ..domain.interaction import InteractionManager
 from ..domain.models import BotKey
 from ..domain.queue import ConversationContext, ReplyTarget
-from ..infrastructure import LLMProvider, MemoryRepository, QueueRepository
+from ..infrastructure import LLMProvider, MemoryRepository, ProfileRepository, QueueRepository
 from ..infrastructure.storage.relationship_repo import RelationshipRepository
 from .affinity_service import AffinityService
 
@@ -35,6 +35,7 @@ class InteractionService:
         bots: dict[int, tuple[BotKey, BotProfile, BotState]],
         memory_repo: MemoryRepository | None = None,
         affinity_settings: AffinitySettings | None = None,
+        profile_repo: ProfileRepository | None = None,
     ):
         self.llm_provider = llm_provider
         self.queue_repo = queue_repo
@@ -43,6 +44,7 @@ class InteractionService:
         self.bots = bots
         self.memory_repo = memory_repo
         self.affinity_settings = affinity_settings or AffinitySettings()
+        self.profile_repo = profile_repo
 
         # 関係性データを読み込み
         self.relationship_data = relationship_repo.load_all()
@@ -201,6 +203,11 @@ class InteractionService:
         bot_name = format_bot_name(bot_id)
         relationship_type = self._get_relationship_type(bot_name, f"bot{target_entry.bot_id:03d}")
 
+        # マージ済みプロンプトを取得
+        merged_prompts = None
+        if self.profile_repo:
+            merged_prompts = self.profile_repo.get_merged_prompts(profile)
+
         # プロンプト生成
         prompt = self.content_strategy.create_reply_prompt(
             profile=profile,
@@ -208,6 +215,7 @@ class InteractionService:
             conversation=None,  # 新規リプライなのでコンテキストなし
             relationship_type=relationship_type,
             affinity=affinity,
+            merged_prompts=merged_prompts,
         )
 
         # LLMで生成
@@ -514,6 +522,11 @@ class InteractionService:
         bot_name = format_bot_name(bot_id)
         relationship_type = self._get_relationship_type(bot_name, f"bot{incoming_entry.bot_id:03d}")
 
+        # マージ済みプロンプトを取得
+        merged_prompts = None
+        if self.profile_repo:
+            merged_prompts = self.profile_repo.get_merged_prompts(profile)
+
         # プロンプト生成
         prompt = self.content_strategy.create_reply_prompt(
             profile=profile,
@@ -521,6 +534,7 @@ class InteractionService:
             conversation=conversation,
             relationship_type=relationship_type,
             affinity=affinity,
+            merged_prompts=merged_prompts,
         )
 
         # LLMで生成

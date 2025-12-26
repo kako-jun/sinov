@@ -80,6 +80,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
         bots=service.bots,
         memory_repo=service.memory_repo,
         affinity_settings=settings.affinity,
+        profile_repo=service.profile_repo,
     )
     interactions = await interaction_service.process_interactions(target_ids)
     chain_replies = await interaction_service.process_reply_chains(target_ids)

@@ -12,6 +12,7 @@ from ..infrastructure import (
     NostrPublisher,
     OllamaProvider,
     ProfileRepository,
+    QueueRepository,
     StateRepository,
 )
 
@@ -44,6 +45,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
     profile_repo = ProfileRepository(settings.residents_dir, settings.backend_dir)
     state_repo = StateRepository(settings.residents_dir)
     memory_repo = MemoryRepository(settings.residents_dir)
+    queue_repo = QueueRepository(settings.queue_dir)
 
     service = BotService(
         settings=settings,
@@ -52,6 +54,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
         profile_repo=profile_repo,
         state_repo=state_repo,
         memory_repo=memory_repo,
+        queue_repo=queue_repo,
     )
 
     print("Loading bots...")

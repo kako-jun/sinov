@@ -118,6 +118,9 @@ class BotService:
         # 過去のrejectを取得（反省のため）
         rejected_posts = self._load_rejected_posts(bot_id)
 
+        # 共通プロンプト + 個人プロンプトをマージ
+        merged_prompts = self.profile_repo.get_merged_prompts(profile)
+
         # 最大リトライ回数
         for attempt in range(self.settings.content.llm_retry_count):
             # プロンプト生成（記憶を含む）
@@ -127,6 +130,7 @@ class BotService:
                 memory=memory,
                 shared_news=shared_news,
                 event_topics=event_topics,
+                merged_prompts=merged_prompts,
                 rejected_posts=rejected_posts,
             )
 
