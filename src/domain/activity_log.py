@@ -26,6 +26,7 @@ class LogEventType(Enum):
     MEMORY_CHANGE = "memory_change"  # 記憶変化
     SERIES_START = "series_start"  # 連作開始
     SERIES_END = "series_end"  # 連作完了
+    EXTERNAL_REACTION = "external_reaction"  # 外部ユーザーへの反応
 
 
 @dataclass
@@ -343,5 +344,23 @@ class ActivityLogger:
                 "recipient": recipient,
                 "emoji": emoji,
                 "target_content": target_content[:50] + "..." if len(target_content) > 50 else target_content,
+            },
+        )
+
+    @staticmethod
+    def log_external_reaction(
+        reaction_type: str,
+        target: str,
+        content: str,
+    ) -> LogEntry:
+        """外部ユーザーへの反応をログ"""
+        return LogEntry(
+            timestamp=datetime.now(),
+            event_type=LogEventType.EXTERNAL_REACTION,
+            summary=f"外部ユーザー({target})へ{reaction_type}: {content[:30]}...",
+            details={
+                "reaction_type": reaction_type,
+                "target": target,
+                "content": content,
             },
         )

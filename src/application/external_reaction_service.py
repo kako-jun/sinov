@@ -12,6 +12,7 @@ from typing import Any
 import httpx
 
 from ..domain import (
+    ActivityLogger,
     BotProfile,
     BotState,
     ContentStrategy,
@@ -22,7 +23,7 @@ from ..domain import (
 )
 from ..domain.models import BotKey
 from ..domain.queue import ReplyTarget
-from ..infrastructure import LLMProvider, QueueRepository
+from ..infrastructure import LLMProvider, LogRepository, QueueRepository
 
 
 class ExternalReactionService:
@@ -34,12 +35,16 @@ class ExternalReactionService:
         queue_repo: QueueRepository,
         content_strategy: ContentStrategy,
         bots: dict[int, tuple[BotKey, BotProfile, BotState]],
+        log_repo: LogRepository | None = None,
     ):
         self.llm_provider = llm_provider
         self.queue_repo = queue_repo
         self.content_strategy = content_strategy
         self.bots = bots
+        self.log_repo = log_repo
         self.api_endpoint = os.getenv("API_ENDPOINT", "https://api.mypace.llll-ll.com")
+        # 反応済みイベントIDのキャッシュ（重複防止）
+        self._reacted_events: set[str] = set()
 
     async def process_external_reactions(
         self,
@@ -56,6 +61,9 @@ class ExternalReactionService:
         Returns:
             生成したエントリー数
         """
+        # 既に反応済みのイベントIDを読み込み（重複防止）
+        self._load_reacted_events()
+
         # タイムラインから外部投稿を取得
         external_posts = await self._fetch_timeline_posts(limit=50)
         if not external_posts:
@@ -95,6 +103,13 @@ class ExternalReactionService:
                 if reactions_added >= max_posts_per_bot:
                     break
 
+                event_id = post.get("id", post.get("event_id", ""))
+
+                # 重複チェック（このボットが既にこの投稿に反応済み）
+                reaction_key = f"{bot_id}:{event_id}"
+                if reaction_key in self._reacted_events:
+                    continue
+
                 # 興味マッチング
                 if not self._matches_interests(post, profile):
                     continue
@@ -110,11 +125,35 @@ class ExternalReactionService:
                 )
                 if entry:
                     self.queue_repo.add(entry)
+                    self._reacted_events.add(reaction_key)
                     reactions_added += 1
                     total_entries += 1
+
+                    # ログ記録
+                    if self.log_repo:
+                        target_info = f"external:{post.get('pubkey', '')[:8]}"
+                        self.log_repo.add_entry(
+                            bot_id,
+                            ActivityLogger.log_external_reaction(
+                                reaction_type=reaction_type,
+                                target=target_info,
+                                content=post.get("content", "")[:50],
+                            ),
+                        )
+
                     print(f"    {profile.name} → {reaction_type} to external post")
 
         return total_entries
+
+    def _load_reacted_events(self) -> None:
+        """既に反応済みのイベントIDを読み込み"""
+        # キューから外部向けの投稿済み/承認済みエントリーを取得
+        for status in [QueueStatus.POSTED, QueueStatus.APPROVED, QueueStatus.PENDING]:
+            entries = self.queue_repo.get_all(status)
+            for entry in entries:
+                if entry.reply_to and entry.reply_to.resident.startswith("external:"):
+                    reaction_key = f"{entry.bot_id}:{entry.reply_to.event_id}"
+                    self._reacted_events.add(reaction_key)
 
     async def _fetch_timeline_posts(self, limit: int = 50) -> list[dict[str, Any]]:
         """タイムラインから投稿を取得"""

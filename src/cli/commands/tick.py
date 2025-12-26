@@ -94,6 +94,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
         queue_repo=queue_repo,
         content_strategy=service.content_strategy,
         bots=service.bots,
+        log_repo=service.log_repo,
     )
     external_reactions = await external_service.process_external_reactions(
         target_bot_ids=target_ids,
