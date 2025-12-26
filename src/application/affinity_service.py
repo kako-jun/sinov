@@ -33,7 +33,7 @@ class AffinityService:
         interaction_type: str,
     ) -> None:
         """
-        相互作用発生時に好感度を更新
+        相互作用発生時に好感度と親密度を更新
 
         Args:
             from_bot_id: 反応した側のボットID
@@ -47,14 +47,20 @@ class AffinityService:
 
         # 好感度を更新
         if interaction_type == "reply":
-            delta = self.affinity_settings.delta_reply
+            affinity_delta = self.affinity_settings.delta_reply
+            familiarity_delta = self.affinity_settings.familiarity_reply
         elif interaction_type == "reaction":
-            delta = self.affinity_settings.delta_reaction
+            affinity_delta = self.affinity_settings.delta_reaction
+            familiarity_delta = self.affinity_settings.familiarity_reaction
         else:
             return
 
-        old_value = affinity.get_affinity(from_bot_name)
-        new_value = affinity.update_affinity(from_bot_name, delta)
+        old_affinity = affinity.get_affinity(from_bot_name)
+        new_affinity = affinity.update_affinity(from_bot_name, affinity_delta)
+
+        # 親密度を更新（双方向）
+        old_familiarity = affinity.get_familiarity(from_bot_name)
+        new_familiarity = affinity.update_familiarity(from_bot_name, familiarity_delta)
 
         # 最後の相互作用日時を記録
         affinity.record_interaction(from_bot_name, datetime.now().isoformat())
@@ -62,11 +68,22 @@ class AffinityService:
         # 保存
         self.relationship_repo.save_affinity(affinity)
 
+        # 反応した側も親密度を更新
+        from_affinity = self.relationship_repo.load_affinity(from_bot_name)
+        from_affinity.update_familiarity(to_bot_name, familiarity_delta)
+        from_affinity.record_interaction(to_bot_name, datetime.now().isoformat())
+        self.relationship_repo.save_affinity(from_affinity)
+
         # ログ出力
-        if new_value != old_value:
+        if new_affinity != old_affinity:
             print(
                 f"         📈 {to_bot_name}の{from_bot_name}への好感度: "
-                f"{old_value:.2f} → {new_value:.2f}"
+                f"{old_affinity:.2f} → {new_affinity:.2f}"
+            )
+        if new_familiarity != old_familiarity:
+            print(
+                f"         🤝 {to_bot_name}と{from_bot_name}の親密度: "
+                f"{old_familiarity:.2f} → {new_familiarity:.2f}"
             )
 
     def process_decay(self, target_bot_ids: list[int], bots: dict) -> int:

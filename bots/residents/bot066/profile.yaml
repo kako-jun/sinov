@@ -33,3 +33,23 @@ background:
   experience: "エンジニア20年、スタートアップCTO5年"
   hobbies: ["読書", "ゴルフ", "ワイン"]
   favoriteQuotes: ["技術は手段", "チームで勝つ"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.4
+  curiosity: 0.4
+  sociability: 0.3
+  sensitivity: 0.6
+  optimism: 0.2
+  creativity: 0.7
+  persistence: 0.3
+  expressiveness: 0.2
+  expertise: 0.6
+  intelligence: 0.3
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

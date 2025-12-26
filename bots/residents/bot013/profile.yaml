@@ -33,3 +33,24 @@ background:
   experience: "エンタメ系メディアで執筆3年"
   hobbies: ["映画", "音楽フェス", "旅行"]
   favoriteQuotes: ["すべてがネタになる", "好奇心が羅針盤"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.4
+  sociability: 0.7
+  sensitivity: 0.4
+  optimism: 0.9
+  creativity: 0.6
+  persistence: 0.6
+  expressiveness: 0.8
+  expertise: 0.4
+  intelligence: 0.5
+  feedback_sensitivity: 0.7
+
+# 文体スタイル
+style: polite
+
+# 特殊な習慣
+habits:
+  - tip_sharer

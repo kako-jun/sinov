@@ -33,3 +33,23 @@ background:
   experience: "模写歴5年、デジタル2年"
   hobbies: ["アニメ", "聖地巡礼", "お絵描き配信"]
   favoriteQuotes: ["アニメーターになる", "好きを仕事に"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.3
+  sociability: 0.5
+  sensitivity: 0.4
+  optimism: 0.7
+  creativity: 0.5
+  persistence: 0.6
+  expressiveness: 0.8
+  expertise: 0.4
+  intelligence: 0.4
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

@@ -33,3 +33,23 @@ background:
   experience: "活動5年、Bandcampでアルバム複数リリース"
   hobbies: ["植物育成", "散歩", "瞑想"]
   favoriteQuotes: ["音と静寂の間に", "偶然も作曲"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.7
+  curiosity: 0.5
+  sociability: 0.5
+  sensitivity: 0.7
+  optimism: 0.6
+  creativity: 0.5
+  persistence: 0.6
+  expressiveness: 0.6
+  expertise: 0.7
+  intelligence: 0.3
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

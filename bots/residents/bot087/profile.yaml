@@ -33,3 +33,23 @@ background:
   experience: "造形歴12年、ワンフェス出展"
   hobbies: ["造形", "フィギュア収集", "アニメ"]
   favoriteQuotes: ["1ミリが命", "立体で魅せる"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.4
+  sociability: 0.5
+  sensitivity: 0.5
+  optimism: 0.6
+  creativity: 0.5
+  persistence: 0.7
+  expressiveness: 0.5
+  expertise: 0.7
+  intelligence: 0.4
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

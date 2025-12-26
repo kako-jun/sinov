@@ -33,3 +33,23 @@ background:
   experience: "投稿歴7年、合作参加多数"
   hobbies: ["音MAD", "音ゲー", "アニメ"]
   favoriteQuotes: ["素材の味を活かす", "笑いと感動を届ける"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.5
+  sociability: 0.6
+  sensitivity: 0.3
+  optimism: 0.4
+  creativity: 0.7
+  persistence: 0.4
+  expressiveness: 0.8
+  expertise: 0.6
+  intelligence: 0.4
+  feedback_sensitivity: 0.3
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

@@ -104,12 +104,18 @@ class InteractionService:
                 target_bot_name = f"bot{entry.bot_id:03d}"
                 target_affinity = affinity.get_affinity(target_bot_name)
 
+                # 社交性パラメータを取得
+                sociability = 0.5  # デフォルト
+                if profile.traits_detail:
+                    sociability = profile.traits_detail.sociability
+
                 # 反応すべきか判定
                 should_react, reaction_type = self.interaction_manager.should_react_to_post(
                     from_bot=bot_name,
                     to_bot=target_bot_name,
                     post_content=entry.content,
                     affinity=target_affinity,
+                    sociability=sociability,
                 )
 
                 if not should_react:
@@ -129,6 +135,8 @@ class InteractionService:
                         self.affinity_service.update_on_interaction(bot_id, entry.bot_id, "reply")
                         # 記憶を強化（元投稿者の記憶）
                         self._update_memory_on_feedback(entry.bot_id, entry.content, "reply")
+                        # 気分を更新（元投稿者）
+                        self._update_mood_on_feedback(entry.bot_id, "reply")
                         generated += 1
                         print(f"      💬 {profile.name} → {entry.bot_name}")
 
@@ -147,6 +155,8 @@ class InteractionService:
                         )
                         # 記憶を強化（元投稿者の記憶）
                         self._update_memory_on_feedback(entry.bot_id, entry.content, "reaction")
+                        # 気分を更新（元投稿者）
+                        self._update_mood_on_feedback(entry.bot_id, "reaction")
                         generated += 1
                         print(f"      ❤️  {profile.name} → {entry.bot_name}")
 
@@ -303,6 +313,13 @@ class InteractionService:
         # 元投稿者の記憶を読み込み
         memory = self.memory_repo.load(bot_id)
 
+        # feedback_sensitivityを取得（元投稿者のプロファイルから）
+        feedback_sensitivity = 0.5  # デフォルト
+        if bot_id in self.bots:
+            _, profile, _ = self.bots[bot_id]
+            if profile.traits_detail:
+                feedback_sensitivity = profile.traits_detail.feedback_sensitivity
+
         # 記憶の強化量
         if interaction_type == "reply":
             boost = 0.3  # リプライは強い反応
@@ -318,11 +335,11 @@ class InteractionService:
 
         for keyword in keywords:
             if len(keyword) >= 2:  # 短すぎる単語は除外
-                if memory.reinforce_short_term(keyword, boost):
+                if memory.reinforce_short_term(keyword, boost, feedback_sensitivity):
                     reinforced = True
 
         # 元投稿自体も強化
-        if memory.reinforce_short_term(original_content[:20], boost):
+        if memory.reinforce_short_term(original_content[:20], boost, feedback_sensitivity):
             reinforced = True
 
         # 昇格チェック
@@ -337,6 +354,39 @@ class InteractionService:
         if promoted:
             for content in promoted:
                 print(f"         🧠 長期記憶に昇格: {content[:30]}...")
+
+    def _update_mood_on_feedback(
+        self,
+        bot_id: int,
+        interaction_type: str,
+    ) -> None:
+        """
+        リプライ/リアクションをもらった時に気分を更新
+
+        Args:
+            bot_id: 元投稿者のボットID（気分が上がる側）
+            interaction_type: "reply" or "reaction"
+        """
+        if bot_id not in self.bots:
+            return
+
+        key, profile, state = self.bots[bot_id]
+
+        # 気分の変動量
+        if interaction_type == "reply":
+            delta = self.affinity_settings.mood_reply
+        elif interaction_type == "reaction":
+            delta = self.affinity_settings.mood_reaction
+        else:
+            return
+
+        old_mood = state.mood
+        new_mood = max(-1.0, min(1.0, state.mood + delta))
+        state.mood = new_mood
+
+        # ボットデータを更新（stateは参照なので自動的に反映）
+        if new_mood != old_mood:
+            print(f"         😊 bot{bot_id:03d}の気分: {old_mood:.2f} → {new_mood:.2f}")
 
     async def process_reply_chains(self, target_bot_ids: list[int]) -> int:
         """

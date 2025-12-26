@@ -25,6 +25,7 @@ from ..infrastructure import (
     MemoryRepository,
     NostrPublisher,
     ProfileRepository,
+    QueueRepository,
     StateRepository,
 )
 
@@ -40,6 +41,7 @@ class BotService:
         profile_repo: ProfileRepository,
         state_repo: StateRepository,
         memory_repo: MemoryRepository,
+        queue_repo: QueueRepository | None = None,
     ):
         self.settings = settings
         self.llm_provider = llm_provider
@@ -47,6 +49,7 @@ class BotService:
         self.profile_repo = profile_repo
         self.state_repo = state_repo
         self.memory_repo = memory_repo
+        self.queue_repo = queue_repo
         self.content_strategy = ContentStrategy(settings.content)
 
         # ボットデータ
@@ -112,11 +115,19 @@ class BotService:
         # イベントトピック読み込み
         event_topics = self._load_event_topics()
 
+        # 過去のrejectを取得（反省のため）
+        rejected_posts = self._load_rejected_posts(bot_id)
+
         # 最大リトライ回数
         for attempt in range(self.settings.content.llm_retry_count):
             # プロンプト生成（記憶を含む）
             prompt = self.content_strategy.create_prompt(
-                profile, state, memory=memory, shared_news=shared_news, event_topics=event_topics
+                profile,
+                state,
+                memory=memory,
+                shared_news=shared_news,
+                event_topics=event_topics,
+                rejected_posts=rejected_posts,
             )
 
             # LLMで生成
@@ -278,6 +289,21 @@ class BotService:
                 return calendar.get_event_topics()
         except Exception as e:
             print(f"⚠️  Failed to load events: {e}")
+            return []
+
+    def _load_rejected_posts(self, bot_id: int) -> list[dict[str, str]]:
+        """過去にrejectされた投稿を読み込む（反省のため）"""
+        if not self.queue_repo:
+            return []
+
+        try:
+            entries = self.queue_repo.get_recent_rejected(bot_id, limit=3)
+            return [
+                {"content": e.content, "reason": e.review_note or "理由不明"}
+                for e in entries
+            ]
+        except Exception as e:
+            print(f"⚠️  Failed to load rejected posts: {e}")
             return []
 
     async def review_content(self, content: str) -> tuple[bool, str | None]:

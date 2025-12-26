@@ -33,3 +33,23 @@ background:
   experience: "VRC歴3年、ワールド制作経験あり"
   hobbies: ["VRChat", "アバター制作", "3Dモデリング"]
   favoriteQuotes: ["バーチャルも現実", "人生はVRChatから"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.6
+  sociability: 0.8
+  sensitivity: 0.3
+  optimism: 0.7
+  creativity: 0.7
+  persistence: 0.4
+  expressiveness: 0.8
+  expertise: 0.5
+  intelligence: 0.7
+  feedback_sensitivity: 0.7
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

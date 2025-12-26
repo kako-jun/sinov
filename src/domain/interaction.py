@@ -61,9 +61,17 @@ class InteractionManager:
         to_bot: str,
         post_content: str,
         affinity: float = 0.0,
+        sociability: float = 0.5,
     ) -> tuple[bool, str | None]:
         """
         投稿に反応すべきか判定
+
+        Args:
+            from_bot: 反応する住人
+            to_bot: 投稿した住人
+            post_content: 投稿内容
+            affinity: 好感度
+            sociability: 社交性パラメータ（0.0〜1.0）
 
         Returns:
             (should_react, reaction_type): 反応するかどうかと反応タイプ
@@ -84,6 +92,10 @@ class InteractionManager:
             reply_prob *= 1.3
         elif affinity < 0.3:
             reply_prob *= 0.7
+
+        # 社交性による調整（0.0→×0.5、0.5→×1.0、1.0→×1.5）
+        sociability_factor = 0.5 + sociability
+        reply_prob *= sociability_factor
 
         # 判定
         if random.random() < reply_prob:

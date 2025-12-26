@@ -99,7 +99,7 @@ class Stalker(BaseModel):
 
 
 class Affinity(BaseModel):
-    """好感度（住人間の関係値）"""
+    """好感度・信頼度・親密度（住人間の関係値）"""
 
     bot_id: str = Field(description="この住人のボットID")
     targets: dict[str, float] = Field(
@@ -109,6 +109,16 @@ class Affinity(BaseModel):
     last_interactions: dict[str, str] = Field(
         default_factory=dict,
         description="対象ボットIDと最後の相互作用日時のマップ（ISO形式）",
+    )
+    # 信頼度（約束を守る、頼りになる等）
+    trust: dict[str, float] = Field(
+        default_factory=dict,
+        description="対象ボットIDと信頼度のマップ（0.0〜1.0）",
+    )
+    # 親密度（どれだけ知り合いか）
+    familiarity: dict[str, float] = Field(
+        default_factory=dict,
+        description="対象ボットIDと親密度のマップ（0.0〜1.0）",
     )
 
     def get_affinity(self, target_id: str) -> float:
@@ -133,6 +143,28 @@ class Affinity(BaseModel):
     def get_last_interaction(self, target_id: str) -> str | None:
         """最後の相互作用日時を取得"""
         return self.last_interactions.get(target_id)
+
+    def get_trust(self, target_id: str) -> float:
+        """対象への信頼度を取得（デフォルト0.5）"""
+        return self.trust.get(target_id, 0.5)
+
+    def update_trust(self, target_id: str, delta: float) -> float:
+        """信頼度を更新（範囲制限あり）"""
+        current = self.trust.get(target_id, 0.5)
+        new_value = max(0.0, min(1.0, current + delta))
+        self.trust[target_id] = new_value
+        return new_value
+
+    def get_familiarity(self, target_id: str) -> float:
+        """対象との親密度を取得（デフォルト0.0）"""
+        return self.familiarity.get(target_id, 0.0)
+
+    def update_familiarity(self, target_id: str, delta: float) -> float:
+        """親密度を更新（範囲制限あり）"""
+        current = self.familiarity.get(target_id, 0.0)
+        new_value = max(0.0, min(1.0, current + delta))
+        self.familiarity[target_id] = new_value
+        return new_value
 
 
 class RelationshipData(BaseModel):

@@ -33,3 +33,23 @@ background:
   experience: "SE5年、教室運営3年"
   hobbies: ["読書", "料理", "ボードゲーム"]
   favoriteQuotes: ["わかった瞬間の顔が好き", "楽しく学ぶ"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.3
+  sociability: 0.7
+  sensitivity: 0.3
+  optimism: 0.8
+  creativity: 0.4
+  persistence: 0.5
+  expressiveness: 0.7
+  expertise: 0.4
+  intelligence: 0.6
+  feedback_sensitivity: 0.3
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

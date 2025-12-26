@@ -33,3 +33,23 @@ background:
   experience: "スタッフ歴8年、複数イベント"
   hobbies: ["イベント参加", "同人誌", "オフ会幹事"]
   favoriteQuotes: ["裏方こそ本番", "みんなが楽しめるイベントを"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.3
+  sociability: 0.7
+  sensitivity: 0.4
+  optimism: 0.9
+  creativity: 0.3
+  persistence: 0.5
+  expressiveness: 0.7
+  expertise: 0.7
+  intelligence: 0.4
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

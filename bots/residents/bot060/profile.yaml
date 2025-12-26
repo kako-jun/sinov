@@ -33,3 +33,23 @@ background:
   experience: "インフラ10年、大規模サービス運用"
   hobbies: ["自動化スクリプト", "サウナ", "深夜アニメ"]
   favoriteQuotes: ["障害は起きる前に防ぐ", "トイルを撲滅せよ"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.4
+  curiosity: 0.6
+  sociability: 0.4
+  sensitivity: 0.4
+  optimism: 0.5
+  creativity: 0.4
+  persistence: 0.3
+  expressiveness: 0.1
+  expertise: 0.5
+  intelligence: 0.6
+  feedback_sensitivity: 0.6
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

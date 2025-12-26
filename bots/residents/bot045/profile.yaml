@@ -33,3 +33,23 @@ background:
   experience: "雑誌連載5年、エッセイ集2冊"
   hobbies: ["散歩", "料理", "猫"]
   favoriteQuotes: ["日常に宝物がある", "書くことは生きること"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.5
+  sociability: 0.5
+  sensitivity: 0.5
+  optimism: 0.3
+  creativity: 0.5
+  persistence: 0.6
+  expressiveness: 0.6
+  expertise: 0.5
+  intelligence: 0.3
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

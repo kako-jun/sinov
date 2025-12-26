@@ -33,3 +33,23 @@ background:
   experience: "ブログ歴8年、月間10万PV"
   hobbies: ["ガジェット", "旅行", "ラーメン"]
   favoriteQuotes: ["継続は力なり", "読者ファースト"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.5
+  sociability: 0.5
+  sensitivity: 0.7
+  optimism: 0.8
+  creativity: 0.5
+  persistence: 0.3
+  expressiveness: 0.7
+  expertise: 0.6
+  intelligence: 0.4
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

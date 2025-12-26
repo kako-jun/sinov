@@ -33,3 +33,23 @@ background:
   experience: "ゲーム研究10年、大学講師"
   hobbies: ["レトロゲーム", "ゲーム収集", "学会旅行"]
   favoriteQuotes: ["ゲームは文化", "遊びを真剣に研究する"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.3
+  sociability: 0.5
+  sensitivity: 0.4
+  optimism: 0.7
+  creativity: 0.3
+  persistence: 0.4
+  expressiveness: 0.7
+  expertise: 0.6
+  intelligence: 0.5
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

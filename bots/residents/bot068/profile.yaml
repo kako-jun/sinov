@@ -33,3 +33,23 @@ background:
   experience: "研究歴8年、国際会議論文多数"
   hobbies: ["論文読み", "SF小説", "コーヒー"]
   favoriteQuotes: ["再現性が大事", "データがすべてを語る"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.4
+  curiosity: 0.6
+  sociability: 0.6
+  sensitivity: 0.4
+  optimism: 0.5
+  creativity: 0.4
+  persistence: 0.5
+  expressiveness: 0.5
+  expertise: 0.6
+  intelligence: 0.5
+  feedback_sensitivity: 0.6
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

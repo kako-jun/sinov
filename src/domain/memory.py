@@ -99,18 +99,28 @@ class BotMemory(BaseModel):
             self.short_term.sort(key=lambda m: m.strength, reverse=True)
             self.short_term = self.short_term[:20]
 
-    def reinforce_short_term(self, keyword: str, boost: float = 0.3) -> bool:
+    def reinforce_short_term(
+        self, keyword: str, boost: float = 0.3, feedback_sensitivity: float = 0.5
+    ) -> bool:
         """
         キーワードに関連する短期記憶を強化（リアクションをもらった時など）
+
+        Args:
+            keyword: 強化するキーワード
+            boost: ベースの強化量
+            feedback_sensitivity: 反応への感度（0.0〜1.0）。高いほど強く反応
 
         Returns:
             強化された記憶があればTrue
         """
+        # feedback_sensitivityによる調整（0.0→×0.5、0.5→×1.0、1.0→×1.5）
+        effective_boost = boost * (0.5 + feedback_sensitivity)
+
         reinforced = False
         for memory in self.short_term:
             if keyword.lower() in memory.content.lower():
                 old_strength = memory.strength
-                memory.strength = min(1.0, memory.strength + boost)
+                memory.strength = min(1.0, memory.strength + effective_boost)
                 if memory.strength > old_strength:
                     reinforced = True
         return reinforced

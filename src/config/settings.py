@@ -65,7 +65,7 @@ class ContentSettings(BaseSettings):
 
 
 class AffinitySettings(BaseSettings):
-    """好感度の設定"""
+    """好感度・親密度・気分の設定"""
 
     # 好感度変動値
     delta_reply: float = Field(
@@ -83,6 +83,34 @@ class AffinitySettings(BaseSettings):
     decay_weekly: float = Field(
         default=-0.02,
         description="疎遠期間の週次減衰",
+    )
+
+    # 親密度変動値（相互作用するほど知り合いになる）
+    familiarity_reply: float = Field(
+        default=0.03,
+        description="リプライ時の親密度上昇",
+    )
+    familiarity_reaction: float = Field(
+        default=0.01,
+        description="リアクション時の親密度上昇",
+    )
+
+    # 気分変動値（反応をもらうと嬉しい）
+    mood_reply: float = Field(
+        default=0.1,
+        description="リプライをもらった時の気分上昇",
+    )
+    mood_reaction: float = Field(
+        default=0.05,
+        description="リアクションをもらった時の気分上昇",
+    )
+    mood_ignored: float = Field(
+        default=-0.03,
+        description="無視された時の気分減少",
+    )
+    mood_decay: float = Field(
+        default=-0.01,
+        description="時間経過による気分の中立化（0に向かう）",
     )
 
 

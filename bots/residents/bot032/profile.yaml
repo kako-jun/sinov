@@ -33,3 +33,23 @@ background:
   experience: "フリーランス8年、企業ロゴ専門"
   hobbies: ["書道", "盆栽", "ウイスキー"]
   favoriteQuotes: ["シンプルの極みを目指す", "100年残るロゴを"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.6
+  sociability: 0.6
+  sensitivity: 0.5
+  optimism: 0.6
+  creativity: 0.4
+  persistence: 0.5
+  expressiveness: 0.4
+  expertise: 0.4
+  intelligence: 0.4
+  feedback_sensitivity: 0.3
+
+# 文体スタイル
+style: polite
+
+# 特殊な習慣
+habits: []

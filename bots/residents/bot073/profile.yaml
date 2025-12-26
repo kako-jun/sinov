@@ -33,3 +33,23 @@ background:
   experience: "プログラミング歴3年、インターン経験あり"
   hobbies: ["ゲーム", "アニメ", "競プロ"]
   favoriteQuotes: ["単位は取れる", "締切駆動開発"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.4
+  sociability: 0.6
+  sensitivity: 0.7
+  optimism: 0.6
+  creativity: 0.3
+  persistence: 0.5
+  expressiveness: 0.8
+  expertise: 0.6
+  intelligence: 0.4
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

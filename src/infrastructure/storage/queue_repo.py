@@ -149,3 +149,20 @@ class QueueRepository:
     def summary(self) -> dict[str, int]:
         """全ステータスの件数サマリー"""
         return {status.value: self.count(status) for status in QueueStatus}
+
+    def get_recent_rejected(self, bot_id: int, limit: int = 3) -> list[QueueEntry]:
+        """
+        指定ボットの最近のrejectedエントリーを取得
+
+        Args:
+            bot_id: ボットID
+            limit: 取得件数
+
+        Returns:
+            rejectedエントリーのリスト（新しい順）
+        """
+        entries = self.get_all(QueueStatus.REJECTED)
+        bot_entries = [e for e in entries if e.bot_id == bot_id]
+        # 作成日時で降順ソート
+        bot_entries.sort(key=lambda x: x.created_at, reverse=True)
+        return bot_entries[:limit]

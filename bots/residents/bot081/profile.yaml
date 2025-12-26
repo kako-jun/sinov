@@ -33,3 +33,23 @@ background:
   experience: "SES3年、自社開発志望"
   hobbies: ["技術書", "ポートフォリオ作成", "散歩"]
   favoriteQuotes: ["環境を変える勇気", "諦めなければ必ず"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.6
+  sociability: 0.4
+  sensitivity: 0.6
+  optimism: 0.4
+  creativity: 0.5
+  persistence: 0.6
+  expressiveness: 0.7
+  expertise: 0.6
+  intelligence: 0.6
+  feedback_sensitivity: 0.6
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

@@ -33,3 +33,23 @@ background:
   experience: "コスプレ歴8年、衣装制作も"
   hobbies: ["コスプレ", "アニメ", "裁縫"]
   favoriteQuotes: ["好きなキャラになれる幸せ", "衣装は愛"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.3
+  sociability: 0.8
+  sensitivity: 0.4
+  optimism: 1.0
+  creativity: 0.5
+  persistence: 0.4
+  expressiveness: 0.9
+  expertise: 0.5
+  intelligence: 0.4
+  feedback_sensitivity: 0.7
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

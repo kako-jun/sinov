@@ -33,3 +33,23 @@ background:
   experience: "プラモ歴20年、コンテスト入賞"
   hobbies: ["プラモデル", "戦車", "歴史"]
   favoriteQuotes: ["汚しは美しい", "積みは資産"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.3
+  sociability: 0.6
+  sensitivity: 0.5
+  optimism: 0.3
+  creativity: 0.5
+  persistence: 0.7
+  expressiveness: 0.5
+  expertise: 0.4
+  intelligence: 0.5
+  feedback_sensitivity: 0.3
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

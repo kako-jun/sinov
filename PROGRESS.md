@@ -130,6 +130,78 @@
   - `MemorySettings`: 記憶関連（max_short_term, promotion_threshold等）
   - `ContentSettings.series_start_probability`: 連作開始確率
 
+### プロンプトシステム（2025-12-26 完了）
+- [x] 共通プロンプト（`bots/_common.yaml`）の作成
+  - positive: 6件（日本語、カジュアル口語体、140文字以内、創作・技術中心）
+  - negative: 12件（個人名禁止、政治・宗教禁止、マークダウン禁止）
+- [x] 各住人のpositive/negativeプロンプト追加
+  - `src/domain/models.py`: `Prompts`クラス追加
+  - profile.yamlに `prompts.positive`, `prompts.negative` フィールド追加
+  - 職業・性格に応じた個別指示
+- [x] プロンプト生成時に共通+個人プロンプトをマージする処理
+  - `ProfileRepository.get_merged_prompts()`
+  - `ContentStrategy.create_prompt(merged_prompts=...)`
+
+### 性格パラメータシステム（2025-12-26 完了）
+- [x] 詳細な性格パラメータ（11種、0.0〜1.0）の実装
+  - `PersonalityTraits`クラス（`src/domain/models.py`）
+  - activeness, curiosity, sociability, sensitivity, optimism
+  - creativity, persistence, expressiveness, expertise, intelligence
+  - feedback_sensitivity
+- [x] BotProfileモデルの拡張
+  - `traits_detail: PersonalityTraits | None`
+- [x] 性格パラメータに基づく行動確率の調整
+  - sociabilityが高い→リプライ確率UP（`InteractionManager.should_react_to_post`）
+  - feedback_sensitivityが高い→反応もらうとstrength大きく上昇（`BotMemory.reinforce_short_term`）
+
+### 文体・習慣システム（2025-12-26 完了）
+- [x] 文体スタイル（style）の実装
+  - `StyleType`列挙型: normal, ojisan, young, 2ch, otaku, polite, terse
+  - `STYLE_DESCRIPTIONS`辞書でプロンプト指示
+- [x] 特殊な習慣（habits）の実装
+  - `HabitType`列挙型: news_summarizer, emoji_heavy, tip_sharer, wip_poster, question_asker, self_deprecating, enthusiastic
+  - `HABIT_DESCRIPTIONS`辞書でプロンプト指示
+- [x] プロンプト生成時にstyle/habitsを反映
+  - `ContentStrategy._get_style_instruction()`
+  - `ContentStrategy._get_habit_instructions()`
+- [x] 95人分のプロファイル更新スクリプト
+  - `scripts/update_profiles.py`
+
+### 興味・嗜好の詳細化（2025-12-26 完了）
+- [x] interests構造の拡張（`src/domain/models.py` `Interests`クラス）
+  - 既存: topics, keywords, code_languages
+  - 追加: likes（カテゴリ別好み）、dislikes（カテゴリ別嫌い）、values（価値観）
+  - 例: likes: {"manga": ["チェンソーマン"]}、dislikes: {"os": ["Windows"]}、values: ["収益化"]
+- [x] プロンプト生成時に反映（`ContentStrategy._get_preferences_context()`）
+
+### 関係性パラメータの拡張（2025-12-26 完了）
+- [x] trust（信頼度）の実装
+  - `Affinity.trust`、`get_trust()`、`update_trust()`
+- [x] familiarity（親密度）の実装
+  - `Affinity.familiarity`、`get_familiarity()`、`update_familiarity()`
+  - 相互作用時に双方の親密度が上昇
+- [x] mood（気分）の実装
+  - `BotState.mood`（-1.0〜1.0）
+  - 反応をもらうと気分が上昇
+- [x] これらのパラメータに基づく相互作用の調整
+  - `AffinitySettings` に familiarity/mood 変動値を追加
+  - `AffinityService.update_on_interaction()` で親密度を更新
+  - `InteractionService._update_mood_on_feedback()` で気分を更新
+
+### 記者の追加（2025-12-26 完了）
+- [x] reporter_general（一般時事記者）の追加
+  - `bots/backend/reporter_general/profile.yaml`
+  - はてブ総合、Yahoo!ニュースITをソースに
+  - IT・創作関連のキーワードでフィルター
+  - 政治・事件・炎上を除外
+
+### reject時の反省機能（2025-12-26 完了）
+- [x] rejectされた投稿の理由を次回生成に反映
+  - `QueueRepository.get_recent_rejected()` で過去のrejectを取得
+  - `BotService._load_rejected_posts()` で変換
+  - `ContentStrategy._get_rejection_feedback()` でプロンプトに反映
+  - 最新2件のNG例と理由をプロンプトに含める
+
 ## 未着手
 
 ### 関係性の拡充

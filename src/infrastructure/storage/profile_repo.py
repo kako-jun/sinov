@@ -7,15 +7,51 @@ from pathlib import Path
 import yaml
 
 from ...domain.bot_utils import format_bot_name
-from ...domain.models import BotProfile
+from ...domain.models import BotProfile, Prompts
 
 
 class ProfileRepository:
     """住人フォルダからボットプロフィールを読み込む"""
 
-    def __init__(self, residents_dir: Path, backend_dir: Path | None = None):
+    def __init__(
+        self,
+        residents_dir: Path,
+        backend_dir: Path | None = None,
+        bots_dir: Path | None = None,
+    ):
         self.residents_dir = residents_dir
         self.backend_dir = backend_dir
+        self.bots_dir = bots_dir or residents_dir.parent
+        self._common_prompts: Prompts | None = None
+
+    def load_common_prompts(self) -> Prompts:
+        """共通プロンプトを読み込み（キャッシュあり）"""
+        if self._common_prompts is not None:
+            return self._common_prompts
+
+        common_file = self.bots_dir / "_common.yaml"
+        if not common_file.exists():
+            self._common_prompts = Prompts()
+            return self._common_prompts
+
+        with open(common_file, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        self._common_prompts = Prompts(
+            positive=data.get("positive", []),
+            negative=data.get("negative", []),
+        )
+        return self._common_prompts
+
+    def get_merged_prompts(self, profile: BotProfile) -> Prompts:
+        """共通プロンプト + 個人プロンプトをマージ"""
+        common = self.load_common_prompts()
+        personal = profile.prompts or Prompts()
+
+        return Prompts(
+            positive=common.positive + personal.positive,
+            negative=common.negative + personal.negative,
+        )
 
     def load_all(self) -> list[BotProfile]:
         """全住人のプロフィールを読み込み"""

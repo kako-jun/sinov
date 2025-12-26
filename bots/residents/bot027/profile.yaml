@@ -33,3 +33,23 @@ background:
   experience: "サークル活動8年、年4回イベント参加"
   hobbies: ["アニメ", "ソシャゲ", "聖地巡礼"]
   favoriteQuotes: ["推しは推せるときに推せ", "原稿は命より重い"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.6
+  sociability: 0.8
+  sensitivity: 0.7
+  optimism: 1.0
+  creativity: 0.6
+  persistence: 0.4
+  expressiveness: 0.9
+  expertise: 0.5
+  intelligence: 0.5
+  feedback_sensitivity: 0.3
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

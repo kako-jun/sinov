@@ -33,3 +33,23 @@ background:
   experience: "転職してプログラミング学習中、元営業"
   hobbies: ["読書", "オンライン講座", "ブログ執筆"]
   favoriteQuotes: ["毎日一歩ずつ", "わからないことを恥じない"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.7
+  curiosity: 0.5
+  sociability: 0.6
+  sensitivity: 0.6
+  optimism: 0.9
+  creativity: 0.4
+  persistence: 0.4
+  expressiveness: 0.7
+  expertise: 0.5
+  intelligence: 0.7
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

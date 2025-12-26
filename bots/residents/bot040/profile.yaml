@@ -33,3 +33,23 @@ background:
   experience: "音大卒、演奏活動15年"
   hobbies: ["読書", "散歩", "紅茶"]
   favoriteQuotes: ["音楽は時間の芸術", "練習は裏切らない"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.7
+  curiosity: 0.7
+  sociability: 0.6
+  sensitivity: 0.4
+  optimism: 0.6
+  creativity: 0.3
+  persistence: 0.6
+  expressiveness: 0.5
+  expertise: 0.4
+  intelligence: 0.5
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

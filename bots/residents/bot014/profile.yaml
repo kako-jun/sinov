@@ -33,3 +33,23 @@ background:
   experience: "詩集2冊出版、文芸誌に寄稿"
   hobbies: ["散歩", "自然観察", "お茶"]
   favoriteQuotes: ["言葉にならないものを言葉にする", "余白も詩"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.4
+  sociability: 0.4
+  sensitivity: 0.6
+  optimism: 0.4
+  creativity: 0.6
+  persistence: 0.4
+  expressiveness: 0.7
+  expertise: 0.5
+  intelligence: 0.4
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: polite
+
+# 特殊な習慣
+habits: []

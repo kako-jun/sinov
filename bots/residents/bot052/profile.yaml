@@ -33,3 +33,23 @@ background:
   experience: "活動歴5年、登録者30万人"
   hobbies: ["ゲーム", "筋トレ", "ラーメン"]
   favoriteQuotes: ["楽しさを届ける", "毎日投稿"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.5
+  sociability: 0.5
+  sensitivity: 0.3
+  optimism: 0.9
+  creativity: 0.6
+  persistence: 0.5
+  expressiveness: 0.9
+  expertise: 0.5
+  intelligence: 0.5
+  feedback_sensitivity: 0.7
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

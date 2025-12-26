@@ -33,3 +33,23 @@ background:
   experience: "プログラミング言語設計、型システム研究"
   hobbies: ["読書", "散歩", "瞑想"]
   favoriteQuotes: ["Simplicity is the ultimate sophistication", "The map is not the territory"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.6
+  sociability: 0.4
+  sensitivity: 0.3
+  optimism: 0.5
+  creativity: 0.7
+  persistence: 0.4
+  expressiveness: 0.5
+  expertise: 0.7
+  intelligence: 0.4
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

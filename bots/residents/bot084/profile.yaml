@@ -33,3 +33,23 @@ background:
   experience: "TRPG歴10年、自作シナリオ多数"
   hobbies: ["TRPG", "小説", "ボードゲーム"]
   favoriteQuotes: ["ダイスは裏切る", "物語はみんなで作る"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.7
+  sociability: 0.7
+  sensitivity: 0.6
+  optimism: 0.6
+  creativity: 0.5
+  persistence: 0.3
+  expressiveness: 0.8
+  expertise: 0.3
+  intelligence: 0.7
+  feedback_sensitivity: 0.3
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

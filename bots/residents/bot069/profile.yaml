@@ -33,3 +33,23 @@ background:
   experience: "業界10年、教員5年"
   hobbies: ["ゲーム", "野球観戦", "居酒屋"]
   favoriteQuotes: ["手を動かせ", "完成させることが大事"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.5
+  sociability: 0.8
+  sensitivity: 0.5
+  optimism: 0.9
+  creativity: 0.7
+  persistence: 0.7
+  expressiveness: 0.7
+  expertise: 0.3
+  intelligence: 0.7
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

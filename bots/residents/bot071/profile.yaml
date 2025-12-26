@@ -33,3 +33,23 @@ background:
   experience: "エンジニア15年、著書10冊以上"
   hobbies: ["読書", "技術カンファレンス", "温泉"]
   favoriteQuotes: ["難しいことを簡単に", "サンプルコードは動くものを"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.4
+  curiosity: 0.6
+  sociability: 0.3
+  sensitivity: 0.5
+  optimism: 0.7
+  creativity: 0.6
+  persistence: 0.7
+  expressiveness: 0.5
+  expertise: 0.3
+  intelligence: 0.6
+  feedback_sensitivity: 0.6
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

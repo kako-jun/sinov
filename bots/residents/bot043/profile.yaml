@@ -33,3 +33,23 @@ background:
   experience: "フリーランス7年、技術書・小説翻訳"
   hobbies: ["海外ドラマ", "語学学習", "紅茶"]
   favoriteQuotes: ["翻訳は裏切り", "言葉の架け橋になる"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.7
+  curiosity: 0.6
+  sociability: 0.5
+  sensitivity: 0.3
+  optimism: 0.5
+  creativity: 0.6
+  persistence: 0.7
+  expressiveness: 0.5
+  expertise: 0.7
+  intelligence: 0.5
+  feedback_sensitivity: 0.5
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

@@ -3,8 +3,58 @@
 """
 
 import os
+from enum import Enum
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
+
+
+class StyleType(str, Enum):
+    """文体スタイル"""
+
+    NORMAL = "normal"  # 「新しい絵描いてる」
+    OJISAN = "ojisan"  # 「今日も頑張ってるネ❗😄👍✨」
+    YOUNG = "young"  # 「まじでやばいｗｗｗ」
+    NICHAN = "2ch"  # 「うpしますた。ｷﾀ━(ﾟ∀ﾟ)━!」
+    OTAKU = "otaku"  # 「尊い…この構図は神」
+    POLITE = "polite"  # 「〜ですね」丁寧語
+    TERSE = "terse"  # 短く簡潔
+
+
+class HabitType(str, Enum):
+    """特殊な習慣"""
+
+    NEWS_SUMMARIZER = "news_summarizer"  # ニュースを要約して投稿
+    EMOJI_HEAVY = "emoji_heavy"  # 絵文字を多用
+    TIP_SHARER = "tip_sharer"  # 「〜すると便利」系
+    WIP_POSTER = "wip_poster"  # 制作過程を共有
+    QUESTION_ASKER = "question_asker"  # 質問形式が多い
+    SELF_DEPRECATING = "self_deprecating"  # 自虐的
+    ENTHUSIASTIC = "enthusiastic"  # テンション高め
+
+
+class PersonalityTraits(BaseModel):
+    """詳細な性格パラメータ（0.0〜1.0）"""
+
+    activeness: float = Field(default=0.5, ge=0.0, le=1.0, description="積極性")
+    curiosity: float = Field(default=0.5, ge=0.0, le=1.0, description="好奇心")
+    sociability: float = Field(default=0.5, ge=0.0, le=1.0, description="社交性")
+    sensitivity: float = Field(default=0.5, ge=0.0, le=1.0, description="感受性")
+    optimism: float = Field(default=0.5, ge=0.0, le=1.0, description="楽観性")
+    creativity: float = Field(default=0.5, ge=0.0, le=1.0, description="創造性")
+    persistence: float = Field(default=0.5, ge=0.0, le=1.0, description="粘り強さ")
+    expressiveness: float = Field(default=0.5, ge=0.0, le=1.0, description="表現力")
+    expertise: float = Field(default=0.5, ge=0.0, le=1.0, description="習熟度")
+    intelligence: float = Field(default=0.5, ge=0.0, le=1.0, description="知性")
+    feedback_sensitivity: float = Field(
+        default=0.5, ge=0.0, le=1.0, description="反応への感度"
+    )
+
+
+class Prompts(BaseModel):
+    """個人プロンプト設定"""
+
+    positive: list[str] = Field(default_factory=list, description="こう書いてほしい指示")
+    negative: list[str] = Field(default_factory=list, description="これは避けてほしい指示")
 
 
 class BotKey(BaseModel):
@@ -47,6 +97,20 @@ class Interests(BaseModel):
     topics: list[str] = Field(min_length=1, description="興味のあるトピック")
     keywords: list[str] = Field(min_length=1, description="よく使うキーワード")
     code_languages: list[str] | None = Field(default=None, description="好きなプログラミング言語")
+
+    # 詳細な好み（カテゴリ別）
+    likes: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="好きなもの（カテゴリ→リスト）例: {'manga': ['チェンソーマン'], 'languages': ['Rust']}",
+    )
+    dislikes: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="嫌いなもの（カテゴリ→リスト）例: {'os': ['Windows']}",
+    )
+    values: list[str] = Field(
+        default_factory=list,
+        description="価値観・重視すること 例: ['収益化', 'オープンソース']",
+    )
 
 
 class Behavior(BaseModel):
@@ -106,6 +170,14 @@ class BotProfile(BaseModel):
     social: Social
     background: Background
 
+    # 拡張フィールド（オプション、後方互換性のためデフォルト値あり）
+    traits_detail: PersonalityTraits | None = Field(
+        default=None, description="詳細な性格パラメータ（0.0〜1.0）"
+    )
+    style: StyleType = Field(default=StyleType.NORMAL, description="文体スタイル")
+    habits: list[HabitType] = Field(default_factory=list, description="特殊な習慣")
+    prompts: Prompts | None = Field(default=None, description="個人プロンプト設定")
+
 
 class BotState(BaseModel):
     """ボットの状態（実行時）"""
@@ -119,6 +191,13 @@ class BotState(BaseModel):
     post_history: list[str] = Field(default_factory=list, description="過去の投稿内容（最新20件）")
     discovered_topics: list[str] = Field(
         default_factory=list, description="新しく興味を持ったトピック"
+    )
+    # 気分（-1.0〜1.0、負がネガティブ、正がポジティブ）
+    mood: float = Field(
+        default=0.0,
+        ge=-1.0,
+        le=1.0,
+        description="現在の気分（-1.0〜1.0）",
     )
 
 

@@ -33,3 +33,23 @@ background:
   experience: "DTM歴10年、SoundCloud投稿"
   hobbies: ["機材収集", "ライブ参戦", "レコード"]
   favoriteQuotes: ["音楽は最高の趣味", "沼は深い"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.6
+  curiosity: 0.4
+  sociability: 0.5
+  sensitivity: 0.4
+  optimism: 0.7
+  creativity: 0.6
+  persistence: 0.4
+  expressiveness: 0.6
+  expertise: 0.6
+  intelligence: 0.7
+  feedback_sensitivity: 0.6
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

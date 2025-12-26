@@ -33,3 +33,23 @@ background:
   experience: "ゲーム会社7年、SFメカデザインが専門"
   hobbies: ["SF小説", "プラモデル", "美術館巡り"]
   favoriteQuotes: ["ディテールに神は宿る", "見えない部分も描く"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.3
+  curiosity: 0.7
+  sociability: 0.3
+  sensitivity: 0.5
+  optimism: 0.3
+  creativity: 0.4
+  persistence: 0.7
+  expressiveness: 0.1
+  expertise: 0.4
+  intelligence: 0.4
+  feedback_sensitivity: 0.6
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

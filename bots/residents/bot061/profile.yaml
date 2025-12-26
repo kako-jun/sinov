@@ -33,3 +33,23 @@ background:
   experience: "データベース管理12年、MySQL/PostgreSQL"
   hobbies: ["クイズ", "将棋", "日本酒"]
   favoriteQuotes: ["データは嘘をつかない", "バックアップは命"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.5
+  curiosity: 0.6
+  sociability: 0.4
+  sensitivity: 0.5
+  optimism: 0.5
+  creativity: 0.3
+  persistence: 0.5
+  expressiveness: 0.4
+  expertise: 0.5
+  intelligence: 0.7
+  feedback_sensitivity: 0.7
+
+# 文体スタイル
+style: normal
+
+# 特殊な習慣
+habits: []

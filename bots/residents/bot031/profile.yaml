@@ -33,3 +33,24 @@ background:
   experience: "Web制作会社4年、コーポレートサイト中心"
   hobbies: ["インテリア", "カフェ巡り", "北欧雑貨"]
   favoriteQuotes: ["ユーザーファースト", "美しさと使いやすさの両立"]
+
+# 詳細な性格パラメータ（0.0〜1.0）
+traits_detail:
+  activeness: 0.3
+  curiosity: 0.3
+  sociability: 0.6
+  sensitivity: 0.5
+  optimism: 0.6
+  creativity: 0.5
+  persistence: 0.9
+  expressiveness: 0.6
+  expertise: 0.4
+  intelligence: 0.8
+  feedback_sensitivity: 0.4
+
+# 文体スタイル
+style: polite
+
+# 特殊な習慣
+habits:
+  - tip_sharer
