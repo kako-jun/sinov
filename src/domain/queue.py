@@ -32,9 +32,10 @@ class PostType(str, Enum):
 class ReplyTarget(BaseModel):
     """リプライ先の情報"""
 
-    resident: str = Field(description="リプライ先のボットID（bot001形式）")
+    resident: str = Field(description="リプライ先のボットID（bot001形式）またはexternal:xxx")
     event_id: str = Field(description="リプライ先のNostrイベントID")
     content: str = Field(description="リプライ先の投稿内容")
+    pubkey: str | None = Field(default=None, description="外部ユーザーの場合のpubkey")
 
 
 class ConversationContext(BaseModel):

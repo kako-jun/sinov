@@ -4,7 +4,7 @@ tick コマンド - 1周の処理: 住人N人を順番に処理 + 相互作用 +
 
 import argparse
 
-from ...application import BotService, InteractionService
+from ...application import BotService, ExternalReactionService, InteractionService
 from ...domain import QueueEntry, QueueStatus
 from ...infrastructure import QueueRepository, RelationshipRepository, TickStateRepository
 from ..base import init_env, init_llm, init_service
@@ -87,6 +87,21 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     chain_replies = await interaction_service.process_reply_chains(target_ids)
     total_interactions = interactions + chain_replies
 
+    # --- 外部ユーザーへの反応処理 ---
+    print("\n   🌐 Processing external reactions...")
+    external_service = ExternalReactionService(
+        llm_provider=llm,
+        queue_repo=queue_repo,
+        content_strategy=service.content_strategy,
+        bots=service.bots,
+    )
+    external_reactions = await external_service.process_external_reactions(
+        target_bot_ids=target_ids,
+        max_posts_per_bot=1,  # 控えめに1人1投稿まで
+    )
+    if external_reactions > 0:
+        print(f"   🌐 External reactions: {external_reactions}")
+
     # --- 好感度減衰処理 ---
     decay_count = interaction_service.process_affinity_decay(target_ids)
     ignored_count = interaction_service.process_ignored_posts(target_ids)
@@ -98,7 +113,8 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     reviewed = await run_reviewer(service, queue_repo)
 
     print(
-        f"\n✅ Tick complete: {generated} generated, {total_interactions} interactions, {reviewed} reviewed"
+        f"\n✅ Tick complete: {generated} generated, {total_interactions} interactions, "
+        f"{external_reactions} external, {reviewed} reviewed"
     )
 
 

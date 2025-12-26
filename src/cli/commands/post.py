@@ -50,7 +50,16 @@ async def cmd_post(args: argparse.Namespace) -> None:
             # 投稿タイプに応じて処理を分岐
             if entry.post_type == PostType.REPLY and entry.reply_to:
                 # リプライ投稿
-                target_pubkey = get_target_pubkey(entry.reply_to.resident)
+                # 外部ユーザーの場合はpubkeyを直接使用
+                if entry.reply_to.resident.startswith("external:"):
+                    target_pubkey = entry.reply_to.pubkey
+                else:
+                    target_pubkey = get_target_pubkey(entry.reply_to.resident)
+
+                if not target_pubkey:
+                    print(f"  ⏭️  {entry.bot_name}: Reply skipped (pubkey not found)")
+                    continue
+
                 event_id = await publisher.publish_reply(
                     keys=keys,
                     content=entry.content,
@@ -58,11 +67,17 @@ async def cmd_post(args: argparse.Namespace) -> None:
                     reply_to_event_id=entry.reply_to.event_id,
                     reply_to_pubkey=target_pubkey,
                 )
-                print(f"  💬 {entry.bot_name}: {entry.content[:40]}...")
+                target_name = entry.reply_to.resident
+                print(f"  💬 {entry.bot_name}: {entry.content[:40]}... → {target_name}")
 
             elif entry.post_type == PostType.REACTION and entry.reply_to:
                 # リアクション投稿
-                target_pubkey = get_target_pubkey(entry.reply_to.resident)
+                # 外部ユーザーの場合はpubkeyを直接使用
+                if entry.reply_to.resident.startswith("external:"):
+                    target_pubkey = entry.reply_to.pubkey
+                else:
+                    target_pubkey = get_target_pubkey(entry.reply_to.resident)
+
                 if not target_pubkey:
                     print(f"  ⏭️  {entry.bot_name}: Reaction skipped (pubkey not found)")
                     continue

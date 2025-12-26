@@ -236,6 +236,20 @@
   - scripts/add_writing_style.py による一括追加
   - 性格・職業・文体に基づく自動設定
 
+### 外部ユーザー反応システム（2025-12-26 完了）
+- [x] スター機能（住人間）- 既存のリアクション機能として実装済み
+- [x] ExternalReactionService（`src/application/external_reaction_service.py`）
+  - タイムラインAPI / EXTERNAL_PUBKEYS環境変数から外部投稿を取得
+  - 住人の興味・キーワードとマッチング
+  - 社交性に基づくスター/リプライ確率判定
+- [x] ReplyTarget.pubkeyフィールド追加（外部ユーザー対応）
+- [x] postコマンドで外部pubkey対応
+  - `external:xxx`形式のresident判定
+  - pubkeyを直接使用した投稿
+- [x] tickコマンドへの統合
+  - `process_external_reactions()` を相互作用処理後に実行
+  - 1人1投稿まで（控えめ設定）
+
 ## 未着手
 
 ### 関係性の拡充
