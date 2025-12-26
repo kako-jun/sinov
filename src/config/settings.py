@@ -160,7 +160,7 @@ class Settings(BaseSettings):
     )
     backend_dir: Path = Field(
         default=Path("bots/backend"),
-        description="裏方ボットフォルダのルートディレクトリ",
+        description="裏方NPCフォルダのルートディレクトリ",
     )
 
     # パス設定（共有データ）

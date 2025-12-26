@@ -23,7 +23,7 @@ town/
 │   ├── _common.yaml         # 全員共通のプロンプト
 │   ├── illustrator_yuki.yaml
 │   ├── game_dev_ken.yaml
-│   └── ...                  # 約100人分（特殊ボット含む）
+│   └── ...                  # 約100人分（裏方NPC含む）
 │
 └── rules/                   # 街のルール
     └── ng_rules.yaml        # NGルール（共通）
@@ -227,12 +227,12 @@ negative:
   - 依頼の金額について言及しない
 ```
 
-### 特殊ボット: レビューア（例: reviewer_01.yaml）
+### 裏方NPC: レビューア（例: reviewer_01.yaml）
 
 ```yaml
 name: reviewer_01
 role: レビューア
-special: true  # 特殊ボットフラグ
+special: true  # 裏方NPCフラグ
 posts: false   # つぶやかない
 
 # レビュー用プロンプト
@@ -254,7 +254,7 @@ review:
     - "不適切な内容です"
 ```
 
-### 特殊ボット: 記者（例: reporter_01.yaml）
+### 裏方NPC: 記者（例: reporter_01.yaml）
 
 ```yaml
 name: reporter_01

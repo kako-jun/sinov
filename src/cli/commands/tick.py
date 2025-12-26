@@ -22,7 +22,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     tick_state_repo = TickStateRepository(settings.tick_state_file)
     relationship_repo = RelationshipRepository(settings.relationships_dir)
 
-    # 対象ボットの一覧を取得（IDでソート）
+    # 対象NPCの一覧を取得（IDでソート）
     all_bot_ids = sorted(service.bots.keys())
     total_bots = len(all_bot_ids)
 

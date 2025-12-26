@@ -1,5 +1,5 @@
 """
-ボット状態リポジトリ
+NPC状態リポジトリ
 """
 
 from pathlib import Path
@@ -10,14 +10,14 @@ from .base_repo import ResidentJsonRepository
 
 
 class StateRepository(ResidentJsonRepository):
-    """住人フォルダごとにボット状態を永続化"""
+    """住人フォルダごとにNPC状態を永続化"""
 
     def _get_file_path(self, bot_id: int) -> Path:
-        """ボットIDに対応するファイルパス"""
+        """NPC IDに対応するファイルパス"""
         return self._get_resident_file(bot_id, "state.json")
 
     def load_all(self) -> dict[int, BotState]:
-        """全ボットの状態を読み込み"""
+        """全NPCの状態を読み込み"""
         states: dict[int, BotState] = {}
 
         if not self.residents_dir.exists():
@@ -42,7 +42,7 @@ class StateRepository(ResidentJsonRepository):
         return states
 
     def load(self, bot_id: int) -> BotState | None:
-        """単一ボットの状態を読み込み"""
+        """単一NPCの状態を読み込み"""
         file_path = self._get_file_path(bot_id)
 
         if not file_path.exists():
@@ -67,11 +67,11 @@ class StateRepository(ResidentJsonRepository):
         )
 
     def save_all(self, states: dict[int, BotState]) -> None:
-        """全ボットの状態を保存"""
+        """全NPCの状態を保存"""
         for state in states.values():
             self.save(state)
 
     def save(self, state: BotState) -> None:
-        """単一ボットの状態を保存"""
+        """単一NPCの状態を保存"""
         file_path = self._get_file_path(state.id)
         self._save_json(file_path, state.model_dump(mode="json"))

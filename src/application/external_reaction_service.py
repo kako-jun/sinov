@@ -55,8 +55,8 @@ class ExternalReactionService:
         外部投稿への反応処理
 
         Args:
-            target_bot_ids: 処理対象のボットID（Noneなら全員）
-            max_posts_per_bot: 1ボットあたりの最大反応数
+            target_bot_ids: 処理対象のNPC ID（Noneなら全員）
+            max_posts_per_bot: 1NPCあたりの最大反応数
 
         Returns:
             生成したエントリー数
@@ -96,7 +96,7 @@ class ExternalReactionService:
 
             _, profile, state = self.bots[bot_id]
 
-            # このボットの反応数
+            # このNPCの反応数
             reactions_added = 0
 
             for post in external_posts:
@@ -105,7 +105,7 @@ class ExternalReactionService:
 
                 event_id = post.get("id", post.get("event_id", ""))
 
-                # 重複チェック（このボットが既にこの投稿に反応済み）
+                # 重複チェック（このNPCが既にこの投稿に反応済み）
                 reaction_key = f"{bot_id}:{event_id}"
                 if reaction_key in self._reacted_events:
                     continue

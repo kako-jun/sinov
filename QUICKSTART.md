@@ -16,11 +16,11 @@ cp .env.keys.example .env.keys
 # OLLAMA_MODEL=gemma2:2b (必須 - Google製、日本語最適)
 # DRY_RUN=true (テスト時はtrue、本番投稿時はfalse)
 
-# 4. ボットの鍵を生成
+# 4. NPCの鍵を生成
 uv run python scripts/generate_keys.py
-# → .env.keys に100体分の鍵が生成される
+# → .env.keys に100人分の鍵が生成される
 
-# 5. ボット履歴書を作成（サンプルは既に3体分ある）
+# 5. NPCプロフィールを作成（サンプルは既に3人分ある）
 # bots/profiles/bot001.yaml, bot002.yaml, bot003.yaml
 ```
 
@@ -58,20 +58,20 @@ Ctrl+C
 sinov/
 ├── src/                      # ソースコード
 │   ├── main.py              # エントリーポイント
-│   ├── bot_manager.py       # ボット管理
+│   ├── bot_manager.py       # NPC管理
 │   ├── llm.py               # LLM連携
 │   └── types.py             # 型定義
 ├── scripts/
 │   └── generate_keys.py     # 鍵生成スクリプト
 ├── bots/
-│   ├── profiles/            # ボット履歴書（YAML）
+│   ├── profiles/            # NPCプロフィール（YAML）
 │   │   ├── template.yaml
 │   │   ├── bot001.yaml
 │   │   └── ...
 │   └── states.json          # 実行状態（自動生成）
 ├── docs/                    # ドキュメント
 ├── .env                     # 環境設定（gitignore）
-├── .env.keys                # ボット秘密鍵（gitignore）
+├── .env.keys                # NPC秘密鍵（gitignore）
 └── pyproject.toml           # 依存関係
 ```
 

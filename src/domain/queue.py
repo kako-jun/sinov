@@ -32,7 +32,7 @@ class PostType(str, Enum):
 class ReplyTarget(BaseModel):
     """リプライ先の情報"""
 
-    resident: str = Field(description="リプライ先のボットID（bot001形式）またはexternal:xxx")
+    resident: str = Field(description="リプライ先のNPC ID（bot001形式）またはexternal:xxx")
     event_id: str = Field(description="リプライ先のNostrイベントID")
     content: str = Field(description="リプライ先の投稿内容")
     pubkey: str | None = Field(default=None, description="外部ユーザーの場合のpubkey")
@@ -52,7 +52,7 @@ class MumbleAbout(BaseModel):
     """ぶつぶつの対象"""
 
     type: str = Field(default="internal", description="対象の種類（internal/external）")
-    resident: str | None = Field(default=None, description="内部住人のボットID")
+    resident: str | None = Field(default=None, description="内部住人のNPC ID")
     pubkey: str | None = Field(default=None, description="外部NostrアカウントのPubkey")
     display_name: str = Field(description="表示名")
     original_content: str = Field(description="元の投稿内容")
@@ -62,8 +62,8 @@ class QueueEntry(BaseModel):
     """キューエントリー（投稿候補）"""
 
     id: str = Field(default_factory=lambda: uuid.uuid4().hex[:8])
-    bot_id: int = Field(gt=0, description="ボットID")
-    bot_name: str = Field(min_length=1, description="ボット名")
+    bot_id: int = Field(gt=0, description="NPC ID")
+    bot_name: str = Field(min_length=1, description="NPC名")
     content: str = Field(min_length=1, description="投稿内容")
     created_at: datetime = Field(default_factory=datetime.now)
     status: QueueStatus = Field(default=QueueStatus.PENDING)

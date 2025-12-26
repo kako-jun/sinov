@@ -1,5 +1,5 @@
 """
-ボットの型定義（ドメインモデル）
+NPCの型定義（ドメインモデル）
 """
 
 import os
@@ -110,16 +110,16 @@ class Prompts(BaseModel):
 
 
 class BotKey(BaseModel):
-    """ボットの鍵情報"""
+    """NPCの鍵情報"""
 
-    id: int = Field(gt=0, description="ボットID")
-    name: str = Field(min_length=1, description="ボット名")
+    id: int = Field(gt=0, description="NPC ID")
+    name: str = Field(min_length=1, description="NPC名")
     pubkey: str = Field(min_length=64, max_length=64, description="公開鍵")
     nsec: str = Field(pattern=r"^nsec1[a-z0-9]+$", description="秘密鍵")
 
     @classmethod
     def from_env(cls, bot_id: int) -> "BotKey":
-        """環境変数からボットキーを読み込み"""
+        """環境変数からNPCキーを読み込み"""
         bot_id_str = f"{bot_id:03d}"
         pubkey = os.getenv(f"BOT_{bot_id_str}_PUBKEY")
         nsec = os.getenv(f"BOT_{bot_id_str}_NSEC")
@@ -196,7 +196,7 @@ class Behavior(BaseModel):
 class Social(BaseModel):
     """社交性"""
 
-    friend_bot_ids: list[int] = Field(default_factory=list, description="仲の良いボットのID")
+    friend_bot_ids: list[int] = Field(default_factory=list, description="仲の良いNPCのID")
     reply_probability: float = Field(ge=0.0, le=1.0, description="返信する確率")
     repost_probability: float = Field(ge=0.0, le=1.0, description="リポストする確率")
     like_probability: float = Field(ge=0.0, le=1.0, description="いいねする確率")
@@ -212,10 +212,10 @@ class Background(BaseModel):
 
 
 class BotProfile(BaseModel):
-    """ボットプロフィール（YAML形式の履歴書）"""
+    """NPCプロフィール（YAML形式の履歴書）"""
 
-    id: int = Field(gt=0, description="ボットID")
-    name: str = Field(min_length=1, description="ボット名")
+    id: int = Field(gt=0, description="NPC ID")
+    name: str = Field(min_length=1, description="NPC名")
     personality: Personality
     interests: Interests
     behavior: Behavior
@@ -235,9 +235,9 @@ class BotProfile(BaseModel):
 
 
 class BotState(BaseModel):
-    """ボットの状態（実行時）"""
+    """NPCの状態（実行時）"""
 
-    id: int = Field(gt=0, description="ボットID")
+    id: int = Field(gt=0, description="NPC ID")
     last_post_time: int = Field(ge=0, description="最後の投稿時刻")
     next_post_time: int = Field(ge=0, description="次回投稿時刻")
     total_posts: int = Field(ge=0, description="累計投稿数")
@@ -259,6 +259,6 @@ class BotState(BaseModel):
 class TickState(BaseModel):
     """tickコマンドのラウンドロビン状態"""
 
-    next_index: int = Field(default=0, ge=0, description="次に処理するボットのインデックス")
+    next_index: int = Field(default=0, ge=0, description="次に処理するNPCのインデックス")
     last_run_at: str | None = Field(default=None, description="最後の実行時刻（ISO形式）")
     total_ticks: int = Field(default=0, ge=0, description="累計tick回数")

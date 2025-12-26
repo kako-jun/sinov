@@ -36,8 +36,8 @@ class AffinityService:
         相互作用発生時に好感度と親密度を更新
 
         Args:
-            from_bot_id: 反応した側のボットID
-            to_bot_id: 元投稿者のボットID（好感度が上がる側）
+            from_bot_id: 反応した側のNPC ID
+            to_bot_id: 元投稿者のNPC ID（好感度が上がる側）
             interaction_type: "reply" or "reaction"
         """
         to_bot_name = format_bot_name(to_bot_id)
@@ -94,7 +94,7 @@ class AffinityService:
 
         Args:
             target_bot_ids: 処理対象の住人ID一覧
-            bots: ボットデータ辞書
+            bots: NPCデータ辞書
 
         Returns:
             減衰が発生した関係の数

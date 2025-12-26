@@ -60,7 +60,7 @@ class NostrPublisher:
         Args:
             keys: 署名用の鍵
             content: 投稿内容
-            bot_name: ボット名（ログ用）
+            bot_name: NPC名（ログ用）
             reply_to_event_id: リプライ先のイベントID
             reply_to_pubkey: リプライ先の著者pubkey（任意）
 
@@ -108,7 +108,7 @@ class NostrPublisher:
         Args:
             keys: 署名用の鍵
             emoji: リアクション絵文字（+, -, または絵文字）
-            bot_name: ボット名（ログ用）
+            bot_name: NPC名（ログ用）
             target_event_id: リアクション対象のイベントID
             target_pubkey: リアクション対象の著者pubkey
 

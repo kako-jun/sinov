@@ -37,7 +37,7 @@ class ParameterChange:
     old_value: float
     new_value: float
     reason: str  # 変化理由（「bot005からリプライを受けた」など）
-    target: str | None = None  # 対象（他ボットIDなど）
+    target: str | None = None  # 対象（他NPC IDなど）
 
 
 @dataclass

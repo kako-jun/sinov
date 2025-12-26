@@ -152,10 +152,10 @@ class QueueRepository:
 
     def get_recent_rejected(self, bot_id: int, limit: int = 3) -> list[QueueEntry]:
         """
-        指定ボットの最近のrejectedエントリーを取得
+        指定NPCの最近のrejectedエントリーを取得
 
         Args:
-            bot_id: ボットID
+            bot_id: NPC ID
             limit: 取得件数
 
         Returns:

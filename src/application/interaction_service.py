@@ -408,7 +408,7 @@ class InteractionService:
         リプライ/リアクションをもらった時に記憶を強化
 
         Args:
-            bot_id: 元投稿者のボットID（記憶が強化される側）
+            bot_id: 元投稿者のNPC ID（記憶が強化される側）
             original_content: 元投稿の内容
             interaction_type: "reply" or "reaction"
         """
@@ -469,7 +469,7 @@ class InteractionService:
         リプライ/リアクションをもらった時に気分を更新
 
         Args:
-            bot_id: 元投稿者のボットID（気分が上がる側）
+            bot_id: 元投稿者のNPC ID（気分が上がる側）
             interaction_type: "reply" or "reaction"
         """
         if bot_id not in self.bots:
@@ -489,19 +489,19 @@ class InteractionService:
         new_mood = max(-1.0, min(1.0, state.mood + delta))
         state.mood = new_mood
 
-        # ボットデータを更新（stateは参照なので自動的に反映）
+        # NPCデータを更新（stateは参照なので自動的に反映）
         if new_mood != old_mood:
             print(f"         😊 bot{bot_id:03d}の気分: {old_mood:.2f} → {new_mood:.2f}")
 
     def _get_mood(self, bot_id: int) -> float:
-        """ボットの現在の気分を取得"""
+        """NPCの現在の気分を取得"""
         if bot_id not in self.bots:
             return 0.0
         _, _, state = self.bots[bot_id]
         return state.mood
 
     def _get_affinity(self, from_bot_id: int, to_bot_id: int) -> float:
-        """ボット間の好感度を取得"""
+        """NPC間の好感度を取得"""
         from_name = format_bot_name(from_bot_id)
         to_name = format_bot_name(to_bot_id)
         affinity_map = self.relationship_repo.load_affinity(from_name)
@@ -527,7 +527,7 @@ class InteractionService:
             if not entry.reply_to:
                 continue
 
-            # リプライ先のボットIDを取得
+            # リプライ先のNPC IDを取得
             target_bot_name = entry.reply_to.resident
             if not target_bot_name.startswith("bot"):
                 continue

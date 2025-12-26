@@ -22,7 +22,7 @@ OLLAMA_MODEL=gemma2:2b
 API_ENDPOINT=https://api.mypace.llll-ll.com
 ```
 
-**.env.keys**（各ボットの鍵）
+**.env.keys**（各NPCの鍵）
 ```
 BOT_001_PUBKEY=abcd1234...
 BOT_001_NSEC=nsec1...
@@ -174,7 +174,7 @@ ollama serve
 ### 投稿が生成されない
 
 ```bash
-# ボットプロファイルを確認
+# NPCプロファイルを確認
 ls bots/profiles/
 
 # 記憶ファイルを確認
@@ -215,10 +215,10 @@ echo $API_ENDPOINT
 ## 単体テスト的な確認
 
 ```bash
-# 特定ボットの投稿生成（dry-run）
+# 特定NPCの投稿生成（dry-run）
 uv run python -m src.cli generate --bot bot001 --dry-run
 
-# 全ボットの投稿生成（dry-run）
+# 全NPCの投稿生成（dry-run）
 uv run python -m src.cli generate --all --dry-run
 ```
 
@@ -234,7 +234,7 @@ uv run python -m src.cli generate --all --dry-run
 # 最近の投稿を確認
 python scripts/delete_posts.py list
 
-# 特定ボットの投稿のみ
+# 特定NPCの投稿のみ
 python scripts/delete_posts.py list --bot bot001
 
 # 件数指定
@@ -254,10 +254,10 @@ python scripts/delete_posts.py delete abc123 --yes
 ### 一括削除
 
 ```bash
-# 特定ボットの全投稿を削除
+# 特定NPCの全投稿を削除
 python scripts/delete_posts.py delete-all --bot bot001 --confirm
 
-# 全ボットの全投稿を削除（危険）
+# 全NPCの全投稿を削除（危険）
 python scripts/delete_posts.py delete-all --confirm
 ```
 

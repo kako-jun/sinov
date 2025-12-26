@@ -29,7 +29,7 @@
 - [x] プロンプト生成（`src/domain/content.py`）
   - create_reply_prompt, create_mumble_prompt
 
-### 記者ボット（2025-12-26）
+### 記者システム（2025-12-26）
 - [x] ドメインモデル（`src/domain/news.py`）
   - NewsItem, BulletinBoard, ReporterConfig
 - [x] リポジトリ（`src/infrastructure/storage/bulletin_repo.py`）
@@ -118,7 +118,7 @@
 - [x] collect_news.pyを新クライアントに移行
 
 ### コードベースリファクタリング（2025-12-26）
-- [x] ボットIDユーティリティ（`src/domain/bot_utils.py`）
+- [x] NPC IDユーティリティ（`src/domain/bot_utils.py`）
   - `format_bot_name()`: ID→名前変換（14箇所の重複を解消）
   - `extract_bot_id()`: 名前→ID変換（3箇所の重複を解消）
 - [x] ベースリポジトリ（`src/infrastructure/storage/base_repo.py`）

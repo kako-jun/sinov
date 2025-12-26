@@ -1,5 +1,5 @@
 """
-ボットサービス（アプリケーションユースケース）
+NPCサービス（アプリケーションユースケース）
 """
 
 import json
@@ -34,7 +34,7 @@ from ..infrastructure import (
 
 
 class BotService:
-    """ボット管理サービス"""
+    """NPC管理サービス"""
 
     def __init__(
         self,
@@ -57,12 +57,12 @@ class BotService:
         self.log_repo = log_repo
         self.content_strategy = ContentStrategy(settings.content)
 
-        # ボットデータ
+        # NPCデータ
         self.bots: dict[int, tuple[BotKey, BotProfile, BotState]] = {}
         self.keys: dict[int, Keys] = {}
 
     async def load_bots(self) -> None:
-        """ボットのデータを読み込み"""
+        """NPCのデータを読み込み"""
         print("Loading bot profiles...")
 
         profiles = self.profile_repo.load_all()
@@ -263,7 +263,7 @@ class BotService:
             raise
 
     def _evolve_interests(self, bot_id: int) -> None:
-        """ボットの興味を成長させる"""
+        """NPCの興味を成長させる"""
         _, profile, state = self.bots[bot_id]
         interval = self.settings.content.evolution_interval
 
@@ -401,6 +401,6 @@ NG
             )
 
     def _save_states(self) -> None:
-        """全ボットの状態を保存"""
+        """全NPCの状態を保存"""
         states = {bot_id: state for bot_id, (_, _, state) in self.bots.items()}
         self.state_repo.save_all(states)

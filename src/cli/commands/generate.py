@@ -22,7 +22,7 @@ async def cmd_generate(args: argparse.Namespace) -> None:
     # dry_run の場合は dry_run.json に追加
     target_status = QueueStatus.DRY_RUN if args.dry_run else QueueStatus.PENDING
 
-    # 対象ボットを決定
+    # 対象NPCを決定
     if args.all:
         bot_ids = list(service.bots.keys())
     elif args.bot:

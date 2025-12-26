@@ -4,7 +4,7 @@
 stalkers:
   # kako-junウォッチャー（アプリ作者のファン）
   # - id: kakojun_watcher
-  #   resident: bot020  # ストーカー役のボット
+  #   resident: bot020  # ストーカー役のNPC
   #   display_name: 熱心なファン
   #   target:
   #     type: external_nostr

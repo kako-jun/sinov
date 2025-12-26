@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ボットの鍵生成スクリプト
-100体のボットのnsecを生成して.env.keysに保存
+NPCの鍵生成スクリプト
+100人のNPCのnsecを生成して.env.keysに保存
 """
 
 from pathlib import Path

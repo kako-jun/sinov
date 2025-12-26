@@ -24,7 +24,7 @@ class PersonalityAnalyzer:
         プロフィールから性格タイプを推定
 
         Args:
-            profile: ボットプロフィール
+            profile: NPCプロフィール
 
         Returns:
             性格タイプ（陽気, クール, 熱血, 内気, のんびり, 真面目, 普通）

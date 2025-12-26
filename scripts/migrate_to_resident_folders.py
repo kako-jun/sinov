@@ -29,7 +29,7 @@ def migrate():
     new_residents_dir = base_dir / "bots" / "residents"
     new_backend_dir = base_dir / "bots" / "backend"
 
-    # 裏方ボットのプレフィックス
+    # 裏方NPCのプレフィックス
     backend_patterns = ["reporter_", "reviewer", "bot_news_collector"]
 
     # 古い状態ファイルを読み込み
@@ -46,7 +46,7 @@ def migrate():
 
         name = profile_file.stem
 
-        # 裏方ボットかどうか判定
+        # 裏方NPCかどうか判定
         is_backend = any(name.startswith(p) or name == p.rstrip("_") for p in backend_patterns)
 
         if is_backend:

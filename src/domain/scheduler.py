@@ -9,11 +9,11 @@ from .models import BotProfile, BotState
 
 
 class Scheduler:
-    """ボット投稿のスケジューリング"""
+    """NPC投稿のスケジューリング"""
 
     @staticmethod
     def should_post_now(profile: BotProfile, state: BotState) -> bool:
-        """このボットが今投稿すべきかを判定"""
+        """このNPCが今投稿すべきかを判定"""
         current_time = int(datetime.now().timestamp())
         current_hour = datetime.now().hour
 

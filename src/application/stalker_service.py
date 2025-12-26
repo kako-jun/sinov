@@ -61,7 +61,7 @@ class StalkerService:
         generated = 0
 
         for stalker in self.stalkers:
-            # ストーカー役のボットを取得
+            # ストーカー役のNPCを取得
             bot_id = extract_bot_id(stalker.resident)
             if bot_id is None or bot_id not in self.bots:
                 continue

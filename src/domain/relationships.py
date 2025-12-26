@@ -33,7 +33,7 @@ class Group(BaseModel):
 
     id: str = Field(description="グループID")
     name: str = Field(description="グループ名")
-    members: list[str] = Field(description="メンバーのボットID（bot001形式）")
+    members: list[str] = Field(description="メンバーのNPC ID（bot001形式）")
     description: str | None = Field(default=None, description="グループの説明")
     interaction: GroupInteraction = Field(
         default_factory=GroupInteraction, description="相互作用設定"
@@ -54,7 +54,7 @@ class Pair(BaseModel):
 
     id: str = Field(description="関係ID")
     type: RelationshipType = Field(description="関係の種類")
-    members: list[str] = Field(min_length=2, max_length=2, description="2人のボットID")
+    members: list[str] = Field(min_length=2, max_length=2, description="2人のNPC ID")
     description: str | None = Field(default=None, description="関係の説明")
     interaction: PairInteraction = Field(
         default_factory=PairInteraction, description="相互作用設定"
@@ -90,7 +90,7 @@ class Stalker(BaseModel):
     """ストーカー定義"""
 
     id: str = Field(description="ストーカーID")
-    resident: str = Field(description="ストーカー役のボットID")
+    resident: str = Field(description="ストーカー役のNPC ID")
     display_name: str = Field(description="表示名")
     target: StalkerTarget = Field(description="ターゲット")
     behavior: StalkerBehavior = Field(default_factory=StalkerBehavior, description="行動設定")
@@ -101,24 +101,24 @@ class Stalker(BaseModel):
 class Affinity(BaseModel):
     """好感度・信頼度・親密度（住人間の関係値）"""
 
-    bot_id: str = Field(description="この住人のボットID")
+    bot_id: str = Field(description="この住人のNPC ID")
     targets: dict[str, float] = Field(
         default_factory=dict,
-        description="対象ボットIDと好感度のマップ（-1.0〜1.0）",
+        description="対象NPC IDと好感度のマップ（-1.0〜1.0）",
     )
     last_interactions: dict[str, str] = Field(
         default_factory=dict,
-        description="対象ボットIDと最後の相互作用日時のマップ（ISO形式）",
+        description="対象NPC IDと最後の相互作用日時のマップ（ISO形式）",
     )
     # 信頼度（約束を守る、頼りになる等）
     trust: dict[str, float] = Field(
         default_factory=dict,
-        description="対象ボットIDと信頼度のマップ（0.0〜1.0）",
+        description="対象NPC IDと信頼度のマップ（0.0〜1.0）",
     )
     # 親密度（どれだけ知り合いか）
     familiarity: dict[str, float] = Field(
         default_factory=dict,
-        description="対象ボットIDと親密度のマップ（0.0〜1.0）",
+        description="対象NPC IDと親密度のマップ（0.0〜1.0）",
     )
 
     def get_affinity(self, target_id: str) -> float:
@@ -175,7 +175,7 @@ class RelationshipData(BaseModel):
     stalkers: list[Stalker] = Field(default_factory=list, description="ストーカー一覧")
 
     def get_related_members(self, bot_id: str) -> list[str]:
-        """指定ボットと関係のある全メンバーを取得"""
+        """指定NPCと関係のある全メンバーを取得"""
         related = set()
 
         # グループメンバー
@@ -195,15 +195,15 @@ class RelationshipData(BaseModel):
         return list(related)
 
     def get_groups_for_bot(self, bot_id: str) -> list[Group]:
-        """指定ボットが所属するグループを取得"""
+        """指定NPCが所属するグループを取得"""
         return [g for g in self.groups if bot_id in g.members]
 
     def get_pairs_for_bot(self, bot_id: str) -> list[Pair]:
-        """指定ボットが関係する個人間関係を取得"""
+        """指定NPCが関係する個人間関係を取得"""
         return [p for p in self.pairs if bot_id in p.members]
 
     def get_reply_probability(self, from_bot: str, to_bot: str) -> float:
-        """2人のボット間のリプライ確率を取得"""
+        """2人のNPC間のリプライ確率を取得"""
         max_prob = 0.0
 
         # グループ確率

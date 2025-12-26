@@ -1,5 +1,5 @@
 """
-ボットプロフィールリポジトリ
+NPCプロフィールリポジトリ
 """
 
 from pathlib import Path
@@ -11,7 +11,7 @@ from ...domain.models import BotProfile, Prompts
 
 
 class ProfileRepository:
-    """住人フォルダからボットプロフィールを読み込む"""
+    """住人フォルダからNPCプロフィールを読み込む"""
 
     def __init__(
         self,

@@ -9,10 +9,10 @@
   # 特定の投稿を削除
   python scripts/delete_posts.py delete <event_id>
 
-  # 特定ボットの全投稿を削除
+  # 特定NPCの全投稿を削除
   python scripts/delete_posts.py delete-all --bot bot001
 
-  # 全ボットの全投稿を削除（危険）
+  # 全NPCの全投稿を削除（危険）
   python scripts/delete_posts.py delete-all --confirm
 """
 
@@ -136,7 +136,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
         return
 
     print("削除対象:")
-    print(f"  ボット: {target.get('bot_name')}")
+    print(f"  NPC: {target.get('bot_name')}")
     print(f"  内容: {target.get('content', '')[:60]}...")
     print(f"  event_id: {target.get('event_id')}")
     print()
@@ -212,7 +212,7 @@ def main() -> None:
 
     # list
     list_parser = subparsers.add_parser("list", help="投稿済み一覧")
-    list_parser.add_argument("--bot", "-b", help="ボットでフィルタ (bot001)")
+    list_parser.add_argument("--bot", "-b", help="NPCでフィルタ (bot001)")
     list_parser.add_argument("--limit", "-n", type=int, default=20, help="表示件数")
 
     # delete
@@ -222,7 +222,7 @@ def main() -> None:
 
     # delete-all
     delall_parser = subparsers.add_parser("delete-all", help="一括削除")
-    delall_parser.add_argument("--bot", "-b", help="ボットでフィルタ (bot001)")
+    delall_parser.add_argument("--bot", "-b", help="NPCでフィルタ (bot001)")
     delall_parser.add_argument("--confirm", action="store_true", help="実行確認")
 
     args = parser.parse_args()

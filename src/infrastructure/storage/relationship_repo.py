@@ -160,7 +160,7 @@ class RelationshipRepository:
         return self._load_stalkers()
 
     def load_affinity(self, bot_id: str) -> Affinity:
-        """指定ボットの好感度を読み込み"""
+        """指定NPCの好感度を読み込み"""
         affinity_file = self.affinity_dir / f"{bot_id}.json"
 
         if not affinity_file.exists():
@@ -183,7 +183,7 @@ class RelationshipRepository:
             json.dump(affinity.model_dump(), f, ensure_ascii=False, indent=2)
 
     def load_all_affinities(self) -> dict[str, Affinity]:
-        """全ボットの好感度を読み込み"""
+        """全NPCの好感度を読み込み"""
         affinities: dict[str, Affinity] = {}
 
         if not self.affinity_dir.exists():
@@ -197,14 +197,14 @@ class RelationshipRepository:
 
     def initialize_affinities_from_relationships(self, relationship_data: RelationshipData) -> None:
         """関係性データから好感度の初期値を設定"""
-        # 全ボットIDを収集
+        # 全NPC IDを収集
         all_bots = set()
         for group in relationship_data.groups:
             all_bots.update(group.members)
         for pair in relationship_data.pairs:
             all_bots.update(pair.members)
 
-        # 各ボットの好感度を初期化
+        # 各NPCの好感度を初期化
         for bot_id in all_bots:
             affinity = self.load_affinity(bot_id)
 

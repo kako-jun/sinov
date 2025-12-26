@@ -1,5 +1,5 @@
 """
-記憶リポジトリ - ボットの記憶をJSONファイルで永続化
+記憶リポジトリ - NPCの記憶をJSONファイルで永続化
 """
 
 from datetime import datetime
@@ -11,10 +11,10 @@ from .base_repo import ResidentJsonRepository
 
 
 class MemoryRepository(ResidentJsonRepository):
-    """ボットの記憶をファイルで管理（住人フォルダごと）"""
+    """NPCの記憶をファイルで管理（住人フォルダごと）"""
 
     def _get_file_path(self, bot_id: int) -> Path:
-        """ボットIDに対応するファイルパス"""
+        """NPC IDに対応するファイルパス"""
         return self._get_resident_file(bot_id, "memory.json")
 
     def load(self, bot_id: int) -> BotMemory:
@@ -40,7 +40,7 @@ class MemoryRepository(ResidentJsonRepository):
         self._save_json(file_path, memory.model_dump(mode="json"))
 
     def load_all(self) -> dict[int, BotMemory]:
-        """全ボットの記憶を読み込み"""
+        """全NPCの記憶を読み込み"""
         memories: dict[int, BotMemory] = {}
 
         if not self.residents_dir.exists():

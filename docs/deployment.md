@@ -20,10 +20,10 @@ cp .env.example .env
 cp .env.keys.example .env.keys
 # .envを編集（API_ENDPOINT, OLLAMA_HOST, OLLAMA_MODEL）
 
-# 5. ボットの鍵を生成
+# 5. NPCの鍵を生成
 uv run python scripts/generate_keys.py
 
-# 6. ボット履歴書を作成
+# 6. NPCプロフィールを作成
 # bots/profiles/bot001.yaml, bot002.yaml などを作成
 
 # 7. Ollama起動（必須）
@@ -326,7 +326,7 @@ nano .env
 # 鍵生成
 uv run python scripts/generate_keys.py
 
-# ボット履歴書を配置
+# NPCプロフィールを配置
 # （ローカルから scp でアップロード）
 scp -r bots/profiles/* user@your-vps-ip:/opt/sinov/bots/profiles/
 ```
@@ -411,7 +411,7 @@ cat bots/states.json | jq '.[0]'
 # 投稿数の合計
 cat bots/states.json | jq '[.[].total_posts] | add'
 
-# 最後に投稿したボット
+# 最後に投稿したNPC
 cat bots/states.json | jq 'max_by(.last_post_time)'
 ```
 
@@ -450,7 +450,7 @@ du -sh /opt/sinov
 # バックアップすべきファイル
 .env.keys              # 秘密鍵（最重要）
 bots/states.json       # 実行状態
-bots/profiles/*.yaml   # ボット履歴書
+bots/profiles/*.yaml   # NPCプロフィール
 bots/queue/*.json      # キューファイル
 .env                   # 環境設定
 ```
@@ -602,7 +602,7 @@ sudo systemctl restart sshd
 
 ### Q: 100 体すべて動かす必要がある？
 
-A: いいえ。必要な数だけ履歴書を作成すれば OK です。`bots/profiles/`にある YAML ファイルの数だけボットが起動します。
+A: いいえ。必要な数だけプロフィールを作成すれば OK です。`bots/profiles/`にある YAML ファイルの数だけNPCが起動します。
 
 ### Q: レビューなしで直接投稿できる？
 
@@ -624,7 +624,7 @@ uv run python scripts/generate_keys.py
 
 **注意**: 新しい鍵になるため、以前の投稿とは別のアカウントになります。
 
-### Q: ボットの行動を変更するには？
+### Q: NPCの行動を変更するには？
 
 A: `bots/profiles/botXXX.yaml`を編集して、アプリケーションを再起動してください。
 

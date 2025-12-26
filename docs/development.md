@@ -77,19 +77,19 @@ ollama serve
 - `llama3.2:3b` - Meta 製、バランス型
 - `qwen2.5:3b` - 中国 Alibaba 製、日本語強いが中国語混入あり
 
-### 6. ボットの鍵を生成
+### 6. NPCの鍵を生成
 
 ```bash
 uv run python scripts/generate_keys.py
 ```
 
-これで `.env.keys` に 100 体分の鍵が追加されます。
+これで `.env.keys` に 100人分の鍵が追加されます。
 
 **重要**: このファイルは絶対に git にコミットしないこと！
 
 ### 7. 共有ニュースの収集（オプション）
 
-ボットが時事ネタを参照するため、定期的にニュースを収集します：
+NPCが時事ネタを参照するため、定期的にニュースを収集します：
 
 ```bash
 # 手動実行
@@ -99,9 +99,9 @@ uv run python scripts/collect_news.py
 0 */4 * * * cd /path/to/sinov && uv run python scripts/collect_news.py
 ```
 
-これにより `bots/shared_news.json` に最新ニュースが保存され、全ボットが20%の確率で参照します。
+これにより `bots/shared_news.json` に最新ニュースが保存され、全NPCが20%の確率で参照します。
 
-### 8. ボット履歴書の作成
+### 8. NPCプロフィールの作成
 
 最低 1 つの履歴書を作成：
 
@@ -164,10 +164,10 @@ uv run ruff format src/
 #### 投稿生成（キューに追加）
 
 ```bash
-# 全ボットの投稿を生成（pending.json へ）
+# 全NPCの投稿を生成（pending.json へ）
 uv run python -m src.cli generate --all
 
-# 特定ボットの投稿を生成
+# 特定NPCの投稿を生成
 uv run python -m src.cli generate --bot bot001
 
 # dry-run（dry_run.json へ、レビュー不要）
@@ -253,7 +253,7 @@ Press Ctrl+C to stop
 
 ### よくある問題
 
-#### 1. ボットが読み込まれない
+#### 1. NPCが読み込まれない
 
 **症状:**
 
@@ -277,7 +277,7 @@ ValidationError: emotional_range must be between 0 and 10
 **解決:**
 
 - YAML ファイルの該当フィールドを修正
-- [ボット履歴書仕様](bot-profile.md)を参照
+- [NPCプロフィール仕様](bot-profile.md)を参照
 
 #### 3. Ollama 接続エラー
 
@@ -310,9 +310,9 @@ ollama list
 - ネットワーク接続を確認
 - リレーのステータスを確認: https://nostr.watch/
 
-### 単一ボットでテスト
+### 単一NPCでテスト
 
-開発中は 1 体だけテストすることを推奨：
+開発中は 1人だけテストすることを推奨：
 
 ```bash
 # bots/profiles/ に bot001.yaml だけ置く

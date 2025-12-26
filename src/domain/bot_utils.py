@@ -1,14 +1,14 @@
 """
-ボットID関連のユーティリティ
+NPC ID関連のユーティリティ
 """
 
 
 def format_bot_name(bot_id: int) -> str:
     """
-    ボットIDを標準フォーマットに変換
+    NPC IDを標準フォーマットに変換
 
     Args:
-        bot_id: ボットID（例: 1）
+        bot_id: NPC ID（例: 1）
 
     Returns:
         フォーマットされた名前（例: "bot001"）
@@ -18,13 +18,13 @@ def format_bot_name(bot_id: int) -> str:
 
 def extract_bot_id(bot_name: str) -> int | None:
     """
-    ボット名からIDを抽出
+    NPC名からIDを抽出
 
     Args:
-        bot_name: ボット名（例: "bot001" または "1"）
+        bot_name: NPC名（例: "bot001" または "1"）
 
     Returns:
-        ボットID（例: 1）、パース失敗時はNone
+        NPC ID（例: 1）、パース失敗時はNone
     """
     if bot_name.startswith("bot"):
         try:
