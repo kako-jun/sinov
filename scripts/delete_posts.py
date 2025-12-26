@@ -48,13 +48,13 @@ async def delete_event(event_id: str, bot_id: int) -> bool:
     import httpx
     from nostr_sdk import EventBuilder, Keys, Kind, Tag
 
-    from src.domain import BotKey
+    from src.domain import NpcKey
 
     load_dotenv()
     load_dotenv(".env.keys")
 
     try:
-        bot_key = BotKey.from_env(bot_id)
+        bot_key = NpcKey.from_env(bot_id)
         keys = Keys.parse(bot_key.nsec)
     except ValueError as e:
         print(f"  ❌ 鍵取得エラー: {e}")

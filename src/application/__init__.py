@@ -1,14 +1,14 @@
 """アプリケーション層（ユースケース）"""
 
 from .affinity_service import AffinityService
-from .bot_service import BotService
 from .external_reaction_service import ExternalReactionService
 from .interaction_service import InteractionService
+from .npc_service import NpcService
 from .stalker_service import StalkerService
 
 __all__ = [
     "AffinityService",
-    "BotService",
+    "NpcService",
     "ExternalReactionService",
     "InteractionService",
     "StalkerService",

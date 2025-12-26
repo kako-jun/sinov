@@ -2,16 +2,16 @@
 Sinov - MYPACE SNS Bot Management System
 """
 
-from .application import BotService
+from .application import NpcService
 from .config import Settings
 from .domain import (
     Background,
     Behavior,
-    BotKey,
-    BotProfile,
-    BotState,
     ContentStrategy,
     Interests,
+    NpcKey,
+    NpcProfile,
+    NpcState,
     Personality,
     Scheduler,
     Social,
@@ -26,18 +26,18 @@ from .infrastructure import (
 
 __all__ = [
     # Application
-    "BotService",
+    "NpcService",
     # Config
     "Settings",
     # Domain
-    "BotKey",
+    "NpcKey",
     "Personality",
     "Interests",
     "Behavior",
     "Social",
     "Background",
-    "BotProfile",
-    "BotState",
+    "NpcProfile",
+    "NpcState",
     "Scheduler",
     "ContentStrategy",
     # Infrastructure

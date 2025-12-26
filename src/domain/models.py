@@ -109,7 +109,7 @@ class Prompts(BaseModel):
     negative: list[str] = Field(default_factory=list, description="これは避けてほしい指示")
 
 
-class BotKey(BaseModel):
+class NpcKey(BaseModel):
     """NPCの鍵情報"""
 
     id: int = Field(gt=0, description="NPC ID")
@@ -118,7 +118,7 @@ class BotKey(BaseModel):
     nsec: str = Field(pattern=r"^nsec1[a-z0-9]+$", description="秘密鍵")
 
     @classmethod
-    def from_env(cls, bot_id: int) -> "BotKey":
+    def from_env(cls, bot_id: int) -> "NpcKey":
         """環境変数からNPCキーを読み込み"""
         bot_id_str = f"{bot_id:03d}"
         pubkey = os.getenv(f"BOT_{bot_id_str}_PUBKEY")
@@ -211,7 +211,7 @@ class Background(BaseModel):
     favorite_quotes: list[str] | None = Field(default=None, description="好きな言葉")
 
 
-class BotProfile(BaseModel):
+class NpcProfile(BaseModel):
     """NPCプロフィール（YAML形式の履歴書）"""
 
     id: int = Field(gt=0, description="NPC ID")
@@ -234,7 +234,7 @@ class BotProfile(BaseModel):
     prompts: Prompts | None = Field(default=None, description="個人プロンプト設定")
 
 
-class BotState(BaseModel):
+class NpcState(BaseModel):
     """NPCの状態（実行時）"""
 
     id: int = Field(gt=0, description="NPC ID")

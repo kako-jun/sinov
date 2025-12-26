@@ -38,7 +38,7 @@ class SeriesState(BaseModel):
     posts: list[str] = Field(default_factory=list, description="これまでの投稿内容")
 
 
-class BotMemory(BaseModel):
+class NpcMemory(BaseModel):
     """NPCの記憶全体"""
 
     bot_id: int = Field(description="NPC ID")

@@ -4,7 +4,7 @@ tick コマンド - 1周の処理: 住人N人を順番に処理 + 相互作用 +
 
 import argparse
 
-from ...application import BotService, ExternalReactionService, InteractionService
+from ...application import ExternalReactionService, InteractionService, NpcService
 from ...domain import QueueEntry, QueueStatus
 from ...infrastructure import QueueRepository, RelationshipRepository, TickStateRepository
 from ..base import init_env, init_llm, init_service
@@ -119,7 +119,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     )
 
 
-async def run_reviewer(service: BotService, queue_repo: QueueRepository) -> int:
+async def run_reviewer(service: NpcService, queue_repo: QueueRepository) -> int:
     """pending のエントリーをレビュー（Gemmaを使用）"""
     pending_entries = queue_repo.get_all(QueueStatus.PENDING)
 

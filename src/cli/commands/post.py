@@ -6,7 +6,7 @@ import argparse
 
 from dotenv import load_dotenv
 
-from ...domain import BotKey, PostType, QueueStatus
+from ...domain import NpcKey, PostType, QueueStatus
 from ...infrastructure import NostrPublisher, QueueRepository
 from ..base import get_target_pubkey, init_env
 
@@ -42,7 +42,7 @@ async def cmd_post(args: argparse.Namespace) -> None:
     for entry in entries:
         try:
             # 鍵を取得
-            bot_key = BotKey.from_env(entry.bot_id)
+            bot_key = NpcKey.from_env(entry.bot_id)
             keys = Keys.parse(bot_key.nsec)
 
             event_id: str | None = None

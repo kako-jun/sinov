@@ -13,15 +13,15 @@ import httpx
 
 from ..domain import (
     ActivityLogger,
-    BotProfile,
-    BotState,
     ContentStrategy,
+    NpcProfile,
+    NpcState,
     PostType,
     QueueEntry,
     QueueStatus,
     TextProcessor,
 )
-from ..domain.models import BotKey
+from ..domain.models import NpcKey
 from ..domain.queue import ReplyTarget
 from ..infrastructure import LLMProvider, LogRepository, QueueRepository
 
@@ -34,7 +34,7 @@ class ExternalReactionService:
         llm_provider: LLMProvider | None,
         queue_repo: QueueRepository,
         content_strategy: ContentStrategy,
-        bots: dict[int, tuple[BotKey, BotProfile, BotState]],
+        bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
         log_repo: LogRepository | None = None,
     ):
         self.llm_provider = llm_provider
@@ -219,7 +219,7 @@ class ExternalReactionService:
         except Exception:
             return []
 
-    def _matches_interests(self, post: dict[str, Any], profile: BotProfile) -> bool:
+    def _matches_interests(self, post: dict[str, Any], profile: NpcProfile) -> bool:
         """投稿が住人の興味に合うか判定"""
         content = post.get("content", "").lower()
         if not content:
@@ -244,7 +244,7 @@ class ExternalReactionService:
 
     def _decide_reaction(
         self,
-        profile: BotProfile,
+        profile: NpcProfile,
         post: dict[str, Any],
     ) -> str | None:
         """反応タイプを決定"""
@@ -269,7 +269,7 @@ class ExternalReactionService:
     async def _generate_entry(
         self,
         bot_id: int,
-        profile: BotProfile,
+        profile: NpcProfile,
         post: dict[str, Any],
         reaction_type: str,
     ) -> QueueEntry | None:
@@ -296,7 +296,7 @@ class ExternalReactionService:
     def _generate_star_entry(
         self,
         bot_id: int,
-        profile: BotProfile,
+        profile: NpcProfile,
         event_id: str,
         pubkey: str,
     ) -> QueueEntry:
@@ -324,7 +324,7 @@ class ExternalReactionService:
     async def _generate_reply_entry(
         self,
         bot_id: int,
-        profile: BotProfile,
+        profile: NpcProfile,
         event_id: str,
         pubkey: str,
         target_content: str,

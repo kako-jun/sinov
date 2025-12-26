@@ -4,8 +4,8 @@ NPC状態リポジトリ
 
 from pathlib import Path
 
-from ...domain.bot_utils import format_bot_name
-from ...domain.models import BotState
+from ...domain.models import NpcState
+from ...domain.npc_utils import format_npc_name
 from .base_repo import ResidentJsonRepository
 
 
@@ -16,9 +16,9 @@ class StateRepository(ResidentJsonRepository):
         """NPC IDに対応するファイルパス"""
         return self._get_resident_file(bot_id, "state.json")
 
-    def load_all(self) -> dict[int, BotState]:
+    def load_all(self) -> dict[int, NpcState]:
         """全NPCの状態を読み込み"""
-        states: dict[int, BotState] = {}
+        states: dict[int, NpcState] = {}
 
         if not self.residents_dir.exists():
             return states
@@ -41,7 +41,7 @@ class StateRepository(ResidentJsonRepository):
 
         return states
 
-    def load(self, bot_id: int) -> BotState | None:
+    def load(self, bot_id: int) -> NpcState | None:
         """単一NPCの状態を読み込み"""
         file_path = self._get_file_path(bot_id)
 
@@ -52,26 +52,26 @@ class StateRepository(ResidentJsonRepository):
             data = self._load_json(file_path)
             if data is None:
                 return None
-            return BotState.model_validate(data)
+            return NpcState.model_validate(data)
         except Exception as e:
-            print(f"⚠️  Failed to load state for {format_bot_name(bot_id)}: {e}")
+            print(f"⚠️  Failed to load state for {format_npc_name(bot_id)}: {e}")
             return None
 
-    def create_initial(self, bot_id: int) -> BotState:
+    def create_initial(self, bot_id: int) -> NpcState:
         """初期状態を作成"""
-        return BotState(
+        return NpcState(
             id=bot_id,
             last_post_time=0,
             next_post_time=0,
             total_posts=0,
         )
 
-    def save_all(self, states: dict[int, BotState]) -> None:
+    def save_all(self, states: dict[int, NpcState]) -> None:
         """全NPCの状態を保存"""
         for state in states.values():
             self.save(state)
 
-    def save(self, state: BotState) -> None:
+    def save(self, state: NpcState) -> None:
         """単一NPCの状態を保存"""
         file_path = self._get_file_path(state.id)
         self._save_json(file_path, state.model_dump(mode="json"))

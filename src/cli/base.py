@@ -4,9 +4,9 @@ CLI共通の初期化関数
 
 from dotenv import load_dotenv
 
-from ..application import BotService
+from ..application import NpcService
 from ..config import Settings
-from ..domain import extract_bot_id
+from ..domain import extract_npc_id
 from ..infrastructure import (
     LogRepository,
     MemoryRepository,
@@ -40,8 +40,8 @@ def init_llm(settings: Settings) -> OllamaProvider | None:
         return None
 
 
-async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
-    """BotServiceを初期化"""
+async def init_service(settings: Settings, llm: OllamaProvider) -> NpcService:
+    """NpcServiceを初期化"""
     publisher = NostrPublisher(settings.api_endpoint, dry_run=True)
     profile_repo = ProfileRepository(settings.residents_dir, settings.backend_dir)
     state_repo = StateRepository(settings.residents_dir)
@@ -49,7 +49,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
     queue_repo = QueueRepository(settings.queue_dir)
     log_repo = LogRepository(str(settings.residents_dir))
 
-    service = BotService(
+    service = NpcService(
         settings=settings,
         llm_provider=llm,
         publisher=publisher,
@@ -69,14 +69,14 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> BotService:
 
 def get_target_pubkey(resident: str) -> str | None:
     """住人名（bot001形式）からpubkeyを取得"""
-    from ..domain import BotKey
+    from ..domain import NpcKey
 
-    bot_id = extract_bot_id(resident)
+    bot_id = extract_npc_id(resident)
     if bot_id is None:
         return None
 
     try:
-        target_key = BotKey.from_env(bot_id)
+        target_key = NpcKey.from_env(bot_id)
         return target_key.pubkey
     except ValueError:
         return None

@@ -5,8 +5,8 @@
 import random
 
 from ..config import ContentSettings
-from .memory import BotMemory
-from .models import BotProfile, BotState, HabitType, Interests, Prompts, StyleType, WritingStyle
+from .memory import NpcMemory
+from .models import HabitType, Interests, NpcProfile, NpcState, Prompts, StyleType, WritingStyle
 from .queue import ConversationContext, ReplyTarget
 from .text_processor import get_writing_style_prompt_instructions
 
@@ -44,9 +44,9 @@ class ContentStrategy:
 
     def create_prompt(
         self,
-        profile: BotProfile,
-        state: BotState,
-        memory: BotMemory | None = None,
+        profile: NpcProfile,
+        state: NpcState,
+        memory: NpcMemory | None = None,
         shared_news: list[str] | None = None,
         event_topics: list[str] | None = None,
         merged_prompts: Prompts | None = None,
@@ -222,8 +222,8 @@ class ContentStrategy:
 
     def _create_series_prompt(
         self,
-        profile: BotProfile,
-        memory: BotMemory,
+        profile: NpcProfile,
+        memory: NpcMemory,
         merged_prompts: Prompts | None = None,
     ) -> str:
         """連作つぶやき用のプロンプトを生成"""
@@ -267,7 +267,7 @@ class ContentStrategy:
         """連作を開始すべきか判定"""
         return random.random() < SERIES_START_PROBABILITY
 
-    def generate_series_theme(self, profile: BotProfile) -> tuple[str, int]:
+    def generate_series_theme(self, profile: NpcProfile) -> tuple[str, int]:
         """連作のテーマと投稿数を生成"""
         topics = profile.interests.topics
         theme = random.choice(topics) if topics else "日常"
@@ -314,7 +314,7 @@ class ContentStrategy:
 
     def create_reply_prompt(
         self,
-        profile: BotProfile,
+        profile: NpcProfile,
         reply_to: ReplyTarget,
         conversation: ConversationContext | None = None,
         relationship_type: str = "知り合い",
@@ -375,7 +375,7 @@ class ContentStrategy:
 
     def create_mumble_prompt(
         self,
-        profile: BotProfile,
+        profile: NpcProfile,
         target_name: str,
         target_content: str,
         merged_prompts: Prompts | None = None,

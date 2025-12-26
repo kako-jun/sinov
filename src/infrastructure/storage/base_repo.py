@@ -15,9 +15,9 @@ class ResidentJsonRepository(ABC):
 
     def _get_resident_dir(self, bot_id: int) -> Path:
         """住人ディレクトリを取得（存在しない場合は作成）"""
-        from ...domain.bot_utils import format_bot_name
+        from ...domain.npc_utils import format_npc_name
 
-        resident_dir = self.residents_dir / format_bot_name(bot_id)
+        resident_dir = self.residents_dir / format_npc_name(bot_id)
         resident_dir.mkdir(parents=True, exist_ok=True)
         return resident_dir
 

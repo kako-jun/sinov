@@ -5,14 +5,14 @@
 import random
 from datetime import datetime
 
-from .models import BotProfile, BotState
+from .models import NpcProfile, NpcState
 
 
 class Scheduler:
     """NPC投稿のスケジューリング"""
 
     @staticmethod
-    def should_post_now(profile: BotProfile, state: BotState) -> bool:
+    def should_post_now(profile: NpcProfile, state: NpcState) -> bool:
         """このNPCが今投稿すべきかを判定"""
         current_time = int(datetime.now().timestamp())
         current_hour = datetime.now().hour
@@ -28,7 +28,7 @@ class Scheduler:
         return False
 
     @staticmethod
-    def calculate_next_post_time(profile: BotProfile) -> int:
+    def calculate_next_post_time(profile: NpcProfile) -> int:
         """次回投稿時刻を計算"""
         # 1日の投稿頻度から平均間隔を計算（秒）
         avg_interval = 86400 / profile.behavior.post_frequency

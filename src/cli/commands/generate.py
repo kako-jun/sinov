@@ -4,7 +4,7 @@ generate コマンド - 投稿を生成してキューに追加
 
 import argparse
 
-from ...domain import QueueEntry, QueueStatus, extract_bot_id
+from ...domain import QueueEntry, QueueStatus, extract_npc_id
 from ...infrastructure import QueueRepository
 from ..base import init_env, init_llm, init_service
 
@@ -26,7 +26,7 @@ async def cmd_generate(args: argparse.Namespace) -> None:
     if args.all:
         bot_ids = list(service.bots.keys())
     elif args.bot:
-        bot_id = extract_bot_id(args.bot)
+        bot_id = extract_npc_id(args.bot)
         if bot_id is None or bot_id not in service.bots:
             print(f"Bot not found: {args.bot}")
             return

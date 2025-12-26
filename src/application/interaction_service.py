@@ -7,19 +7,19 @@ from datetime import datetime
 from ..config import AffinitySettings
 from ..domain import (
     ActivityLogger,
-    BotProfile,
-    BotState,
     ContentStrategy,
+    NpcProfile,
+    NpcState,
     ParameterChange,
     PersonalityAnalyzer,
     PostType,
     QueueEntry,
     QueueStatus,
     TextProcessor,
-    format_bot_name,
+    format_npc_name,
 )
 from ..domain.interaction import InteractionManager
-from ..domain.models import BotKey
+from ..domain.models import NpcKey
 from ..domain.queue import ConversationContext, ReplyTarget
 from ..infrastructure import (
     LLMProvider,
@@ -41,7 +41,7 @@ class InteractionService:
         queue_repo: QueueRepository,
         relationship_repo: RelationshipRepository,
         content_strategy: ContentStrategy,
-        bots: dict[int, tuple[BotKey, BotProfile, BotState]],
+        bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
         memory_repo: MemoryRepository | None = None,
         affinity_settings: AffinitySettings | None = None,
         profile_repo: ProfileRepository | None = None,
@@ -95,7 +95,7 @@ class InteractionService:
                 continue
 
             _, profile, _ = self.bots[bot_id]
-            bot_name = format_bot_name(bot_id)
+            bot_name = format_npc_name(bot_id)
 
             # 好感度を読み込み
             affinity = self.relationship_repo.load_affinity(bot_name)
@@ -276,7 +276,7 @@ class InteractionService:
     async def _generate_reply(
         self,
         bot_id: int,
-        profile: BotProfile,
+        profile: NpcProfile,
         target_entry: QueueEntry,
         affinity: float,
     ) -> QueueEntry | None:
@@ -292,7 +292,7 @@ class InteractionService:
         )
 
         # 関係タイプを取得
-        bot_name = format_bot_name(bot_id)
+        bot_name = format_npc_name(bot_id)
         relationship_type = self._get_relationship_type(bot_name, f"bot{target_entry.bot_id:03d}")
 
         # マージ済みプロンプトを取得
@@ -347,7 +347,7 @@ class InteractionService:
     def _generate_reaction(
         self,
         bot_id: int,
-        profile: BotProfile,
+        profile: NpcProfile,
         target_entry: QueueEntry,
     ) -> QueueEntry | None:
         """リアクションを生成"""
@@ -394,7 +394,7 @@ class InteractionService:
 
         return "知り合い"
 
-    def _get_personality_type(self, profile: BotProfile) -> str:
+    def _get_personality_type(self, profile: NpcProfile) -> str:
         """プロフィールから性格タイプを推定（PersonalityAnalyzerに委譲）"""
         return PersonalityAnalyzer.classify(profile)
 
@@ -502,8 +502,8 @@ class InteractionService:
 
     def _get_affinity(self, from_bot_id: int, to_bot_id: int) -> float:
         """NPC間の好感度を取得"""
-        from_name = format_bot_name(from_bot_id)
-        to_name = format_bot_name(to_bot_id)
+        from_name = format_npc_name(from_bot_id)
+        to_name = format_npc_name(to_bot_id)
         affinity_map = self.relationship_repo.load_affinity(from_name)
         return affinity_map.get_affinity(to_name)
 
@@ -595,7 +595,7 @@ class InteractionService:
     async def _generate_chain_reply(
         self,
         bot_id: int,
-        profile: BotProfile,
+        profile: NpcProfile,
         incoming_entry: QueueEntry,
         affinity: float,
     ) -> QueueEntry | None:
@@ -630,7 +630,7 @@ class InteractionService:
         )
 
         # 関係タイプを取得
-        bot_name = format_bot_name(bot_id)
+        bot_name = format_npc_name(bot_id)
         relationship_type = self._get_relationship_type(bot_name, f"bot{incoming_entry.bot_id:03d}")
 
         # マージ済みプロンプトを取得

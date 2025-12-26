@@ -7,20 +7,19 @@ from .activity_log import (
     LogEventType,
     ParameterChange,
 )
-from .bot_utils import extract_bot_id, format_bot_name
 from .content import ContentStrategy
 from .events import EventCalendar, SeasonalEvent
 from .interaction import InteractionManager, calculate_ignore_probability, is_closing_message
-from .memory import AcquiredMemory, BotMemory, SeriesState, ShortTermMemory
+from .memory import AcquiredMemory, NpcMemory, SeriesState, ShortTermMemory
 from .models import (
     Background,
     Behavior,
-    BotKey,
-    BotProfile,
-    BotState,
     HabitType,
     Interests,
     LineBreakStyle,
+    NpcKey,
+    NpcProfile,
+    NpcState,
     Personality,
     PersonalityTraits,
     Prompts,
@@ -32,6 +31,7 @@ from .models import (
     WritingStyle,
 )
 from .news import BulletinBoard, NewsItem, ReporterConfig
+from .npc_utils import extract_npc_id, format_npc_name
 from .personality import PersonalityAnalyzer
 from .queue import (
     ConversationContext,
@@ -58,18 +58,18 @@ from .scheduler import Scheduler
 from .text_processor import TextProcessor, get_writing_style_prompt_instructions
 
 __all__ = [
-    "format_bot_name",
-    "extract_bot_id",
+    "format_npc_name",
+    "extract_npc_id",
     "PersonalityAnalyzer",
-    "BotKey",
+    "NpcKey",
     "Personality",
     "PersonalityTraits",
     "Interests",
     "Behavior",
     "Social",
     "Background",
-    "BotProfile",
-    "BotState",
+    "NpcProfile",
+    "NpcState",
     "TickState",
     "StyleType",
     "HabitType",
@@ -81,7 +81,7 @@ __all__ = [
     "ShortTermMemory",
     "AcquiredMemory",
     "SeriesState",
-    "BotMemory",
+    "NpcMemory",
     "Scheduler",
     "ContentStrategy",
     "SeasonalEvent",

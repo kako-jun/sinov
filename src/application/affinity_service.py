@@ -5,7 +5,7 @@
 from datetime import datetime, timedelta
 
 from ..config import AffinitySettings
-from ..domain import PostType, QueueStatus, format_bot_name
+from ..domain import PostType, QueueStatus, format_npc_name
 from ..domain.relationships import RelationshipData
 from ..infrastructure import QueueRepository
 from ..infrastructure.storage.relationship_repo import RelationshipRepository
@@ -40,8 +40,8 @@ class AffinityService:
             to_bot_id: 元投稿者のNPC ID（好感度が上がる側）
             interaction_type: "reply" or "reaction"
         """
-        to_bot_name = format_bot_name(to_bot_id)
-        from_bot_name = format_bot_name(from_bot_id)
+        to_bot_name = format_npc_name(to_bot_id)
+        from_bot_name = format_npc_name(from_bot_id)
 
         affinity = self.relationship_repo.load_affinity(to_bot_name)
 
@@ -107,7 +107,7 @@ class AffinityService:
             if bot_id not in bots:
                 continue
 
-            bot_name = format_bot_name(bot_id)
+            bot_name = format_npc_name(bot_id)
             affinity = self.relationship_repo.load_affinity(bot_name)
             updated = False
 
@@ -165,7 +165,7 @@ class AffinityService:
             if not entry.event_id:
                 continue
 
-            bot_name = format_bot_name(entry.bot_id)
+            bot_name = format_npc_name(entry.bot_id)
 
             # この投稿へのリプライ/リアクションがあるかチェック
             has_reaction = self._has_any_reaction(entry.event_id)

@@ -3,7 +3,7 @@ NPC ID関連のユーティリティ
 """
 
 
-def format_bot_name(bot_id: int) -> str:
+def format_npc_name(bot_id: int) -> str:
     """
     NPC IDを標準フォーマットに変換
 
@@ -16,7 +16,7 @@ def format_bot_name(bot_id: int) -> str:
     return f"bot{bot_id:03d}"
 
 
-def extract_bot_id(bot_name: str) -> int | None:
+def extract_npc_id(bot_name: str) -> int | None:
     """
     NPC名からIDを抽出
 

@@ -9,16 +9,16 @@ from typing import Any
 import httpx
 
 from ..domain import (
-    BotProfile,
-    BotState,
     ContentStrategy,
+    NpcProfile,
+    NpcState,
     PostType,
     QueueEntry,
     QueueStatus,
     TextProcessor,
-    extract_bot_id,
+    extract_npc_id,
 )
-from ..domain.models import BotKey
+from ..domain.models import NpcKey
 from ..domain.queue import MumbleAbout
 from ..domain.relationships import Stalker
 from ..infrastructure import LLMProvider, QueueRepository
@@ -34,7 +34,7 @@ class StalkerService:
         queue_repo: QueueRepository,
         relationship_repo: RelationshipRepository,
         content_strategy: ContentStrategy,
-        bots: dict[int, tuple[BotKey, BotProfile, BotState]],
+        bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
     ):
         self.llm_provider = llm_provider
         self.queue_repo = queue_repo
@@ -62,7 +62,7 @@ class StalkerService:
 
         for stalker in self.stalkers:
             # ストーカー役のNPCを取得
-            bot_id = extract_bot_id(stalker.resident)
+            bot_id = extract_npc_id(stalker.resident)
             if bot_id is None or bot_id not in self.bots:
                 continue
 
@@ -125,7 +125,7 @@ class StalkerService:
     async def _generate_mumble(
         self,
         bot_id: int,
-        profile: BotProfile,
+        profile: NpcProfile,
         stalker: Stalker,
         external_post: dict[str, Any],
     ) -> QueueEntry | None:
@@ -185,7 +185,7 @@ class StalkerService:
 
     def _create_mumble_prompt(
         self,
-        profile: BotProfile,
+        profile: NpcProfile,
         stalker: Stalker,
         external_post: dict[str, Any],
         reaction_type: str,

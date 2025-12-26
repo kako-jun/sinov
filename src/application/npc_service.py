@@ -12,15 +12,15 @@ from nostr_sdk import Keys
 from ..config import Settings
 from ..domain import (
     ActivityLogger,
-    BotKey,
-    BotMemory,
-    BotProfile,
-    BotState,
     ContentStrategy,
     EventCalendar,
+    NpcKey,
+    NpcMemory,
+    NpcProfile,
+    NpcState,
     Scheduler,
     TextProcessor,
-    format_bot_name,
+    format_npc_name,
 )
 from ..infrastructure import (
     LLMProvider,
@@ -33,7 +33,7 @@ from ..infrastructure import (
 )
 
 
-class BotService:
+class NpcService:
     """NPC管理サービス"""
 
     def __init__(
@@ -58,7 +58,7 @@ class BotService:
         self.content_strategy = ContentStrategy(settings.content)
 
         # NPCデータ
-        self.bots: dict[int, tuple[BotKey, BotProfile, BotState]] = {}
+        self.bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]] = {}
         self.keys: dict[int, Keys] = {}
 
     async def load_bots(self) -> None:
@@ -73,9 +73,9 @@ class BotService:
 
             # 環境変数から鍵を読み込み
             try:
-                bot_key = BotKey.from_env(bot_id)
+                bot_key = NpcKey.from_env(bot_id)
             except Exception as e:
-                print(f"⚠️  Keys not found for {format_bot_name(bot_id)}: {e}, skipping...")
+                print(f"⚠️  Keys not found for {format_npc_name(bot_id)}: {e}, skipping...")
                 continue
 
             # 状態読み込み（存在しない場合は初期化）
@@ -194,7 +194,7 @@ class BotService:
             f"{self.settings.content.llm_retry_count} attempts"
         )
 
-    def _update_memory_after_generate(self, bot_id: int, content: str, memory: BotMemory) -> None:
+    def _update_memory_after_generate(self, bot_id: int, content: str, memory: NpcMemory) -> None:
         """投稿生成後に記憶を更新"""
 
         # 短期記憶を減衰

@@ -2,7 +2,7 @@
 性格分析（プロフィールから性格タイプを推定）
 """
 
-from .models import BotProfile
+from .models import NpcProfile
 
 
 class PersonalityAnalyzer:
@@ -19,7 +19,7 @@ class PersonalityAnalyzer:
     }
 
     @classmethod
-    def classify(cls, profile: BotProfile) -> str:
+    def classify(cls, profile: NpcProfile) -> str:
         """
         プロフィールから性格タイプを推定
 
