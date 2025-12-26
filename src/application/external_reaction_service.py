@@ -34,13 +34,13 @@ class ExternalReactionService:
         llm_provider: LLMProvider | None,
         queue_repo: QueueRepository,
         content_strategy: ContentStrategy,
-        bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
+        npcs: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
         log_repo: LogRepository | None = None,
     ):
         self.llm_provider = llm_provider
         self.queue_repo = queue_repo
         self.content_strategy = content_strategy
-        self.bots = bots
+        self.npcs = npcs
         self.log_repo = log_repo
         self.api_endpoint = os.getenv("API_ENDPOINT", "https://api.mypace.llll-ll.com")
         # 反応済みイベントIDのキャッシュ（重複防止）
@@ -48,14 +48,14 @@ class ExternalReactionService:
 
     async def process_external_reactions(
         self,
-        target_bot_ids: list[int] | None = None,
+        target_npc_ids: list[int] | None = None,
         max_posts_per_bot: int = 3,
     ) -> int:
         """
         外部投稿への反応処理
 
         Args:
-            target_bot_ids: 処理対象のNPC ID（Noneなら全員）
+            target_npc_ids: 処理対象のNPC ID（Noneなら全員）
             max_posts_per_bot: 1NPCあたりの最大反応数
 
         Returns:
@@ -72,7 +72,7 @@ class ExternalReactionService:
 
         # 住人のpubkey一覧（除外用）
         resident_pubkeys = {
-            key.pubkey for _, (key, _, _) in self.bots.items()
+            key.pubkey for _, (key, _, _) in self.npcs.items()
         }
 
         # 外部投稿のみにフィルタ
@@ -88,13 +88,13 @@ class ExternalReactionService:
         print(f"  📬 外部投稿: {len(external_posts)}件")
 
         total_entries = 0
-        bot_ids = target_bot_ids or list(self.bots.keys())
+        npc_ids = target_npc_ids or list(self.npcs.keys())
 
-        for bot_id in bot_ids:
-            if bot_id not in self.bots:
+        for npc_id in npc_ids:
+            if npc_id not in self.npcs:
                 continue
 
-            _, profile, state = self.bots[bot_id]
+            _, profile, state = self.npcs[npc_id]
 
             # このNPCの反応数
             reactions_added = 0
@@ -106,7 +106,7 @@ class ExternalReactionService:
                 event_id = post.get("id", post.get("event_id", ""))
 
                 # 重複チェック（このNPCが既にこの投稿に反応済み）
-                reaction_key = f"{bot_id}:{event_id}"
+                reaction_key = f"{npc_id}:{event_id}"
                 if reaction_key in self._reacted_events:
                     continue
 
@@ -121,7 +121,7 @@ class ExternalReactionService:
 
                 # エントリー生成
                 entry = await self._generate_entry(
-                    bot_id, profile, post, reaction_type
+                    npc_id, profile, post, reaction_type
                 )
                 if entry:
                     self.queue_repo.add(entry)
@@ -133,7 +133,7 @@ class ExternalReactionService:
                     if self.log_repo:
                         target_info = f"external:{post.get('pubkey', '')[:8]}"
                         self.log_repo.add_entry(
-                            bot_id,
+                            npc_id,
                             ActivityLogger.log_external_reaction(
                                 reaction_type=reaction_type,
                                 target=target_info,
@@ -152,7 +152,7 @@ class ExternalReactionService:
             entries = self.queue_repo.get_all(status)
             for entry in entries:
                 if entry.reply_to and entry.reply_to.resident.startswith("external:"):
-                    reaction_key = f"{entry.bot_id}:{entry.reply_to.event_id}"
+                    reaction_key = f"{entry.npc_id}:{entry.reply_to.event_id}"
                     self._reacted_events.add(reaction_key)
 
     async def _fetch_timeline_posts(self, limit: int = 50) -> list[dict[str, Any]]:
@@ -268,7 +268,7 @@ class ExternalReactionService:
 
     async def _generate_entry(
         self,
-        bot_id: int,
+        npc_id: int,
         profile: NpcProfile,
         post: dict[str, Any],
         reaction_type: str,
@@ -283,19 +283,19 @@ class ExternalReactionService:
 
         # スターの場合
         if reaction_type == "star":
-            return self._generate_star_entry(bot_id, profile, event_id, pubkey)
+            return self._generate_star_entry(npc_id, profile, event_id, pubkey)
 
         # リプライの場合
         if reaction_type == "reply":
             return await self._generate_reply_entry(
-                bot_id, profile, event_id, pubkey, content
+                npc_id, profile, event_id, pubkey, content
             )
 
         return None
 
     def _generate_star_entry(
         self,
-        bot_id: int,
+        npc_id: int,
         profile: NpcProfile,
         event_id: str,
         pubkey: str,
@@ -313,8 +313,8 @@ class ExternalReactionService:
         emoji = random.choice(emojis)
 
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=profile.name,
+            npc_id=npc_id,
+            npc_name=profile.name,
             content=emoji,
             status=QueueStatus.PENDING,
             post_type=PostType.REACTION,
@@ -323,7 +323,7 @@ class ExternalReactionService:
 
     async def _generate_reply_entry(
         self,
-        bot_id: int,
+        npc_id: int,
         profile: NpcProfile,
         event_id: str,
         pubkey: str,
@@ -366,8 +366,8 @@ class ExternalReactionService:
         )
 
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=profile.name,
+            npc_id=npc_id,
+            npc_name=profile.name,
             content=content,
             status=QueueStatus.PENDING,
             post_type=PostType.REPLY,

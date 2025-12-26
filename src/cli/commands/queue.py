@@ -39,7 +39,7 @@ def cmd_queue(args: argparse.Namespace) -> None:
     print(f"\n📋 {status.value}.json ({len(entries)} entries):\n")
     for entry in entries:
         created = entry.created_at.strftime("%m/%d %H:%M")
-        print(f"[{entry.id}] {entry.bot_name} ({created})")
+        print(f"[{entry.id}] {entry.npc_name} ({created})")
         print(f"    {entry.content[:60]}...")
         if entry.review_note:
             print(f"    📝 {entry.review_note}")

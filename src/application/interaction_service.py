@@ -41,7 +41,7 @@ class InteractionService:
         queue_repo: QueueRepository,
         relationship_repo: RelationshipRepository,
         content_strategy: ContentStrategy,
-        bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
+        npcs: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
         memory_repo: MemoryRepository | None = None,
         affinity_settings: AffinitySettings | None = None,
         profile_repo: ProfileRepository | None = None,
@@ -51,7 +51,7 @@ class InteractionService:
         self.queue_repo = queue_repo
         self.relationship_repo = relationship_repo
         self.content_strategy = content_strategy
-        self.bots = bots
+        self.npcs = npcs
         self.memory_repo = memory_repo
         self.affinity_settings = affinity_settings or AffinitySettings()
         self.profile_repo = profile_repo
@@ -69,12 +69,12 @@ class InteractionService:
             affinity_settings=self.affinity_settings,
         )
 
-    async def process_interactions(self, target_bot_ids: list[int]) -> int:
+    async def process_interactions(self, target_npc_ids: list[int]) -> int:
         """
         指定された住人に対して相互作用処理を実行
 
         Args:
-            target_bot_ids: 処理対象の住人ID一覧
+            target_npc_ids: 処理対象の住人ID一覧
 
         Returns:
             生成されたリプライ/リアクション数
@@ -90,20 +90,20 @@ class InteractionService:
 
         generated = 0
 
-        for bot_id in target_bot_ids:
-            if bot_id not in self.bots:
+        for npc_id in target_npc_ids:
+            if npc_id not in self.npcs:
                 continue
 
-            _, profile, _ = self.bots[bot_id]
-            bot_name = format_npc_name(bot_id)
+            _, profile, _ = self.npcs[npc_id]
+            npc_name = format_npc_name(npc_id)
 
             # 好感度を読み込み
-            affinity = self.relationship_repo.load_affinity(bot_name)
+            affinity = self.relationship_repo.load_affinity(npc_name)
 
             # 他住人の投稿をチェック
             for entry in posted_entries:
                 # 自分の投稿はスキップ
-                if entry.bot_id == bot_id:
+                if entry.npc_id == npc_id:
                     continue
 
                 # event_idがない投稿はスキップ（Nostrに投稿されていない）
@@ -111,10 +111,10 @@ class InteractionService:
                     continue
 
                 # 既にリプライ済みの投稿はスキップ（同一event_idへの重複防止）
-                if self._already_replied(bot_id, entry.event_id):
+                if self._already_replied(npc_id, entry.event_id):
                     continue
 
-                target_bot_name = f"bot{entry.bot_id:03d}"
+                target_bot_name = f"npc{entry.npc_id:03d}"
                 target_affinity = affinity.get_affinity(target_bot_name)
 
                 # 社交性パラメータを取得
@@ -124,7 +124,7 @@ class InteractionService:
 
                 # 反応すべきか判定
                 should_react, reaction_type = self.interaction_manager.should_react_to_post(
-                    from_bot=bot_name,
+                    from_bot=npc_name,
                     to_bot=target_bot_name,
                     post_content=entry.content,
                     affinity=target_affinity,
@@ -137,7 +137,7 @@ class InteractionService:
                 if reaction_type == "reply":
                     # リプライを生成
                     new_entry = await self._generate_reply(
-                        bot_id,
+                        npc_id,
                         profile,
                         entry,
                         target_affinity,
@@ -146,25 +146,25 @@ class InteractionService:
                         self.queue_repo.add(new_entry)
                         # 好感度を更新（元投稿者 → リプライした人）
                         old_affinity = target_affinity
-                        self.affinity_service.update_on_interaction(bot_id, entry.bot_id, "reply")
-                        new_affinity = self._get_affinity(entry.bot_id, bot_id)
+                        self.affinity_service.update_on_interaction(npc_id, entry.npc_id, "reply")
+                        new_affinity = self._get_affinity(entry.npc_id, npc_id)
                         # 記憶を強化（元投稿者の記憶）
-                        self._update_memory_on_feedback(entry.bot_id, entry.content, "reply")
+                        self._update_memory_on_feedback(entry.npc_id, entry.content, "reply")
                         # 気分を更新（元投稿者）
-                        old_mood = self._get_mood(entry.bot_id)
-                        self._update_mood_on_feedback(entry.bot_id, "reply")
-                        new_mood = self._get_mood(entry.bot_id)
+                        old_mood = self._get_mood(entry.npc_id)
+                        self._update_mood_on_feedback(entry.npc_id, "reply")
+                        new_mood = self._get_mood(entry.npc_id)
                         generated += 1
-                        print(f"      💬 {profile.name} → {entry.bot_name}")
+                        print(f"      💬 {profile.name} → {entry.npc_name}")
 
                         # ログ記録
                         if self.log_repo:
-                            rel_type = self._get_relationship_type(bot_name, target_bot_name)
+                            rel_type = self._get_relationship_type(npc_name, target_bot_name)
                             # 送信側のログ（リプライ送信）
                             self.log_repo.add_entry(
-                                bot_id,
+                                npc_id,
                                 ActivityLogger.log_reply_sent(
-                                    entry.bot_name,
+                                    entry.npc_name,
                                     new_entry.content,
                                     rel_type,
                                 ),
@@ -187,7 +187,7 @@ class InteractionService:
                                     reason="リプライを受けた",
                                 ))
                             self.log_repo.add_entry(
-                                entry.bot_id,
+                                entry.npc_id,
                                 ActivityLogger.log_reply_received(
                                     profile.name,
                                     new_entry.content,
@@ -199,7 +199,7 @@ class InteractionService:
                 elif reaction_type == "reaction":
                     # リアクションを生成
                     new_entry = self._generate_reaction(
-                        bot_id,
+                        npc_id,
                         profile,
                         entry,
                     )
@@ -208,26 +208,26 @@ class InteractionService:
                         # 好感度を更新（元投稿者 → リアクションした人）
                         old_affinity = target_affinity
                         self.affinity_service.update_on_interaction(
-                            bot_id, entry.bot_id, "reaction"
+                            npc_id, entry.npc_id, "reaction"
                         )
-                        new_affinity = self._get_affinity(entry.bot_id, bot_id)
+                        new_affinity = self._get_affinity(entry.npc_id, npc_id)
                         # 記憶を強化（元投稿者の記憶）
-                        self._update_memory_on_feedback(entry.bot_id, entry.content, "reaction")
+                        self._update_memory_on_feedback(entry.npc_id, entry.content, "reaction")
                         # 気分を更新（元投稿者）
-                        old_mood = self._get_mood(entry.bot_id)
-                        self._update_mood_on_feedback(entry.bot_id, "reaction")
-                        new_mood = self._get_mood(entry.bot_id)
+                        old_mood = self._get_mood(entry.npc_id)
+                        self._update_mood_on_feedback(entry.npc_id, "reaction")
+                        new_mood = self._get_mood(entry.npc_id)
                         generated += 1
-                        print(f"      ❤️  {profile.name} → {entry.bot_name}")
+                        print(f"      ❤️  {profile.name} → {entry.npc_name}")
 
                         # ログ記録
                         if self.log_repo:
                             emoji = new_entry.content  # リアクションは絵文字
                             # 送信側のログ
                             self.log_repo.add_entry(
-                                bot_id,
+                                npc_id,
                                 ActivityLogger.log_reaction_sent(
-                                    entry.bot_name, emoji, entry.content
+                                    entry.npc_name, emoji, entry.content
                                 ),
                             )
                             # 受信側のログ
@@ -248,7 +248,7 @@ class InteractionService:
                                     reason="リアクションを受けた",
                                 ))
                             self.log_repo.add_entry(
-                                entry.bot_id,
+                                entry.npc_id,
                                 ActivityLogger.log_reaction_received(
                                     profile.name, emoji, entry.content, changes
                                 ),
@@ -256,7 +256,7 @@ class InteractionService:
 
         return generated
 
-    def _already_replied(self, bot_id: int, event_id: str | None) -> bool:
+    def _already_replied(self, npc_id: int, event_id: str | None) -> bool:
         """既にリプライ済みかチェック"""
         if not event_id:
             return False
@@ -266,7 +266,7 @@ class InteractionService:
             entries = self.queue_repo.get_all(status)
             for entry in entries:
                 if (
-                    entry.bot_id == bot_id
+                    entry.npc_id == npc_id
                     and entry.reply_to
                     and entry.reply_to.event_id == event_id
                 ):
@@ -275,7 +275,7 @@ class InteractionService:
 
     async def _generate_reply(
         self,
-        bot_id: int,
+        npc_id: int,
         profile: NpcProfile,
         target_entry: QueueEntry,
         affinity: float,
@@ -286,14 +286,14 @@ class InteractionService:
 
         # リプライ先情報を作成
         reply_to = ReplyTarget(
-            resident=f"bot{target_entry.bot_id:03d}",
+            resident=f"npc{target_entry.npc_id:03d}",
             event_id=target_entry.event_id or "",
             content=target_entry.content,
         )
 
         # 関係タイプを取得
-        bot_name = format_npc_name(bot_id)
-        relationship_type = self._get_relationship_type(bot_name, f"bot{target_entry.bot_id:03d}")
+        npc_name = format_npc_name(npc_id)
+        relationship_type = self._get_relationship_type(npc_name, f"npc{target_entry.npc_id:03d}")
 
         # マージ済みプロンプトを取得
         merged_prompts = None
@@ -327,7 +327,7 @@ class InteractionService:
             depth=1,
             history=[
                 {
-                    "author": target_entry.bot_name,
+                    "author": target_entry.npc_name,
                     "content": target_entry.content,
                     "depth": 0,
                 }
@@ -335,8 +335,8 @@ class InteractionService:
         )
 
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=profile.name,
+            npc_id=npc_id,
+            npc_name=profile.name,
             content=content,
             status=QueueStatus.PENDING,
             post_type=PostType.REPLY,
@@ -346,7 +346,7 @@ class InteractionService:
 
     def _generate_reaction(
         self,
-        bot_id: int,
+        npc_id: int,
         profile: NpcProfile,
         target_entry: QueueEntry,
     ) -> QueueEntry | None:
@@ -358,14 +358,14 @@ class InteractionService:
         )
 
         reply_to = ReplyTarget(
-            resident=f"bot{target_entry.bot_id:03d}",
+            resident=f"npc{target_entry.npc_id:03d}",
             event_id=target_entry.event_id or "",
             content="",  # リアクションでは内容不要
         )
 
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=profile.name,
+            npc_id=npc_id,
+            npc_name=profile.name,
             content=emoji,
             status=QueueStatus.PENDING,
             post_type=PostType.REACTION,
@@ -400,7 +400,7 @@ class InteractionService:
 
     def _update_memory_on_feedback(
         self,
-        bot_id: int,
+        npc_id: int,
         original_content: str,
         interaction_type: str,
     ) -> None:
@@ -408,7 +408,7 @@ class InteractionService:
         リプライ/リアクションをもらった時に記憶を強化
 
         Args:
-            bot_id: 元投稿者のNPC ID（記憶が強化される側）
+            npc_id: 元投稿者のNPC ID（記憶が強化される側）
             original_content: 元投稿の内容
             interaction_type: "reply" or "reaction"
         """
@@ -416,12 +416,12 @@ class InteractionService:
             return
 
         # 元投稿者の記憶を読み込み
-        memory = self.memory_repo.load(bot_id)
+        memory = self.memory_repo.load(npc_id)
 
         # feedback_sensitivityを取得（元投稿者のプロファイルから）
         feedback_sensitivity = 0.5  # デフォルト
-        if bot_id in self.bots:
-            _, profile, _ = self.bots[bot_id]
+        if npc_id in self.npcs:
+            _, profile, _ = self.npcs[npc_id]
             if profile.traits_detail:
                 feedback_sensitivity = profile.traits_detail.feedback_sensitivity
 
@@ -462,20 +462,20 @@ class InteractionService:
 
     def _update_mood_on_feedback(
         self,
-        bot_id: int,
+        npc_id: int,
         interaction_type: str,
     ) -> None:
         """
         リプライ/リアクションをもらった時に気分を更新
 
         Args:
-            bot_id: 元投稿者のNPC ID（気分が上がる側）
+            npc_id: 元投稿者のNPC ID（気分が上がる側）
             interaction_type: "reply" or "reaction"
         """
-        if bot_id not in self.bots:
+        if npc_id not in self.npcs:
             return
 
-        key, profile, state = self.bots[bot_id]
+        key, profile, state = self.npcs[npc_id]
 
         # 気分の変動量
         if interaction_type == "reply":
@@ -491,13 +491,13 @@ class InteractionService:
 
         # NPCデータを更新（stateは参照なので自動的に反映）
         if new_mood != old_mood:
-            print(f"         😊 bot{bot_id:03d}の気分: {old_mood:.2f} → {new_mood:.2f}")
+            print(f"         😊 bot{npc_id:03d}の気分: {old_mood:.2f} → {new_mood:.2f}")
 
-    def _get_mood(self, bot_id: int) -> float:
+    def _get_mood(self, npc_id: int) -> float:
         """NPCの現在の気分を取得"""
-        if bot_id not in self.bots:
+        if npc_id not in self.npcs:
             return 0.0
-        _, _, state = self.bots[bot_id]
+        _, _, state = self.npcs[npc_id]
         return state.mood
 
     def _get_affinity(self, from_bot_id: int, to_bot_id: int) -> float:
@@ -507,7 +507,7 @@ class InteractionService:
         affinity_map = self.relationship_repo.load_affinity(from_name)
         return affinity_map.get_affinity(to_name)
 
-    async def process_reply_chains(self, target_bot_ids: list[int]) -> int:
+    async def process_reply_chains(self, target_npc_ids: list[int]) -> int:
         """
         既存の会話スレッドへの返信を処理
 
@@ -529,7 +529,7 @@ class InteractionService:
 
             # リプライ先のNPC IDを取得
             target_bot_name = entry.reply_to.resident
-            if not target_bot_name.startswith("bot"):
+            if not target_bot_name.startswith("npc"):
                 continue
 
             try:
@@ -538,13 +538,13 @@ class InteractionService:
                 continue
 
             # 処理対象でなければスキップ
-            if target_bot_id not in target_bot_ids:
+            if target_bot_id not in target_npc_ids:
                 continue
 
-            if target_bot_id not in self.bots:
+            if target_bot_id not in self.npcs:
                 continue
 
-            _, profile, _ = self.bots[target_bot_id]
+            _, profile, _ = self.npcs[target_bot_id]
 
             # event_idがない投稿はスキップ
             if not entry.event_id:
@@ -559,12 +559,12 @@ class InteractionService:
 
             # 好感度を読み込み
             affinity = self.relationship_repo.load_affinity(target_bot_name)
-            from_affinity = affinity.get_affinity(f"bot{entry.bot_id:03d}")
+            from_affinity = affinity.get_affinity(f"npc{entry.npc_id:03d}")
 
             # 会話を続けるか判定
             should_continue = self.interaction_manager.should_continue_conversation(
                 from_bot=target_bot_name,
-                to_bot=f"bot{entry.bot_id:03d}",
+                to_bot=f"npc{entry.npc_id:03d}",
                 incoming_content=entry.content,
                 depth=depth,
                 affinity=from_affinity,
@@ -584,17 +584,17 @@ class InteractionService:
             if reply_entry:
                 self.queue_repo.add(reply_entry)
                 # 好感度を更新（リプライを送ってきた人 → 返信した人）
-                self.affinity_service.update_on_interaction(target_bot_id, entry.bot_id, "reply")
+                self.affinity_service.update_on_interaction(target_bot_id, entry.npc_id, "reply")
                 # 記憶を強化（リプライを送ってきた人の記憶）
-                self._update_memory_on_feedback(entry.bot_id, entry.content, "reply")
+                self._update_memory_on_feedback(entry.npc_id, entry.content, "reply")
                 generated += 1
-                print(f"      💬 {profile.name} ↩️ {entry.bot_name}")
+                print(f"      💬 {profile.name} ↩️ {entry.npc_name}")
 
         return generated
 
     async def _generate_chain_reply(
         self,
-        bot_id: int,
+        npc_id: int,
         profile: NpcProfile,
         incoming_entry: QueueEntry,
         affinity: float,
@@ -610,7 +610,7 @@ class InteractionService:
         new_history = existing_conv.history.copy() if existing_conv else []
         new_history.append(
             {
-                "author": incoming_entry.bot_name,
+                "author": incoming_entry.npc_name,
                 "content": incoming_entry.content,
                 "depth": existing_conv.depth if existing_conv else 0,
             }
@@ -624,14 +624,14 @@ class InteractionService:
 
         # リプライ先情報
         reply_to = ReplyTarget(
-            resident=f"bot{incoming_entry.bot_id:03d}",
+            resident=f"npc{incoming_entry.npc_id:03d}",
             event_id=incoming_entry.event_id or "",
             content=incoming_entry.content,
         )
 
         # 関係タイプを取得
-        bot_name = format_npc_name(bot_id)
-        relationship_type = self._get_relationship_type(bot_name, f"bot{incoming_entry.bot_id:03d}")
+        npc_name = format_npc_name(npc_id)
+        relationship_type = self._get_relationship_type(npc_name, f"npc{incoming_entry.npc_id:03d}")
 
         # マージ済みプロンプトを取得
         merged_prompts = None
@@ -660,8 +660,8 @@ class InteractionService:
             content = text_processor.process(content)
 
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=profile.name,
+            npc_id=npc_id,
+            npc_name=profile.name,
             content=content,
             status=QueueStatus.PENDING,
             post_type=PostType.REPLY,
@@ -669,10 +669,10 @@ class InteractionService:
             conversation=conversation,
         )
 
-    def process_affinity_decay(self, target_bot_ids: list[int]) -> int:
+    def process_affinity_decay(self, target_npc_ids: list[int]) -> int:
         """好感度の減衰処理を実行（AffinityServiceに委譲）"""
-        return self.affinity_service.process_decay(target_bot_ids, self.bots)
+        return self.affinity_service.process_decay(target_npc_ids, self.npcs)
 
-    def process_ignored_posts(self, target_bot_ids: list[int]) -> int:
+    def process_ignored_posts(self, target_npc_ids: list[int]) -> int:
         """無視された投稿による好感度減衰を処理（AffinityServiceに委譲）"""
-        return self.affinity_service.process_ignored_posts(target_bot_ids)
+        return self.affinity_service.process_ignored_posts(target_npc_ids)

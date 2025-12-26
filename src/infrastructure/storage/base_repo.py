@@ -13,17 +13,17 @@ class ResidentJsonRepository(ABC):
     def __init__(self, residents_dir: Path):
         self.residents_dir = residents_dir
 
-    def _get_resident_dir(self, bot_id: int) -> Path:
+    def _get_resident_dir(self, npc_id: int) -> Path:
         """住人ディレクトリを取得（存在しない場合は作成）"""
         from ...domain.npc_utils import format_npc_name
 
-        resident_dir = self.residents_dir / format_npc_name(bot_id)
+        resident_dir = self.residents_dir / format_npc_name(npc_id)
         resident_dir.mkdir(parents=True, exist_ok=True)
         return resident_dir
 
-    def _get_resident_file(self, bot_id: int, filename: str) -> Path:
+    def _get_resident_file(self, npc_id: int, filename: str) -> Path:
         """住人ごとのファイルパスを取得"""
-        return self._get_resident_dir(bot_id) / filename
+        return self._get_resident_dir(npc_id) / filename
 
     def _load_json(self, file_path: Path) -> dict | None:
         """JSONファイルを読み込み"""

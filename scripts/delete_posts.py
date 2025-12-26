@@ -43,7 +43,7 @@ def save_posted_entries(entries: list[dict[str, Any]]) -> None:
         json.dump(entries, f, ensure_ascii=False, indent=2, default=str)
 
 
-async def delete_event(event_id: str, bot_id: int) -> bool:
+async def delete_event(event_id: str, npc_id: int) -> bool:
     """Nostrイベントを削除（kind:5）"""
     import httpx
     from nostr_sdk import EventBuilder, Keys, Kind, Tag
@@ -54,8 +54,8 @@ async def delete_event(event_id: str, bot_id: int) -> bool:
     load_dotenv(".env.keys")
 
     try:
-        bot_key = NpcKey.from_env(bot_id)
-        keys = Keys.parse(bot_key.nsec)
+        npc_key = NpcKey.from_env(npc_id)
+        keys = Keys.parse(npc_key.nsec)
     except ValueError as e:
         print(f"  ❌ 鍵取得エラー: {e}")
         return False
@@ -102,8 +102,8 @@ def cmd_list(args: argparse.Namespace) -> None:
 
     # フィルタ
     if args.bot:
-        bot_id = int(args.bot.replace("bot", ""))
-        entries = [e for e in entries if e.get("bot_id") == bot_id]
+        npc_id = int(args.bot.replace("bot", ""))
+        entries = [e for e in entries if e.get("npc_id") == npc_id]
 
     # 最新N件
     entries = entries[-args.limit :]
@@ -111,11 +111,11 @@ def cmd_list(args: argparse.Namespace) -> None:
     print(f"\n📋 投稿済み ({len(entries)}件):\n")
     for entry in entries:
         event_id = entry.get("event_id", "???")[:16]
-        bot_name = entry.get("bot_name", "???")
+        npc_name = entry.get("npc_name", "???")
         content = entry.get("content", "")[:40]
         posted_at = entry.get("posted_at", "???")[:16]
 
-        print(f"[{event_id}...] {bot_name} ({posted_at})")
+        print(f"[{event_id}...] {npc_name} ({posted_at})")
         print(f"    {content}...")
         print()
 
@@ -136,7 +136,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
         return
 
     print("削除対象:")
-    print(f"  NPC: {target.get('bot_name')}")
+    print(f"  NPC: {target.get('npc_name')}")
     print(f"  内容: {target.get('content', '')[:60]}...")
     print(f"  event_id: {target.get('event_id')}")
     print()
@@ -148,7 +148,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
             return
 
     # 削除実行
-    success = asyncio.run(delete_event(target["event_id"], target["bot_id"]))
+    success = asyncio.run(delete_event(target["event_id"], target["npc_id"]))
 
     if success:
         # posted.jsonから削除
@@ -164,8 +164,8 @@ def cmd_delete_all(args: argparse.Namespace) -> None:
     entries = load_posted_entries()
 
     if args.bot:
-        bot_id = int(args.bot.replace("bot", ""))
-        targets = [e for e in entries if e.get("bot_id") == bot_id]
+        npc_id = int(args.bot.replace("bot", ""))
+        targets = [e for e in entries if e.get("npc_id") == npc_id]
         print(f"削除対象: {args.bot} の {len(targets)}件")
     else:
         targets = entries
@@ -188,7 +188,7 @@ def cmd_delete_all(args: argparse.Namespace) -> None:
             continue
 
         print(f"  削除中: {event_id[:16]}... ", end="")
-        success = asyncio.run(delete_event(event_id, target["bot_id"]))
+        success = asyncio.run(delete_event(event_id, target["npc_id"]))
 
         if success:
             deleted += 1
@@ -198,7 +198,7 @@ def cmd_delete_all(args: argparse.Namespace) -> None:
 
     # posted.jsonを更新
     if args.bot:
-        remaining = [e for e in entries if e.get("bot_id") != bot_id]
+        remaining = [e for e in entries if e.get("npc_id") != npc_id]
     else:
         remaining = []
 

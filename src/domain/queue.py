@@ -32,7 +32,7 @@ class PostType(str, Enum):
 class ReplyTarget(BaseModel):
     """リプライ先の情報"""
 
-    resident: str = Field(description="リプライ先のNPC ID（bot001形式）またはexternal:xxx")
+    resident: str = Field(description="リプライ先のNPC ID（npc001形式）またはexternal:xxx")
     event_id: str = Field(description="リプライ先のNostrイベントID")
     content: str = Field(description="リプライ先の投稿内容")
     pubkey: str | None = Field(default=None, description="外部ユーザーの場合のpubkey")
@@ -62,8 +62,8 @@ class QueueEntry(BaseModel):
     """キューエントリー（投稿候補）"""
 
     id: str = Field(default_factory=lambda: uuid.uuid4().hex[:8])
-    bot_id: int = Field(gt=0, description="NPC ID")
-    bot_name: str = Field(min_length=1, description="NPC名")
+    npc_id: int = Field(gt=0, description="NPC ID")
+    npc_name: str = Field(min_length=1, description="NPC名")
     content: str = Field(min_length=1, description="投稿内容")
     created_at: datetime = Field(default_factory=datetime.now)
     status: QueueStatus = Field(default=QueueStatus.PENDING)

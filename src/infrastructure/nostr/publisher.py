@@ -20,7 +20,7 @@ class NostrPublisher:
         self,
         keys: Keys,
         content: str,
-        bot_name: str,
+        npc_name: str,
     ) -> str | None:
         """
         投稿を実行
@@ -32,7 +32,7 @@ class NostrPublisher:
             raise ValueError("Post content is empty")
 
         if self.dry_run:
-            print(f"[DRY RUN] {bot_name}:")
+            print(f"[DRY RUN] {npc_name}:")
             print(f"  {content}")
             print()
             return None
@@ -50,7 +50,7 @@ class NostrPublisher:
         self,
         keys: Keys,
         content: str,
-        bot_name: str,
+        npc_name: str,
         reply_to_event_id: str,
         reply_to_pubkey: str | None = None,
     ) -> str | None:
@@ -60,7 +60,7 @@ class NostrPublisher:
         Args:
             keys: 署名用の鍵
             content: 投稿内容
-            bot_name: NPC名（ログ用）
+            npc_name: NPC名（ログ用）
             reply_to_event_id: リプライ先のイベントID
             reply_to_pubkey: リプライ先の著者pubkey（任意）
 
@@ -71,7 +71,7 @@ class NostrPublisher:
             raise ValueError("Reply content is empty")
 
         if self.dry_run:
-            print(f"[DRY RUN] {bot_name} (reply to {reply_to_event_id[:8]}...):")
+            print(f"[DRY RUN] {npc_name} (reply to {reply_to_event_id[:8]}...):")
             print(f"  {content}")
             print()
             return None
@@ -98,7 +98,7 @@ class NostrPublisher:
         self,
         keys: Keys,
         emoji: str,
-        bot_name: str,
+        npc_name: str,
         target_event_id: str,
         target_pubkey: str,
     ) -> str | None:
@@ -108,7 +108,7 @@ class NostrPublisher:
         Args:
             keys: 署名用の鍵
             emoji: リアクション絵文字（+, -, または絵文字）
-            bot_name: NPC名（ログ用）
+            npc_name: NPC名（ログ用）
             target_event_id: リアクション対象のイベントID
             target_pubkey: リアクション対象の著者pubkey
 
@@ -116,7 +116,7 @@ class NostrPublisher:
             イベントID（成功時）、None（dry_run時）
         """
         if self.dry_run:
-            print(f"[DRY RUN] {bot_name} (react {emoji} to {target_event_id[:8]}...):")
+            print(f"[DRY RUN] {npc_name} (react {emoji} to {target_event_id[:8]}...):")
             print()
             return None
 

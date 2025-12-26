@@ -41,7 +41,7 @@ class SeriesState(BaseModel):
 class NpcMemory(BaseModel):
     """NPCの記憶全体"""
 
-    bot_id: int = Field(description="NPC ID")
+    npc_id: int = Field(description="NPC ID")
 
     # 長期記憶
     long_term_core: dict[str, str] = Field(

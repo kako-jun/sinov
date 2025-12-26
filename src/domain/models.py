@@ -118,9 +118,9 @@ class NpcKey(BaseModel):
     nsec: str = Field(pattern=r"^nsec1[a-z0-9]+$", description="秘密鍵")
 
     @classmethod
-    def from_env(cls, bot_id: int) -> "NpcKey":
+    def from_env(cls, npc_id: int) -> "NpcKey":
         """環境変数からNPCキーを読み込み"""
-        bot_id_str = f"{bot_id:03d}"
+        bot_id_str = f"{npc_id:03d}"
         pubkey = os.getenv(f"BOT_{bot_id_str}_PUBKEY")
         nsec = os.getenv(f"BOT_{bot_id_str}_NSEC")
 
@@ -128,8 +128,8 @@ class NpcKey(BaseModel):
             raise ValueError(f"Keys not found for bot {bot_id_str} in environment variables")
 
         return cls(
-            id=bot_id,
-            name=f"bot{bot_id_str}",
+            id=npc_id,
+            name=f"npc{bot_id_str}",
             pubkey=pubkey,
             nsec=nsec,
         )

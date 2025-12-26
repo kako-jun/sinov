@@ -67,7 +67,7 @@ def migrate():
             # bot001 -> 1
             match = re.match(r"bot(\d+)", name)
             if match:
-                bot_id = int(match.group(1))
+                npc_id = int(match.group(1))
 
                 # メモリファイル
                 old_memory = old_memories_dir / f"{name}.json"
@@ -77,7 +77,7 @@ def migrate():
                     print("    + memory.json")
 
                 # 状態（states.json から抽出）
-                bot_id_str = str(bot_id)
+                bot_id_str = str(npc_id)
                 if bot_id_str in old_states:
                     new_state = target_dir / "state.json"
                     with open(new_state, "w", encoding="utf-8") as f:

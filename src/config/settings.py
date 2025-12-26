@@ -155,33 +155,33 @@ class Settings(BaseSettings):
 
     # パス設定（住人ごとのフォルダ）
     residents_dir: Path = Field(
-        default=Path("bots/residents"),
+        default=Path("npcs/residents"),
         description="住人フォルダのルートディレクトリ",
     )
     backend_dir: Path = Field(
-        default=Path("bots/backend"),
+        default=Path("npcs/backend"),
         description="裏方NPCフォルダのルートディレクトリ",
     )
 
     # パス設定（共有データ）
     data_dir: Path = Field(
-        default=Path("bots/data"),
+        default=Path("npcs/data"),
         description="共有データのディレクトリ",
     )
     queue_dir: Path = Field(
-        default=Path("bots/data/queue"),
+        default=Path("npcs/data/queue"),
         description="キューファイルのディレクトリ",
     )
     tick_state_file: Path = Field(
-        default=Path("bots/data/tick_state.json"),
+        default=Path("npcs/data/tick_state.json"),
         description="tick状態ファイルのパス",
     )
     relationships_dir: Path = Field(
-        default=Path("bots/data/relationships"),
+        default=Path("npcs/data/relationships"),
         description="関係性ファイルのディレクトリ",
     )
     bulletin_dir: Path = Field(
-        default=Path("bots/data/bulletin_board"),
+        default=Path("npcs/data/bulletin_board"),
         description="掲示板ディレクトリ",
     )
 

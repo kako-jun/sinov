@@ -13,29 +13,29 @@ from .base_repo import ResidentJsonRepository
 class MemoryRepository(ResidentJsonRepository):
     """NPCの記憶をファイルで管理（住人フォルダごと）"""
 
-    def _get_file_path(self, bot_id: int) -> Path:
+    def _get_file_path(self, npc_id: int) -> Path:
         """NPC IDに対応するファイルパス"""
-        return self._get_resident_file(bot_id, "memory.json")
+        return self._get_resident_file(npc_id, "memory.json")
 
-    def load(self, bot_id: int) -> NpcMemory:
+    def load(self, npc_id: int) -> NpcMemory:
         """記憶を読み込み（ファイルがなければデフォルト）"""
-        file_path = self._get_file_path(bot_id)
+        file_path = self._get_file_path(npc_id)
 
         if not file_path.exists():
-            return NpcMemory(bot_id=bot_id)
+            return NpcMemory(npc_id=npc_id)
 
         try:
             data = self._load_json(file_path)
             if data is None:
-                return NpcMemory(bot_id=bot_id)
+                return NpcMemory(npc_id=npc_id)
             return NpcMemory.model_validate(data)
         except Exception as e:
-            print(f"⚠️  Failed to load memory for {format_npc_name(bot_id)}: {e}")
-            return NpcMemory(bot_id=bot_id)
+            print(f"⚠️  Failed to load memory for {format_npc_name(npc_id)}: {e}")
+            return NpcMemory(npc_id=npc_id)
 
     def save(self, memory: NpcMemory) -> None:
         """記憶を保存"""
-        file_path = self._get_file_path(memory.bot_id)
+        file_path = self._get_file_path(memory.npc_id)
         memory.last_updated = datetime.now().isoformat()
         self._save_json(file_path, memory.model_dump(mode="json"))
 
@@ -47,7 +47,7 @@ class MemoryRepository(ResidentJsonRepository):
             return memories
 
         for resident_dir in self.residents_dir.iterdir():
-            if not resident_dir.is_dir() or not resident_dir.name.startswith("bot"):
+            if not resident_dir.is_dir() or not resident_dir.name.startswith("npc"):
                 continue
 
             memory_file = resident_dir / "memory.json"
@@ -55,18 +55,18 @@ class MemoryRepository(ResidentJsonRepository):
                 continue
 
             try:
-                bot_id = int(resident_dir.name[3:])
-                memories[bot_id] = self.load(bot_id)
+                npc_id = int(resident_dir.name[3:])
+                memories[npc_id] = self.load(npc_id)
             except (ValueError, Exception) as e:
                 print(f"⚠️  Failed to load memory from {resident_dir.name}: {e}")
 
         return memories
 
     def initialize_from_profile(
-        self, bot_id: int, occupation: str | None, experience: str | None
+        self, npc_id: int, occupation: str | None, experience: str | None
     ) -> NpcMemory:
         """プロフィールから長期記憶を初期化"""
-        memory = self.load(bot_id)
+        memory = self.load(npc_id)
 
         # コア長期記憶を設定（履歴書から）
         if occupation:

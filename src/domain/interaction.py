@@ -137,8 +137,8 @@ class InteractionManager:
 
     def create_reply_entry(
         self,
-        bot_id: int,
-        bot_name: str,
+        npc_id: int,
+        npc_name: str,
         content: str,
         reply_to: ReplyTarget,
         conversation: ConversationContext | None = None,
@@ -174,8 +174,8 @@ class InteractionManager:
             )
 
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=bot_name,
+            npc_id=npc_id,
+            npc_name=npc_name,
             content=content,
             post_type=PostType.REPLY,
             reply_to=reply_to,
@@ -184,16 +184,16 @@ class InteractionManager:
 
     def create_reaction_entry(
         self,
-        bot_id: int,
-        bot_name: str,
+        npc_id: int,
+        npc_name: str,
         emoji: str,
         target_resident: str,
         target_event_id: str,
     ) -> QueueEntry:
         """リアクション用のQueueEntryを作成"""
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=bot_name,
+            npc_id=npc_id,
+            npc_name=npc_name,
             content=emoji,
             post_type=PostType.REACTION,
             reply_to=ReplyTarget(
@@ -205,15 +205,15 @@ class InteractionManager:
 
     def create_mumble_entry(
         self,
-        bot_id: int,
-        bot_name: str,
+        npc_id: int,
+        npc_name: str,
         content: str,
         about: MumbleAbout,
     ) -> QueueEntry:
         """ぶつぶつ用のQueueEntryを作成"""
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=bot_name,
+            npc_id=npc_id,
+            npc_name=npc_name,
             content=content,
             post_type=PostType.MUMBLE,
             mumble_about=about,

@@ -34,13 +34,13 @@ class StalkerService:
         queue_repo: QueueRepository,
         relationship_repo: RelationshipRepository,
         content_strategy: ContentStrategy,
-        bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
+        npcs: dict[int, tuple[NpcKey, NpcProfile, NpcState]],
     ):
         self.llm_provider = llm_provider
         self.queue_repo = queue_repo
         self.relationship_repo = relationship_repo
         self.content_strategy = content_strategy
-        self.bots = bots
+        self.npcs = npcs
 
         # ストーカー定義を読み込み
         self.stalkers = relationship_repo.load_stalkers()
@@ -62,11 +62,11 @@ class StalkerService:
 
         for stalker in self.stalkers:
             # ストーカー役のNPCを取得
-            bot_id = extract_npc_id(stalker.resident)
-            if bot_id is None or bot_id not in self.bots:
+            npc_id = extract_npc_id(stalker.resident)
+            if npc_id is None or npc_id not in self.npcs:
                 continue
 
-            _, profile, _ = self.bots[bot_id]
+            _, profile, _ = self.npcs[npc_id]
 
             # 反応確率でスキップ
             if random.random() > stalker.behavior.reaction_probability:
@@ -78,7 +78,7 @@ class StalkerService:
                 continue
 
             # ぶつぶつ投稿を生成
-            entry = await self._generate_mumble(bot_id, profile, stalker, external_post)
+            entry = await self._generate_mumble(npc_id, profile, stalker, external_post)
             if entry:
                 self.queue_repo.add(entry)
                 generated += 1
@@ -124,7 +124,7 @@ class StalkerService:
 
     async def _generate_mumble(
         self,
-        bot_id: int,
+        npc_id: int,
         profile: NpcProfile,
         stalker: Stalker,
         external_post: dict[str, Any],
@@ -159,8 +159,8 @@ class StalkerService:
         )
 
         return QueueEntry(
-            bot_id=bot_id,
-            bot_name=profile.name,
+            npc_id=npc_id,
+            npc_name=profile.name,
             content=content,
             status=QueueStatus.PENDING,
             post_type=PostType.MUMBLE,

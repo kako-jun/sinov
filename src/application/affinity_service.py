@@ -28,22 +28,22 @@ class AffinityService:
 
     def update_on_interaction(
         self,
-        from_bot_id: int,
-        to_bot_id: int,
+        from_npc_id: int,
+        to_npc_id: int,
         interaction_type: str,
     ) -> None:
         """
         相互作用発生時に好感度と親密度を更新
 
         Args:
-            from_bot_id: 反応した側のNPC ID
-            to_bot_id: 元投稿者のNPC ID（好感度が上がる側）
+            from_npc_id: 反応した側のNPC ID
+            to_npc_id: 元投稿者のNPC ID（好感度が上がる側）
             interaction_type: "reply" or "reaction"
         """
-        to_bot_name = format_npc_name(to_bot_id)
-        from_bot_name = format_npc_name(from_bot_id)
+        to_npc_name = format_npc_name(to_npc_id)
+        from_npc_name = format_npc_name(from_npc_id)
 
-        affinity = self.relationship_repo.load_affinity(to_bot_name)
+        affinity = self.relationship_repo.load_affinity(to_npc_name)
 
         # 好感度を更新
         if interaction_type == "reply":
@@ -55,46 +55,46 @@ class AffinityService:
         else:
             return
 
-        old_affinity = affinity.get_affinity(from_bot_name)
-        new_affinity = affinity.update_affinity(from_bot_name, affinity_delta)
+        old_affinity = affinity.get_affinity(from_npc_name)
+        new_affinity = affinity.update_affinity(from_npc_name, affinity_delta)
 
         # 親密度を更新（双方向）
-        old_familiarity = affinity.get_familiarity(from_bot_name)
-        new_familiarity = affinity.update_familiarity(from_bot_name, familiarity_delta)
+        old_familiarity = affinity.get_familiarity(from_npc_name)
+        new_familiarity = affinity.update_familiarity(from_npc_name, familiarity_delta)
 
         # 最後の相互作用日時を記録
-        affinity.record_interaction(from_bot_name, datetime.now().isoformat())
+        affinity.record_interaction(from_npc_name, datetime.now().isoformat())
 
         # 保存
         self.relationship_repo.save_affinity(affinity)
 
         # 反応した側も親密度を更新
-        from_affinity = self.relationship_repo.load_affinity(from_bot_name)
-        from_affinity.update_familiarity(to_bot_name, familiarity_delta)
-        from_affinity.record_interaction(to_bot_name, datetime.now().isoformat())
+        from_affinity = self.relationship_repo.load_affinity(from_npc_name)
+        from_affinity.update_familiarity(to_npc_name, familiarity_delta)
+        from_affinity.record_interaction(to_npc_name, datetime.now().isoformat())
         self.relationship_repo.save_affinity(from_affinity)
 
         # ログ出力
         if new_affinity != old_affinity:
             print(
-                f"         📈 {to_bot_name}の{from_bot_name}への好感度: "
+                f"         📈 {to_npc_name}の{from_npc_name}への好感度: "
                 f"{old_affinity:.2f} → {new_affinity:.2f}"
             )
         if new_familiarity != old_familiarity:
             print(
-                f"         🤝 {to_bot_name}と{from_bot_name}の親密度: "
+                f"         🤝 {to_npc_name}と{from_npc_name}の親密度: "
                 f"{old_familiarity:.2f} → {new_familiarity:.2f}"
             )
 
-    def process_decay(self, target_bot_ids: list[int], bots: dict) -> int:
+    def process_decay(self, target_npc_ids: list[int], npcs: dict) -> int:
         """
         好感度の減衰処理を実行（疎遠期間による減衰）
 
         1週間以上相互作用がない関係について好感度を減衰させる。
 
         Args:
-            target_bot_ids: 処理対象の住人ID一覧
-            bots: NPCデータ辞書
+            target_npc_ids: 処理対象の住人ID一覧
+            npcs: NPCデータ辞書
 
         Returns:
             減衰が発生した関係の数
@@ -103,16 +103,16 @@ class AffinityService:
         now = datetime.now()
         one_week_ago = now - timedelta(weeks=1)
 
-        for bot_id in target_bot_ids:
-            if bot_id not in bots:
+        for npc_id in target_npc_ids:
+            if npc_id not in npcs:
                 continue
 
-            bot_name = format_npc_name(bot_id)
-            affinity = self.relationship_repo.load_affinity(bot_name)
+            npc_name = format_npc_name(npc_id)
+            affinity = self.relationship_repo.load_affinity(npc_name)
             updated = False
 
             # 関係のある住人を取得
-            related_members = self.relationship_data.get_related_members(bot_name)
+            related_members = self.relationship_data.get_related_members(npc_name)
 
             for target_name in related_members:
                 # 最後の相互作用日時を確認
@@ -138,7 +138,7 @@ class AffinityService:
 
         return decayed_count
 
-    def process_ignored_posts(self, target_bot_ids: list[int]) -> int:
+    def process_ignored_posts(self, target_npc_ids: list[int]) -> int:
         """
         無視された投稿による好感度減衰を処理
 
@@ -146,7 +146,7 @@ class AffinityService:
         投稿者の関係者への好感度を微減させる。
 
         Args:
-            target_bot_ids: 処理対象の住人ID一覧
+            target_npc_ids: 処理対象の住人ID一覧
 
         Returns:
             減衰が発生した数
@@ -158,14 +158,14 @@ class AffinityService:
         normal_posts = [
             e
             for e in posted_entries
-            if e.post_type == PostType.NORMAL and e.bot_id in target_bot_ids
+            if e.post_type == PostType.NORMAL and e.npc_id in target_npc_ids
         ]
 
         for entry in normal_posts:
             if not entry.event_id:
                 continue
 
-            bot_name = format_npc_name(entry.bot_id)
+            npc_name = format_npc_name(entry.npc_id)
 
             # この投稿へのリプライ/リアクションがあるかチェック
             has_reaction = self._has_any_reaction(entry.event_id)
@@ -174,12 +174,12 @@ class AffinityService:
                 continue
 
             # 反応がない場合、関係者への好感度を微減
-            related_members = self.relationship_data.get_related_members(bot_name)
+            related_members = self.relationship_data.get_related_members(npc_name)
 
             if not related_members:
                 continue
 
-            affinity = self.relationship_repo.load_affinity(bot_name)
+            affinity = self.relationship_repo.load_affinity(npc_name)
             updated = False
 
             for target_name in related_members:

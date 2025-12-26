@@ -21,13 +21,13 @@ def generate_bot_keys(count: int = 100) -> None:
         # 新しい鍵ペアを生成
         keys = Keys.generate()
 
-        bot_id = f"{i:03d}"
+        npc_id = f"{i:03d}"
         pubkey = keys.public_key().to_hex()
         nsec = keys.secret_key().to_bech32()
 
-        lines.append(f"# Bot {bot_id}\n")
-        lines.append(f"BOT_{bot_id}_PUBKEY={pubkey}\n")
-        lines.append(f"BOT_{bot_id}_NSEC={nsec}\n\n")
+        lines.append(f"# Bot {npc_id}\n")
+        lines.append(f"BOT_{npc_id}_PUBKEY={pubkey}\n")
+        lines.append(f"BOT_{npc_id}_NSEC={nsec}\n\n")
 
         if i % 10 == 0:
             print(f"Generated {i}/{count} keys...")

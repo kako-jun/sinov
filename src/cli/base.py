@@ -60,7 +60,7 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> NpcService:
         log_repo=log_repo,
     )
 
-    print("Loading bots...")
+    print("Loading NPCs...")
     await service.load_bots()
     await service.initialize_keys()
 
@@ -68,15 +68,15 @@ async def init_service(settings: Settings, llm: OllamaProvider) -> NpcService:
 
 
 def get_target_pubkey(resident: str) -> str | None:
-    """住人名（bot001形式）からpubkeyを取得"""
+    """住人名（npc001形式）からpubkeyを取得"""
     from ..domain import NpcKey
 
-    bot_id = extract_npc_id(resident)
-    if bot_id is None:
+    npc_id = extract_npc_id(resident)
+    if npc_id is None:
         return None
 
     try:
-        target_key = NpcKey.from_env(bot_id)
+        target_key = NpcKey.from_env(npc_id)
         return target_key.pubkey
     except ValueError:
         return None

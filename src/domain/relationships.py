@@ -33,7 +33,7 @@ class Group(BaseModel):
 
     id: str = Field(description="グループID")
     name: str = Field(description="グループ名")
-    members: list[str] = Field(description="メンバーのNPC ID（bot001形式）")
+    members: list[str] = Field(description="メンバーのNPC ID（npc001形式）")
     description: str | None = Field(default=None, description="グループの説明")
     interaction: GroupInteraction = Field(
         default_factory=GroupInteraction, description="相互作用設定"
@@ -101,7 +101,7 @@ class Stalker(BaseModel):
 class Affinity(BaseModel):
     """好感度・信頼度・親密度（住人間の関係値）"""
 
-    bot_id: str = Field(description="この住人のNPC ID")
+    npc_id: str = Field(description="この住人のNPC ID")
     targets: dict[str, float] = Field(
         default_factory=dict,
         description="対象NPC IDと好感度のマップ（-1.0〜1.0）",
@@ -174,33 +174,33 @@ class RelationshipData(BaseModel):
     pairs: list[Pair] = Field(default_factory=list, description="個人間関係一覧")
     stalkers: list[Stalker] = Field(default_factory=list, description="ストーカー一覧")
 
-    def get_related_members(self, bot_id: str) -> list[str]:
+    def get_related_members(self, npc_id: str) -> list[str]:
         """指定NPCと関係のある全メンバーを取得"""
         related = set()
 
         # グループメンバー
         for group in self.groups:
-            if bot_id in group.members:
+            if npc_id in group.members:
                 for member in group.members:
-                    if member != bot_id:
+                    if member != npc_id:
                         related.add(member)
 
         # ペア
         for pair in self.pairs:
-            if bot_id in pair.members:
+            if npc_id in pair.members:
                 for member in pair.members:
-                    if member != bot_id:
+                    if member != npc_id:
                         related.add(member)
 
         return list(related)
 
-    def get_groups_for_bot(self, bot_id: str) -> list[Group]:
+    def get_groups_for_bot(self, npc_id: str) -> list[Group]:
         """指定NPCが所属するグループを取得"""
-        return [g for g in self.groups if bot_id in g.members]
+        return [g for g in self.groups if npc_id in g.members]
 
-    def get_pairs_for_bot(self, bot_id: str) -> list[Pair]:
+    def get_pairs_for_bot(self, npc_id: str) -> list[Pair]:
         """指定NPCが関係する個人間関係を取得"""
-        return [p for p in self.pairs if bot_id in p.members]
+        return [p for p in self.pairs if npc_id in p.members]
 
     def get_reply_probability(self, from_bot: str, to_bot: str) -> float:
         """2人のNPC間のリプライ確率を取得"""

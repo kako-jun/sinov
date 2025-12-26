@@ -24,28 +24,28 @@ async def cmd_generate(args: argparse.Namespace) -> None:
 
     # 対象NPCを決定
     if args.all:
-        bot_ids = list(service.bots.keys())
-    elif args.bot:
-        bot_id = extract_npc_id(args.bot)
-        if bot_id is None or bot_id not in service.bots:
-            print(f"Bot not found: {args.bot}")
+        npc_ids = list(service.npcs.keys())
+    elif args.npc:
+        npc_id = extract_npc_id(args.npc)
+        if npc_id is None or npc_id not in service.npcs:
+            print(f"NPC not found: {args.npc}")
             return
-        bot_ids = [bot_id]
+        npc_ids = [npc_id]
     else:
-        print("Specify --all or --bot <name>")
+        print("Specify --all or --npc <name>")
         return
 
     print(f"\nGenerating posts ({target_status.value})...")
     generated = 0
 
-    for bot_id in bot_ids:
-        _, profile, _ = service.bots[bot_id]
+    for npc_id in npc_ids:
+        _, profile, _ = service.npcs[npc_id]
         try:
-            content = await service.generate_post_content(bot_id)
+            content = await service.generate_post_content(npc_id)
 
             entry = QueueEntry(
-                bot_id=bot_id,
-                bot_name=profile.name,
+                npc_id=npc_id,
+                npc_name=profile.name,
                 content=content,
                 status=target_status,
             )

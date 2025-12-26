@@ -26,7 +26,7 @@ async def cmd_post(args: argparse.Namespace) -> None:
         print(f"\n🔍 [DRY RUN] Would post {len(entries)} entries:\n")
         for entry in entries:
             post_type = entry.post_type.value if entry.post_type else "normal"
-            print(f"  [{entry.id}] {entry.bot_name} ({post_type}): {entry.content[:50]}...")
+            print(f"  [{entry.id}] {entry.npc_name} ({post_type}): {entry.content[:50]}...")
         return
 
     # 実投稿
@@ -42,8 +42,8 @@ async def cmd_post(args: argparse.Namespace) -> None:
     for entry in entries:
         try:
             # 鍵を取得
-            bot_key = NpcKey.from_env(entry.bot_id)
-            keys = Keys.parse(bot_key.nsec)
+            npc_key = NpcKey.from_env(entry.npc_id)
+            keys = Keys.parse(npc_key.nsec)
 
             event_id: str | None = None
 
@@ -57,18 +57,18 @@ async def cmd_post(args: argparse.Namespace) -> None:
                     target_pubkey = get_target_pubkey(entry.reply_to.resident)
 
                 if not target_pubkey:
-                    print(f"  ⏭️  {entry.bot_name}: Reply skipped (pubkey not found)")
+                    print(f"  ⏭️  {entry.npc_name}: Reply skipped (pubkey not found)")
                     continue
 
                 event_id = await publisher.publish_reply(
                     keys=keys,
                     content=entry.content,
-                    bot_name=entry.bot_name,
+                    npc_name=entry.npc_name,
                     reply_to_event_id=entry.reply_to.event_id,
                     reply_to_pubkey=target_pubkey,
                 )
                 target_name = entry.reply_to.resident
-                print(f"  💬 {entry.bot_name}: {entry.content[:40]}... → {target_name}")
+                print(f"  💬 {entry.npc_name}: {entry.content[:40]}... → {target_name}")
 
             elif entry.post_type == PostType.REACTION and entry.reply_to:
                 # リアクション投稿
@@ -79,28 +79,28 @@ async def cmd_post(args: argparse.Namespace) -> None:
                     target_pubkey = get_target_pubkey(entry.reply_to.resident)
 
                 if not target_pubkey:
-                    print(f"  ⏭️  {entry.bot_name}: Reaction skipped (pubkey not found)")
+                    print(f"  ⏭️  {entry.npc_name}: Reaction skipped (pubkey not found)")
                     continue
 
                 event_id = await publisher.publish_reaction(
                     keys=keys,
                     emoji=entry.content,
-                    bot_name=entry.bot_name,
+                    npc_name=entry.npc_name,
                     target_event_id=entry.reply_to.event_id,
                     target_pubkey=target_pubkey,
                 )
-                print(f"  ❤️  {entry.bot_name}: {entry.content} → {entry.reply_to.resident}")
+                print(f"  ❤️  {entry.npc_name}: {entry.content} → {entry.reply_to.resident}")
 
             else:
                 # 通常投稿
-                event_id = await publisher.publish(keys, entry.content, entry.bot_name)
-                print(f"  ✅ {entry.bot_name}: {entry.content[:40]}...")
+                event_id = await publisher.publish(keys, entry.content, entry.npc_name)
+                print(f"  ✅ {entry.npc_name}: {entry.content[:40]}...")
 
             # キューを更新
             queue_repo.mark_posted(entry.id, event_id)
             posted += 1
 
         except Exception as e:
-            print(f"  ❌ {entry.bot_name}: {e}")
+            print(f"  ❌ {entry.npc_name}: {e}")
 
     print(f"\n✅ Posted {posted}/{len(entries)} entries")

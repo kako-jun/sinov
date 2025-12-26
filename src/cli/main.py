@@ -9,14 +9,14 @@ from .commands import cmd_generate, cmd_post, cmd_queue, cmd_review, cmd_tick
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sinov Bot CLI")
+    parser = argparse.ArgumentParser(description="Sinov NPC CLI")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
 
     # generate コマンド
     gen_parser = subparsers.add_parser("generate", help="Generate posts to queue")
-    gen_parser.add_argument("--all", "-a", action="store_true", help="All bots")
-    gen_parser.add_argument("--bot", "-b", type=str, help="Bot name (e.g., bot001)")
-    gen_parser.add_argument("--dry-run", "-n", action="store_true", help="Save to dry_run.json")
+    gen_parser.add_argument("--all", "-a", action="store_true", help="All NPCs")
+    gen_parser.add_argument("--npc", type=str, help="NPC name (e.g., npc001)")
+    gen_parser.add_argument("--dry-run", "-d", action="store_true", help="Save to dry_run.json")
 
     # queue コマンド
     queue_parser = subparsers.add_parser("queue", help="Show queue status")
@@ -43,7 +43,7 @@ def main() -> None:
     # tick コマンド
     tick_parser = subparsers.add_parser("tick", help="Run one tick: process N residents + reviewer")
     tick_parser.add_argument(
-        "--count", "-c", type=int, default=10, help="Number of bots to process (default: 10)"
+        "--count", "-c", type=int, default=10, help="Number of NPCs to process (default: 10)"
     )
 
     # 旧 preview コマンド（後方互換）

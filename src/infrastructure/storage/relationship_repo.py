@@ -159,25 +159,25 @@ class RelationshipRepository:
         """ストーカー定義を読み込み（公開メソッド）"""
         return self._load_stalkers()
 
-    def load_affinity(self, bot_id: str) -> Affinity:
+    def load_affinity(self, npc_id: str) -> Affinity:
         """指定NPCの好感度を読み込み"""
-        affinity_file = self.affinity_dir / f"{bot_id}.json"
+        affinity_file = self.affinity_dir / f"{npc_id}.json"
 
         if not affinity_file.exists():
-            return Affinity(bot_id=bot_id)
+            return Affinity(npc_id=npc_id)
 
         with open(affinity_file, encoding="utf-8") as f:
             data = json.load(f)
 
         return Affinity(
-            bot_id=data.get("bot_id", bot_id),
+            npc_id=data.get("npc_id", npc_id),
             targets=data.get("targets", {}),
             last_interactions=data.get("last_interactions", {}),
         )
 
     def save_affinity(self, affinity: Affinity) -> None:
         """好感度を保存"""
-        affinity_file = self.affinity_dir / f"{affinity.bot_id}.json"
+        affinity_file = self.affinity_dir / f"{affinity.npc_id}.json"
 
         with open(affinity_file, "w", encoding="utf-8") as f:
             json.dump(affinity.model_dump(), f, ensure_ascii=False, indent=2)
@@ -190,8 +190,8 @@ class RelationshipRepository:
             return affinities
 
         for affinity_file in self.affinity_dir.glob("*.json"):
-            bot_id = affinity_file.stem
-            affinities[bot_id] = self.load_affinity(bot_id)
+            npc_id = affinity_file.stem
+            affinities[npc_id] = self.load_affinity(npc_id)
 
         return affinities
 
@@ -205,20 +205,20 @@ class RelationshipRepository:
             all_bots.update(pair.members)
 
         # 各NPCの好感度を初期化
-        for bot_id in all_bots:
-            affinity = self.load_affinity(bot_id)
+        for npc_id in all_bots:
+            affinity = self.load_affinity(npc_id)
 
             # グループメンバーとの好感度
             for group in relationship_data.groups:
-                if bot_id in group.members:
+                if npc_id in group.members:
                     for member in group.members:
-                        if member != bot_id and member not in affinity.targets:
+                        if member != npc_id and member not in affinity.targets:
                             affinity.set_affinity(member, 0.3)
 
             # ペアとの好感度
             for pair in relationship_data.pairs:
-                if bot_id in pair.members:
-                    other = [m for m in pair.members if m != bot_id][0]
+                if npc_id in pair.members:
+                    other = [m for m in pair.members if m != npc_id][0]
                     if other not in affinity.targets:
                         if pair.type.value == "close_friends":
                             affinity.set_affinity(other, 0.5)

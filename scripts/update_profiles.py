@@ -171,7 +171,7 @@ def update_profile(profile_path: Path) -> bool:
     if "traits_detail" in data:
         return False
 
-    bot_id = data["id"]
+    npc_id = data["id"]
     name = data["name"]
     personality = data.get("personality", {})
     background = data.get("background", {})
@@ -242,7 +242,7 @@ prompts:
     with open(profile_path, "w", encoding="utf-8") as f:
         f.write(content.rstrip() + "\n" + additions)
 
-    print(f"  Updated: bot{bot_id:03d} ({name}) - style={style}, habits={habits}")
+    print(f"  Updated: bot{npc_id:03d} ({name}) - style={style}, habits={habits}")
     return True
 
 

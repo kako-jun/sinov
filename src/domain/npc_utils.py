@@ -3,35 +3,35 @@ NPC ID関連のユーティリティ
 """
 
 
-def format_npc_name(bot_id: int) -> str:
+def format_npc_name(npc_id: int) -> str:
     """
     NPC IDを標準フォーマットに変換
 
     Args:
-        bot_id: NPC ID（例: 1）
+        npc_id: NPC ID（例: 1）
 
     Returns:
-        フォーマットされた名前（例: "bot001"）
+        フォーマットされた名前（例: "npc001"）
     """
-    return f"bot{bot_id:03d}"
+    return f"npc{npc_id:03d}"
 
 
-def extract_npc_id(bot_name: str) -> int | None:
+def extract_npc_id(npc_name: str) -> int | None:
     """
     NPC名からIDを抽出
 
     Args:
-        bot_name: NPC名（例: "bot001" または "1"）
+        npc_name: NPC名（例: "npc001" または "1"）
 
     Returns:
         NPC ID（例: 1）、パース失敗時はNone
     """
-    if bot_name.startswith("bot"):
+    if npc_name.startswith("npc"):
         try:
-            return int(bot_name[3:])
+            return int(npc_name[3:])
         except ValueError:
             return None
     try:
-        return int(bot_name)
+        return int(npc_name)
     except ValueError:
         return None

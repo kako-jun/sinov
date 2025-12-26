@@ -19,26 +19,26 @@ class LogRepository:
     def __init__(self, residents_dir: str):
         self.residents_dir = Path(residents_dir)
 
-    def _get_log_dir(self, bot_id: int) -> Path:
+    def _get_log_dir(self, npc_id: int) -> Path:
         """ログディレクトリのパスを取得"""
-        bot_name = f"bot{bot_id:03d}"
-        return self.residents_dir / bot_name / "logs"
+        npc_name = f"npc{npc_id:03d}"
+        return self.residents_dir / npc_name / "logs"
 
-    def _get_log_path(self, bot_id: int, date: datetime) -> Path:
+    def _get_log_path(self, npc_id: int, date: datetime) -> Path:
         """ログファイルのパスを取得"""
         date_str = date.strftime("%Y-%m-%d")
-        return self._get_log_dir(bot_id) / f"{date_str}.md"
+        return self._get_log_dir(npc_id) / f"{date_str}.md"
 
-    def _ensure_log_dir(self, bot_id: int) -> None:
+    def _ensure_log_dir(self, npc_id: int) -> None:
         """ログディレクトリを作成"""
-        log_dir = self._get_log_dir(bot_id)
+        log_dir = self._get_log_dir(npc_id)
         log_dir.mkdir(parents=True, exist_ok=True)
 
-    def add_entry(self, bot_id: int, entry: LogEntry) -> None:
+    def add_entry(self, npc_id: int, entry: LogEntry) -> None:
         """ログエントリーを追加"""
-        self._ensure_log_dir(bot_id)
+        self._ensure_log_dir(npc_id)
         today = datetime.now().date()
-        log_path = self._get_log_path(bot_id, datetime.now())
+        log_path = self._get_log_path(npc_id, datetime.now())
 
         # 既存のログを読み込むか、新規作成
         if log_path.exists():
@@ -48,41 +48,41 @@ class LogRepository:
         else:
             # 新規作成（ヘッダー付き）
             daily_log = DailyLog(
-                bot_id=bot_id,
+                npc_id=npc_id,
                 date=datetime.combine(today, datetime.min.time()),
                 entries=[entry],
             )
             with open(log_path, "w", encoding="utf-8") as f:
                 f.write(daily_log.to_markdown())
 
-    def add_entries(self, bot_id: int, entries: list[LogEntry]) -> None:
+    def add_entries(self, npc_id: int, entries: list[LogEntry]) -> None:
         """複数のログエントリーを追加"""
         for entry in entries:
-            self.add_entry(bot_id, entry)
+            self.add_entry(npc_id, entry)
 
-    def get_daily_log(self, bot_id: int, date: datetime) -> DailyLog | None:
+    def get_daily_log(self, npc_id: int, date: datetime) -> DailyLog | None:
         """指定日のログを取得"""
-        log_path = self._get_log_path(bot_id, date)
+        log_path = self._get_log_path(npc_id, date)
         if not log_path.exists():
             return None
 
         # Markdownファイルを読み込む（パースはしない、表示用）
         return DailyLog(
-            bot_id=bot_id,
+            npc_id=npc_id,
             date=date,
             entries=[],  # 既にMarkdownとして保存されているため空
         )
 
-    def get_log_content(self, bot_id: int, date: datetime) -> str | None:
+    def get_log_content(self, npc_id: int, date: datetime) -> str | None:
         """指定日のログ内容（Markdown）を取得"""
-        log_path = self._get_log_path(bot_id, date)
+        log_path = self._get_log_path(npc_id, date)
         if not log_path.exists():
             return None
 
         with open(log_path, encoding="utf-8") as f:
             return f.read()
 
-    def get_recent_logs(self, bot_id: int, days: int = 7) -> dict[str, str]:
+    def get_recent_logs(self, npc_id: int, days: int = 7) -> dict[str, str]:
         """直近N日分のログを取得
 
         Returns:
@@ -93,20 +93,20 @@ class LogRepository:
 
         for i in range(days):
             date = today - timedelta(days=i)
-            content = self.get_log_content(bot_id, date)
+            content = self.get_log_content(npc_id, date)
             if content:
                 date_str = date.strftime("%Y-%m-%d")
                 logs[date_str] = content
 
         return logs
 
-    def cleanup_old_logs(self, bot_id: int) -> int:
+    def cleanup_old_logs(self, npc_id: int) -> int:
         """古いログを削除
 
         Returns:
             削除したファイル数
         """
-        log_dir = self._get_log_dir(bot_id)
+        log_dir = self._get_log_dir(npc_id)
         if not log_dir.exists():
             return 0
 
@@ -140,21 +140,21 @@ class LogRepository:
             if not bot_dir.is_dir():
                 continue
 
-            # bot001形式のディレクトリのみ処理
-            if not bot_dir.name.startswith("bot"):
+            # npc001形式のディレクトリのみ処理
+            if not bot_dir.name.startswith("npc"):
                 continue
 
             try:
-                bot_id = int(bot_dir.name[3:])
-                total_deleted += self.cleanup_old_logs(bot_id)
+                npc_id = int(bot_dir.name[3:])
+                total_deleted += self.cleanup_old_logs(npc_id)
             except ValueError:
                 continue
 
         return total_deleted
 
-    def list_log_dates(self, bot_id: int) -> list[str]:
+    def list_log_dates(self, npc_id: int) -> list[str]:
         """ログが存在する日付のリストを取得"""
-        log_dir = self._get_log_dir(bot_id)
+        log_dir = self._get_log_dir(npc_id)
         if not log_dir.exists():
             return []
 

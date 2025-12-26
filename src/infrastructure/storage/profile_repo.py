@@ -61,9 +61,9 @@ class ProfileRepository:
             print(f"⚠️  Residents directory not found: {self.residents_dir}")
             return profiles
 
-        # bot001, bot002, ... の順でソート
+        # npc001, bot002, ... の順でソート
         resident_dirs = sorted(
-            [d for d in self.residents_dir.iterdir() if d.is_dir() and d.name.startswith("bot")],
+            [d for d in self.residents_dir.iterdir() if d.is_dir() and d.name.startswith("npc")],
             key=lambda d: d.name,
         )
 
@@ -97,9 +97,9 @@ class ProfileRepository:
         except Exception as e:
             raise ValueError(f"Failed to load profile from {profile_file}: {e}") from e
 
-    def load_by_id(self, bot_id: int) -> NpcProfile | None:
+    def load_by_id(self, npc_id: int) -> NpcProfile | None:
         """IDで住人プロフィールを読み込み"""
-        resident_dir = self.residents_dir / format_npc_name(bot_id)
+        resident_dir = self.residents_dir / format_npc_name(npc_id)
         profile_file = resident_dir / "profile.yaml"
 
         if not profile_file.exists():
@@ -107,6 +107,6 @@ class ProfileRepository:
 
         return self.load(profile_file)
 
-    def get_resident_dir(self, bot_id: int) -> Path:
+    def get_resident_dir(self, npc_id: int) -> Path:
         """住人のフォルダパスを取得"""
-        return self.residents_dir / format_npc_name(bot_id)
+        return self.residents_dir / format_npc_name(npc_id)

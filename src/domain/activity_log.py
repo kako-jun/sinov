@@ -119,7 +119,7 @@ class LogEntry:
 class DailyLog:
     """1日分のログ"""
 
-    bot_id: int
+    npc_id: int
     date: datetime
     entries: list[LogEntry] = field(default_factory=list)
 
@@ -130,10 +130,10 @@ class DailyLog:
     def to_markdown(self) -> str:
         """Markdown形式に変換"""
         lines = []
-        bot_name = f"bot{self.bot_id:03d}"
+        npc_name = f"npc{self.npc_id:03d}"
         date_str = self.date.strftime("%Y-%m-%d")
 
-        lines.append(f"# {bot_name} 活動ログ - {date_str}")
+        lines.append(f"# {npc_name} 活動ログ - {date_str}")
         lines.append("")
 
         if not self.entries:

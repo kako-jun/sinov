@@ -26,12 +26,12 @@ def cmd_review(args: argparse.Namespace) -> None:
             if status != QueueStatus.PENDING:
                 print(f"⚠️  Entry is not pending (current: {status.value})")
             else:
-                print(f"✅ [DRY RUN] Would approve: {entry.bot_name}")
+                print(f"✅ [DRY RUN] Would approve: {entry.npc_name}")
                 print(f"    {entry.content[:60]}...")
         else:
             approved = queue_repo.approve(args.id, args.note)
             if approved:
-                print(f"✅ Approved: [{approved.id}] {approved.bot_name}")
+                print(f"✅ Approved: [{approved.id}] {approved.npc_name}")
             else:
                 print(f"Entry not found in pending: {args.id}")
 
@@ -45,11 +45,11 @@ def cmd_review(args: argparse.Namespace) -> None:
             if status != QueueStatus.PENDING:
                 print(f"⚠️  Entry is not pending (current: {status.value})")
             else:
-                print(f"❌ [DRY RUN] Would reject: {entry.bot_name}")
+                print(f"❌ [DRY RUN] Would reject: {entry.npc_name}")
         else:
             rejected = queue_repo.reject(args.id, args.note)
             if rejected:
-                print(f"❌ Rejected: [{rejected.id}] {rejected.bot_name}")
+                print(f"❌ Rejected: [{rejected.id}] {rejected.npc_name}")
             else:
                 print(f"Entry not found in pending: {args.id}")
 

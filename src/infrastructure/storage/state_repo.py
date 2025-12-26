@@ -12,9 +12,9 @@ from .base_repo import ResidentJsonRepository
 class StateRepository(ResidentJsonRepository):
     """住人フォルダごとにNPC状態を永続化"""
 
-    def _get_file_path(self, bot_id: int) -> Path:
+    def _get_file_path(self, npc_id: int) -> Path:
         """NPC IDに対応するファイルパス"""
-        return self._get_resident_file(bot_id, "state.json")
+        return self._get_resident_file(npc_id, "state.json")
 
     def load_all(self) -> dict[int, NpcState]:
         """全NPCの状態を読み込み"""
@@ -24,7 +24,7 @@ class StateRepository(ResidentJsonRepository):
             return states
 
         for resident_dir in self.residents_dir.iterdir():
-            if not resident_dir.is_dir() or not resident_dir.name.startswith("bot"):
+            if not resident_dir.is_dir() or not resident_dir.name.startswith("npc"):
                 continue
 
             state_file = resident_dir / "state.json"
@@ -32,18 +32,18 @@ class StateRepository(ResidentJsonRepository):
                 continue
 
             try:
-                bot_id = int(resident_dir.name[3:])
-                state = self.load(bot_id)
+                npc_id = int(resident_dir.name[3:])
+                state = self.load(npc_id)
                 if state:
-                    states[bot_id] = state
+                    states[npc_id] = state
             except (ValueError, Exception) as e:
                 print(f"⚠️  Failed to load state from {resident_dir.name}: {e}")
 
         return states
 
-    def load(self, bot_id: int) -> NpcState | None:
+    def load(self, npc_id: int) -> NpcState | None:
         """単一NPCの状態を読み込み"""
-        file_path = self._get_file_path(bot_id)
+        file_path = self._get_file_path(npc_id)
 
         if not file_path.exists():
             return None
@@ -54,13 +54,13 @@ class StateRepository(ResidentJsonRepository):
                 return None
             return NpcState.model_validate(data)
         except Exception as e:
-            print(f"⚠️  Failed to load state for {format_npc_name(bot_id)}: {e}")
+            print(f"⚠️  Failed to load state for {format_npc_name(npc_id)}: {e}")
             return None
 
-    def create_initial(self, bot_id: int) -> NpcState:
+    def create_initial(self, npc_id: int) -> NpcState:
         """初期状態を作成"""
         return NpcState(
-            id=bot_id,
+            id=npc_id,
             last_post_time=0,
             next_post_time=0,
             total_posts=0,

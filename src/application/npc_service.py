@@ -58,7 +58,7 @@ class NpcService:
         self.content_strategy = ContentStrategy(settings.content)
 
         # NPCデータ
-        self.bots: dict[int, tuple[NpcKey, NpcProfile, NpcState]] = {}
+        self.npcs: dict[int, tuple[NpcKey, NpcProfile, NpcState]] = {}
         self.keys: dict[int, Keys] = {}
 
     async def load_bots(self) -> None:
@@ -69,44 +69,44 @@ class NpcService:
         states = self.state_repo.load_all()
 
         for profile in profiles:
-            bot_id = profile.id
+            npc_id = profile.id
 
             # 環境変数から鍵を読み込み
             try:
-                bot_key = NpcKey.from_env(bot_id)
+                npc_key = NpcKey.from_env(npc_id)
             except Exception as e:
-                print(f"⚠️  Keys not found for {format_npc_name(bot_id)}: {e}, skipping...")
+                print(f"⚠️  Keys not found for {format_npc_name(npc_id)}: {e}, skipping...")
                 continue
 
             # 状態読み込み（存在しない場合は初期化）
-            state = states.get(bot_id) or self.state_repo.create_initial(bot_id)
+            state = states.get(npc_id) or self.state_repo.create_initial(npc_id)
 
-            self.bots[bot_id] = (bot_key, profile, state)
+            self.npcs[npc_id] = (npc_key, profile, state)
 
-        print(f"✅ Loaded {len(self.bots)} bots")
+        print(f"✅ Loaded {len(self.npcs)} NPCs")
 
     async def initialize_keys(self) -> None:
         """Nostr署名鍵を初期化"""
         print("Initializing Nostr keys...")
 
-        for bot_id, (key, _, _) in self.bots.items():
+        for npc_id, (key, _, _) in self.npcs.items():
             try:
                 keys = Keys.parse(key.nsec)
-                self.keys[bot_id] = keys
+                self.keys[npc_id] = keys
             except Exception as e:
-                print(f"⚠️  Failed to parse key for bot {bot_id}: {e}")
+                print(f"⚠️  Failed to parse key for bot {npc_id}: {e}")
 
         print(f"✅ Initialized {len(self.keys)} bot keys")
 
-    async def generate_post_content(self, bot_id: int) -> str:
+    async def generate_post_content(self, npc_id: int) -> str:
         """投稿内容を生成"""
-        _, profile, state = self.bots[bot_id]
+        _, profile, state = self.npcs[npc_id]
 
         if not self.llm_provider:
             raise RuntimeError("LLM provider is not available")
 
         # 記憶を読み込み
-        memory = self.memory_repo.load(bot_id)
+        memory = self.memory_repo.load(npc_id)
 
         # 連作を開始するか判定（連作中でなければ）
         if not memory.series.active and self.content_strategy.should_start_series():
@@ -116,7 +116,7 @@ class NpcService:
             # ログ記録
             if self.log_repo:
                 self.log_repo.add_entry(
-                    bot_id, ActivityLogger.log_series_start(theme, total)
+                    npc_id, ActivityLogger.log_series_start(theme, total)
                 )
 
         # 共有ニュース読み込み
@@ -126,7 +126,7 @@ class NpcService:
         event_topics = self._load_event_topics()
 
         # 過去のrejectを取得（反省のため）
-        rejected_posts = self._load_rejected_posts(bot_id)
+        rejected_posts = self._load_rejected_posts(npc_id)
 
         # 共通プロンプト + 個人プロンプトをマージ
         merged_prompts = self.profile_repo.get_merged_prompts(profile)
@@ -173,7 +173,7 @@ class NpcService:
                 content = text_processor.process(content)
 
             # 記憶を更新
-            self._update_memory_after_generate(bot_id, content, memory)
+            self._update_memory_after_generate(npc_id, content, memory)
 
             # ログ記録（投稿生成）
             if self.log_repo:
@@ -183,7 +183,7 @@ class NpcService:
                 if memory.series.active:
                     series_info = f"連作「{memory.series.theme}」{memory.series.current_index + 1}/{memory.series.total_planned}"
                 self.log_repo.add_entry(
-                    bot_id,
+                    npc_id,
                     ActivityLogger.log_post_generate(content, prompt_summary, series_info),
                 )
 
@@ -194,7 +194,7 @@ class NpcService:
             f"{self.settings.content.llm_retry_count} attempts"
         )
 
-    def _update_memory_after_generate(self, bot_id: int, content: str, memory: NpcMemory) -> None:
+    def _update_memory_after_generate(self, npc_id: int, content: str, memory: NpcMemory) -> None:
         """投稿生成後に記憶を更新"""
 
         # 短期記憶を減衰
@@ -216,16 +216,16 @@ class NpcService:
                 memory.promote_to_long_term(f"連作「{theme}」を完了", importance=0.7)
                 # ログ記録
                 if self.log_repo and theme:
-                    self.log_repo.add_entry(bot_id, ActivityLogger.log_series_end(theme))
+                    self.log_repo.add_entry(npc_id, ActivityLogger.log_series_end(theme))
 
         # 記憶を保存
         self.memory_repo.save(memory)
 
-    async def post(self, bot_id: int, content: str) -> None:
+    async def post(self, npc_id: int, content: str) -> None:
         """投稿を実行"""
         try:
-            bot_key, profile, state = self.bots[bot_id]
-            keys = self.keys[bot_id]
+            npc_key, profile, state = self.npcs[npc_id]
+            keys = self.keys[npc_id]
 
             # 投稿実行
             event_id = await self.publisher.publish(keys, content, profile.name)
@@ -244,7 +244,7 @@ class NpcService:
                 state.post_history = state.post_history[-self.settings.content.max_history_size :]
 
             # 成長要素
-            self._evolve_interests(bot_id)
+            self._evolve_interests(npc_id)
 
             next_datetime = datetime.fromtimestamp(state.next_post_time)
             print(
@@ -255,16 +255,16 @@ class NpcService:
             # ログ記録（投稿完了）
             if self.log_repo and event_id:
                 self.log_repo.add_entry(
-                    bot_id, ActivityLogger.log_post_published(content, event_id)
+                    npc_id, ActivityLogger.log_post_published(content, event_id)
                 )
         except Exception as e:
-            _, profile, _ = self.bots[bot_id]
+            _, profile, _ = self.npcs[npc_id]
             print(f"❌ Failed to post for {profile.name}: {e}")
             raise
 
-    def _evolve_interests(self, bot_id: int) -> None:
+    def _evolve_interests(self, npc_id: int) -> None:
         """NPCの興味を成長させる"""
-        _, profile, state = self.bots[bot_id]
+        _, profile, state = self.npcs[npc_id]
         interval = self.settings.content.evolution_interval
 
         if state.total_posts % interval == 0 and state.total_posts > 0:
@@ -332,13 +332,13 @@ class NpcService:
             print(f"⚠️  Failed to load events: {e}")
             return []
 
-    def _load_rejected_posts(self, bot_id: int) -> list[dict[str, str]]:
+    def _load_rejected_posts(self, npc_id: int) -> list[dict[str, str]]:
         """過去にrejectされた投稿を読み込む（反省のため）"""
         if not self.queue_repo:
             return []
 
         try:
-            entries = self.queue_repo.get_recent_rejected(bot_id, limit=3)
+            entries = self.queue_repo.get_recent_rejected(npc_id, limit=3)
             return [
                 {"content": e.content, "reason": e.review_note or "理由不明"}
                 for e in entries
@@ -393,14 +393,14 @@ NG
             reason = "\n".join(lines[1:]).strip() if len(lines) > 1 else "NG判定"
             return False, reason
 
-    def log_review(self, bot_id: int, content: str, approved: bool, reason: str | None) -> None:
+    def log_review(self, npc_id: int, content: str, approved: bool, reason: str | None) -> None:
         """レビュー結果をログに記録"""
         if self.log_repo:
             self.log_repo.add_entry(
-                bot_id, ActivityLogger.log_review(content, approved, reason)
+                npc_id, ActivityLogger.log_review(content, approved, reason)
             )
 
     def _save_states(self) -> None:
         """全NPCの状態を保存"""
-        states = {bot_id: state for bot_id, (_, _, state) in self.bots.items()}
+        states = {npc_id: state for npc_id, (_, _, state) in self.npcs.items()}
         self.state_repo.save_all(states)
