@@ -2,7 +2,7 @@
 # 投稿のNGルールチェックを担当
 
 id: 98
-name: "レビューア"
+name: "Imposter"
 is_backend: true
 
 personality:

@@ -24,7 +24,6 @@
 - 黄金の株
 - まり子ん
 - ガリ大盛
-- ペッパーライスペッパー抜き
 - ノギムラ
 - はらたいらPayPay
 - ガリガリ君しょうゆ味
@@ -112,6 +111,8 @@
 - Kokopelli
 - senju punch
 - AKIRA2
+- La Vacca Saturno Saturnita
+- Imposter
 
 ## 職業・役割候補
 

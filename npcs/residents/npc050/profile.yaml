@@ -1,8 +1,7 @@
 # bot050の履歴書
 
 id: 50
-name: "ダイチ"
-
+name: "locks"
 personality:
   type: "真面目"
   traits: ["空間把握力", "パズル好き", "細部にこだわる"]
