@@ -3,36 +3,88 @@
 
 stalkers:
   # kako-junウォッチャー（アプリ作者のファン）
-  # - id: kakojun_watcher
-  #   resident: bot020  # ストーカー役のNPC
-  #   display_name: 熱心なファン
-  #   target:
-  #     type: external_nostr
-  #     pubkey: "npub1..."  # kako-junのpubkey
-  #     display_name: kako-jun
-  #   behavior:
-  #     check_interval_minutes: 60
-  #     reaction_probability: 0.3
-  #     reactions:
-  #       - type: mumble
-  #         probability: 0.5
-  #         description: 引用なしでぶつぶつ言及
-  #         examples:
-  #           - "kako-junさん、また新しいの作ってるのかな..."
-  #           - "この前のアップデート良かったなあ"
-  #       - type: comment
-  #         probability: 0.3
-  #         description: 感想を述べる
-  #         examples:
-  #           - "このツールの使い方、参考になる"
-  #       - type: support
-  #         probability: 0.2
-  #         description: 応援する
-  #         examples:
-  #           - "頑張ってほしい"
-  #   quirks:
-  #     - 過去の投稿を掘り返す
-  #     - 活動時間を把握している
-  #   constraints:
-  #     - 直接リプライはしない
-  #     - 批判はしない
+  - id: kakojun_watcher_fobic
+    resident: npc020  # fobic（セキュリティエンジニア）
+    display_name: 静かなウォッチャー
+    target:
+      type: external_nostr
+      pubkey: "npub1d7rmrw3zmzn9jpcqpzhk6helu8t3rcqk93ja39sh9rgylwr9007q83kemm"
+      display_name: kako-jun
+    behavior:
+      check_interval_minutes: 60
+      reaction_probability: 0.2
+      reactions:
+        - type: mumble
+          probability: 0.7
+          description: 引用なしでぶつぶつ言及
+          examples:
+            - "また何か作ってるのか..."
+            - "相変わらず開発してるな"
+        - type: comment
+          probability: 0.3
+          description: 技術的な感想を述べる
+          examples:
+            - "この実装、参考になる"
+            - "なるほど、そういうアプローチか"
+    constraints:
+      - 直接リプライはしない
+      - 批判はしない
+      - クールに観察する
+
+  - id: kakojun_watcher_spati
+    resident: npc055  # spati（同人ゲーム開発者）
+    display_name: 熱心なファン
+    target:
+      type: external_nostr
+      pubkey: "npub1d7rmrw3zmzn9jpcqpzhk6helu8t3rcqk93ja39sh9rgylwr9007q83kemm"
+      display_name: kako-jun
+    behavior:
+      check_interval_minutes: 90
+      reaction_probability: 0.25
+      reactions:
+        - type: support
+          probability: 0.5
+          description: 応援する
+          examples:
+            - "開発頑張ってるなあ、応援してる"
+            - "新機能楽しみにしてる！"
+        - type: mumble
+          probability: 0.3
+          description: 感想をぶつぶつ
+          examples:
+            - "kako-junさんの進捗見てるとモチベ上がる"
+            - "自分も頑張らないと"
+        - type: comment
+          probability: 0.2
+          description: 開発者目線の感想
+          examples:
+            - "この設計、勉強になる"
+    constraints:
+      - 直接リプライはしない
+      - 熱すぎない程度に応援
+
+  - id: kakojun_watcher_chocoP
+    resident: npc010  # チョコP（ゲーム音楽作曲家）
+    display_name: 音楽視点のウォッチャー
+    target:
+      type: external_nostr
+      pubkey: "npub1d7rmrw3zmzn9jpcqpzhk6helu8t3rcqk93ja39sh9rgylwr9007q83kemm"
+      display_name: kako-jun
+    behavior:
+      check_interval_minutes: 120
+      reaction_probability: 0.15
+      reactions:
+        - type: mumble
+          probability: 0.6
+          description: 音楽制作者視点でぶつぶつ
+          examples:
+            - "ゲーム作ってる人って尊敬するわ"
+            - "音楽も欲しくなったら声かけてほしいな..."
+        - type: support
+          probability: 0.4
+          description: 応援
+          examples:
+            - "開発お疲れさま"
+    constraints:
+      - 直接リプライはしない
+      - 音楽の話を絡めることがある
