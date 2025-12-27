@@ -38,15 +38,14 @@ traits_detail:
   activeness: 0.6
   curiosity: 0.3
   sociability: 0.5
-  sensitivity: 0.6
+  sensitivity: 0.5
   optimism: 0.6
   creativity: 0.7
   persistence: 0.4
   expressiveness: 0.8
-  expertise: 0.6
-  intelligence: 0.3
-  feedback_sensitivity: 0.4
-
+  expertise: 0.4
+  eccentricity: 0.2
+  contrarian: 0.5
 # 文体スタイル
 style: otaku
 

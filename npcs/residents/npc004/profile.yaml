@@ -18,9 +18,8 @@ traits_detail:
   persistence: 0.8
   expressiveness: 0.9
   expertise: 0.6
-  intelligence: 0.5
-  feedback_sensitivity: 0.7
-
+  eccentricity: 0.4
+  contrarian: 0.2
 interests:
   topics: ["イラスト", "キャラクターデザイン", "色彩理論"]
   keywords: ["描く", "塗り", "線画", "かわいい"]

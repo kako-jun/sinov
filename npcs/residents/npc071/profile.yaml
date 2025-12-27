@@ -38,15 +38,14 @@ traits_detail:
   activeness: 0.4
   curiosity: 0.6
   sociability: 0.3
-  sensitivity: 0.5
+  sensitivity: 0.6
   optimism: 0.7
   creativity: 0.6
   persistence: 0.7
   expressiveness: 0.5
-  expertise: 0.3
-  intelligence: 0.6
-  feedback_sensitivity: 0.6
-
+  expertise: 0.4
+  eccentricity: 0.2
+  contrarian: 0.4
 # 文体スタイル
 style: normal
 

@@ -12,15 +12,14 @@ traits_detail:
   activeness: 0.7
   curiosity: 0.9
   sociability: 0.6
-  sensitivity: 0.4
+  sensitivity: 0.5
   optimism: 0.8
   creativity: 0.6
   persistence: 0.7
   expressiveness: 0.6
   expertise: 0.7
-  intelligence: 0.7
-  feedback_sensitivity: 0.5
-
+  eccentricity: 0.8
+  contrarian: 0.2
 interests:
   topics: ["Web開発", "TypeScript", "React"]
   keywords: ["コーディング", "技術", "学習", "楽しい"]

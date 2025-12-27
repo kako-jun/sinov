@@ -44,9 +44,8 @@ traits_detail:
   persistence: 0.5
   expressiveness: 0.4
   expertise: 0.6
-  intelligence: 0.5
-  feedback_sensitivity: 0.5
-
+  eccentricity: 0.1
+  contrarian: 0.4
 # 文体スタイル
 style: normal
 
