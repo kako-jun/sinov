@@ -124,6 +124,10 @@ class NpcProfile(BaseModel):
     social: Social
     background: Background
 
+    # バックエンドNPC用フィールド
+    is_backend: bool = Field(default=False, description="裏方NPCかどうか")
+    posts: bool = Field(default=True, description="投稿するかどうか")
+
     # 拡張フィールド（オプション、後方互換性のためデフォルト値あり）
     traits_detail: PersonalityTraits | None = Field(
         default=None, description="詳細な性格パラメータ（0.0〜1.0）"

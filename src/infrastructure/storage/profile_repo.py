@@ -52,7 +52,7 @@ class ProfileRepository:
             negative=common.negative + personal.negative,
         )
 
-    def load_all(self) -> list[NpcProfile]:
+    def load_all(self, include_backend: bool = True) -> list[NpcProfile]:
         """全住人のプロフィールを読み込み"""
         profiles: list[NpcProfile] = []
 
@@ -81,6 +81,37 @@ class ProfileRepository:
                 profiles.append(profile)
             except Exception as e:
                 print(f"⚠️  Failed to load {resident_dir.name}: {e}, skipping...")
+                continue
+
+        # バックエンドNPC（記者・レビューア）も読み込み
+        if include_backend and self.backend_dir and self.backend_dir.exists():
+            backend_profiles = self._load_backend_npcs()
+            profiles.extend(backend_profiles)
+
+        return profiles
+
+    def _load_backend_npcs(self) -> list[NpcProfile]:
+        """バックエンドNPC（記者・レビューア）を読み込み"""
+        profiles: list[NpcProfile] = []
+
+        if not self.backend_dir or not self.backend_dir.exists():
+            return profiles
+
+        for backend_dir in sorted(self.backend_dir.iterdir()):
+            if not backend_dir.is_dir():
+                continue
+
+            profile_file = backend_dir / "profile.yaml"
+            if not profile_file.exists():
+                continue
+
+            try:
+                profile = self.load(profile_file)
+                # posts: true のバックエンドNPCのみ読み込み
+                if profile.posts:
+                    profiles.append(profile)
+            except Exception as e:
+                print(f"⚠️  Failed to load backend {backend_dir.name}: {e}, skipping...")
                 continue
 
         return profiles

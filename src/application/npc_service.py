@@ -2,6 +2,7 @@
 NPCサービス（アプリケーションユースケース）
 """
 
+import difflib
 import json
 import random
 from datetime import datetime
@@ -172,6 +173,15 @@ class NpcService:
                 text_processor = TextProcessor(profile.writing_style)
                 content = text_processor.process(content)
 
+            # 類似投稿チェック（セルフチェック）
+            recent_posts = memory.recent_posts if memory else state.post_history
+            if self._is_too_similar(content, recent_posts):
+                print(
+                    f"⚠️  Retry {attempt + 1}/{self.settings.content.llm_retry_count}: "
+                    "Too similar to recent posts"
+                )
+                continue
+
             # 記憶を更新
             self._update_memory_after_generate(npc_id, content, memory)
 
@@ -340,6 +350,26 @@ class NpcService:
         except Exception as e:
             print(f"⚠️  Failed to load events: {e}")
             return []
+
+    def _is_too_similar(
+        self, content: str, recent_posts: list[str], threshold: float = 0.6
+    ) -> bool:
+        """
+        生成したコンテンツが最近の投稿と類似しすぎていないかチェック
+
+        Args:
+            content: 新しく生成したコンテンツ
+            recent_posts: 最近の投稿リスト
+            threshold: 類似度の閾値（0.0-1.0、デフォルト0.6）
+
+        Returns:
+            類似しすぎている場合はTrue
+        """
+        for old_post in recent_posts[-5:]:
+            ratio = difflib.SequenceMatcher(None, content, old_post).ratio()
+            if ratio > threshold:
+                return True
+        return False
 
     def _load_rejected_posts(self, npc_id: int) -> list[dict[str, str]]:
         """過去にrejectされた投稿を読み込む（反省のため）"""

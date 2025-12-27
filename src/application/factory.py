@@ -49,7 +49,10 @@ class ServiceFactory:
     def profile_repo(self) -> ProfileRepository:
         """ProfileRepositoryを取得（遅延初期化）"""
         if self._profile_repo is None:
-            self._profile_repo = ProfileRepository(self.settings.residents_dir)
+            self._profile_repo = ProfileRepository(
+                self.settings.residents_dir,
+                backend_dir=self.settings.backend_dir,
+            )
         return self._profile_repo
 
     @property
