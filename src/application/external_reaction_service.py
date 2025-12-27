@@ -115,10 +115,14 @@ class ExternalReactionService:
 
         if reaction_key in self._reacted_events:
             return 0
-        if not self._matches_interests(post, profile):
+
+        # 興味マッチするか、低確率でランダム反応
+        matches = self._matches_interests(post, profile)
+        random_chance = random.random() < 0.05  # 5%の確率でランダム反応
+        if not matches and not random_chance:
             return 0
 
-        reaction_type = self._decide_reaction(profile, post)
+        reaction_type = self._decide_reaction(profile, post, boost=matches)
         if not reaction_type:
             return 0
 
@@ -248,6 +252,7 @@ class ExternalReactionService:
         self,
         profile: NpcProfile,
         post: dict[str, Any],
+        boost: bool = True,
     ) -> str | None:
         """反応タイプを決定"""
         # 社交性に基づく確率
@@ -257,6 +262,10 @@ class ExternalReactionService:
 
         # 基本確率（低め: 外部なので控えめ）
         base_prob = 0.1 * (0.5 + sociability)
+
+        # 興味マッチしない場合は確率を下げる
+        if not boost:
+            base_prob *= 0.3
 
         # スター確率
         if random.random() < base_prob * 2:
@@ -344,6 +353,8 @@ class ExternalReactionService:
 - 短めに（20〜60文字程度）
 - フレンドリーだが馴れ馴れしすぎない
 - 必ず日本語で書く
+- 絵文字は使わない
+- 「〜だよね？」「〜ですよね！」など不自然に前向きな表現は避ける
 
 返信:"""
 
