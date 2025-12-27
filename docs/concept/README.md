@@ -30,7 +30,7 @@
 
 ### 3. 活動時間帯の詳細設定
 
-`parameters.md` に詳細を記載:
+`parameters.md` に詳細を記載。現在は `active_hours`（時間のリスト）のみ:
 
 - `hourly_weight`: 時間帯ごとの活動確率
 - `chronotype`: 朝型/夜型/中間
@@ -45,19 +45,17 @@
 - 進捗の変化と発言への反映
 - 完成時の長期記憶への昇格
 
-### 5. 記者NPCシステム
+### 5. 追加の記者
 
-`reporters.md` に詳細を記載。専門分野ごとの裏方NPC:
+`reporters.md` に詳細を記載。
 
-| 記者 | 担当 |
+| 記者 | 状態 |
 |------|------|
-| `reporter_tech` | IT・テクノロジー |
-| `reporter_game` | ゲーム |
-| `reporter_creative` | 創作・アート |
-| `reporter_general` | 一般時事 |
-| `reporter_trend` | Xトレンド |
-
-**現状**: RSSClientは実装済みだが、記者NPCとしての運用は未実装
+| `reporter_tech` | 実装済み |
+| `reporter_game` | 実装済み |
+| `reporter_creative` | 実装済み |
+| `reporter_general` | 未実装 |
+| `reporter_trend` | 未実装（Xトレンド連携） |
 
 ### 6. Xトレンド連携
 
@@ -89,7 +87,7 @@
 | ファイル | 内容 |
 |---------|------|
 | `parameters.md` | 追加パラメータ、活動時間、制作物 |
-| `reporters.md` | 記者NPC、Xトレンド連携 |
+| `reporters.md` | 追加記者、Xトレンド連携 |
 | `architecture.md` | 分散アーキテクチャ構想 |
 | `psychology-reference.md` | 心理学概念のパラメータ化案 |
 | `character-ideas.md` | キャラクター名・職業・設定のアイデア |
@@ -105,6 +103,12 @@ feedback_sensitivity
 
 **状態パラメータ（1個）**:
 mood
+
+**活動時間**:
+active_hours（時間のリスト）
+
+**記者システム**:
+reporter_tech, reporter_game, reporter_creative（RSSClient + collect_news.py）
 
 **その他**:
 - アーキテクチャ（レイヤー構造）
