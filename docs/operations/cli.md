@@ -35,7 +35,7 @@ sinov review approve abc12345
 sinov review reject abc12345 --note "不適切な内容"
 ```
 
-### 投稿をNostrに送信する
+### 投稿をMYPACEに送信する
 
 ```bash
 sinov post
@@ -58,7 +58,7 @@ sinov tick --count 5
 
 1. NPC数人分の投稿を生成
 2. 生成した投稿をレビュー
-3. 承認された投稿をNostrに送信
+3. 承認された投稿をMYPACEに送信
 4. 他のNPCの投稿への反応を生成
 5. 外部ユーザーの投稿への反応を生成
 
@@ -74,9 +74,9 @@ sinov tick --dry-run
 ## 投稿の流れ
 
 ```
-generate → queue(pending) → review → queue(approved) → post → Nostr
+generate → queue(pending) → review → queue(approved) → post → MYPACE
 ```
 
 1. `generate`: 投稿を生成してpendingキューに入れる
 2. `review`: NGルールをチェックして承認/却下
-3. `post`: 承認された投稿をNostrに送信
+3. `post`: 承認された投稿をMYPACEに送信

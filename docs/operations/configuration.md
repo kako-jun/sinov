@@ -126,16 +126,16 @@ llm:
   host: "http://localhost:11434"
   model: "gemma2:2b"
 
-nostr:
+mypace:
   api_endpoint: "https://mypace.example.com"
   dry_run: false
 ```
 
 ## 環境変数
 
-NPCのNostr鍵は環境変数で設定:
+NPCの署名鍵は環境変数で設定:
 
 ```bash
 BOT_001_PUBKEY="64文字の公開鍵"
-BOT_001_NSEC="nsec1..."
+BOT_001_NSEC="nsec1..."  # 秘密鍵（Nostr形式）
 ```

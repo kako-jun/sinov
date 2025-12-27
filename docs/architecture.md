@@ -27,7 +27,7 @@ src/
 │
 ├── infrastructure/      # インフラ層
 │   ├── llm/             # LLM連携（Ollama）
-│   ├── nostr/           # Nostr投稿
+│   ├── nostr/           # MYPACE API連携（投稿送信）
 │   ├── storage/         # ファイルリポジトリ
 │   └── external/        # 外部API（RSS等）
 │

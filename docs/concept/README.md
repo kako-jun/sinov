@@ -75,4 +75,4 @@ mood, energy, focus, motivation, fatigue, excitement, mental_health
 - 関係性（グループ・ペア・ストーカー）
 - 文章スタイル加工
 - 投稿キュー・レビュー
-- Nostr連携
+- MYPACE API連携
