@@ -8,9 +8,28 @@ import re
 class ContentProcessor:
     """生成されたコンテンツの処理を担当"""
 
+    # LLMが生成しがちなプレースホルダーパターン
+    PLACEHOLDER_PATTERNS = [
+        r"\[リンク[:：].*?\]",
+        r"\[ハッシュタグ[:：].*?\]",
+        r"\[URL[:：].*?\]",
+        r"\[画像[:：].*?\]",
+        r"\[添付[:：].*?\]",
+        r"\[参考[:：].*?\]",
+        r"\[出典[:：].*?\]",
+        r"\[注[:：].*?\]",
+        r"\d+[/／]\d+投稿目",  # 1/3投稿目
+        r"\d+投稿目[:：]?",  # 2投稿目
+        r"^投稿[:：]",  # 行頭の「投稿:」
+    ]
+
     @staticmethod
     def clean(content: str, use_markdown: bool = False, use_code_blocks: bool = False) -> str:
         """生成されたコンテンツをクリーンアップ"""
+        # プレースホルダーを除去
+        for pattern in ContentProcessor.PLACEHOLDER_PATTERNS:
+            content = re.sub(pattern, "", content, flags=re.MULTILINE)
+
         # Markdown非対応の場合のみ記号を削除
         if not use_markdown:
             content = content.replace("###", "").strip()
