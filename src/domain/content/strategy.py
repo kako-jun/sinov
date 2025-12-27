@@ -8,7 +8,7 @@ import random
 
 from ...config import ContentSettings
 from ..memory import NpcMemory
-from ..models import NpcProfile, NpcState, Prompts
+from ..models import HabitType, NpcProfile, NpcState, Prompts, StyleType
 from ..queue import ConversationContext, ReplyTarget
 from .content_processor import ContentProcessor
 from .prompt_builder import PromptBuilder
@@ -70,6 +70,11 @@ class ContentStrategy:
         else:
             length_hint = "- 1文か2文の短い文"
 
+        # 絵文字制限（おじさん構文とemoji_heavy以外は控えめに）
+        emoji_rule = "- 絵文字は基本的に使わない（使っても1つまで）"
+        if profile.style == StyleType.OJISAN or HabitType.EMOJI_HEAVY in (profile.habits or []):
+            emoji_rule = ""
+
         return f"""以下の条件でSNS投稿を1つ書け:
 
 テーマ: {topic}{context}
@@ -81,6 +86,9 @@ class ContentStrategy:
 【条件】
 - 必ず日本語で書け（中国語は絶対に使うな）
 {length_hint}
+{emoji_rule}
+- 「〜だよね？」「〜ですよね！」「ワクワク」など、やらせっぽい前向きな表現は避ける
+- 自然な独り言のように書く
 {instructions}
 
 投稿:"""
@@ -199,6 +207,8 @@ class ContentStrategy:
 - 前の投稿と関連した続きを書く
 - {idx}投稿目らしい展開にする
 - 「N/N投稿目」「N投稿目」などの番号を本文に書くな
+- 絵文字は基本的に使わない（使っても1つまで）
+- 「〜だよね？」「ワクワク」など不自然に前向きな表現は避ける
 {prompt_instructions}
 
 {idx}投稿目:"""
@@ -296,7 +306,9 @@ class ContentStrategy:
 【返信のルール】
 - 短めに（20〜80文字程度）
 - 会話の文脈に沿った返信をする
-- 必ず日本語で書く{closing_hint}{negative_instructions}{writing_style_instructions}
+- 必ず日本語で書く
+- 絵文字は基本的に使わない（使っても1つまで）
+- 「〜だよね？」「〜ですよね！」など不自然に前向きな表現は避ける{closing_hint}{negative_instructions}{writing_style_instructions}
 
 返信:"""
 
@@ -339,7 +351,9 @@ class ContentStrategy:
 - 直接話しかけない（「〜さん、」で始めない）
 - 「〜してるな」「〜だなあ」のような独り言
 - 20〜60文字程度
-- 必ず日本語で書く{negative_instructions}{writing_style_instructions}
+- 必ず日本語で書く
+- 絵文字は使わない
+- 不自然に前向きな表現は避ける{negative_instructions}{writing_style_instructions}
 
 独り言:"""
 
