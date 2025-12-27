@@ -7,84 +7,76 @@
 
 ### 1. 追加の性格パラメータ（3個）
 
-`parameters.md` に記載。現在の11個に加えて提案されているもの:
+`parameters.md` に詳細を記載。
 
-| パラメータ | 説明 | 影響 |
-|-----------|------|------|
-| `event_enthusiasm` | イベント熱狂度 | 季節イベントへの反応確率 |
-| `contrarian` | 逆張り度 | 流行への逆張り確率、皮肉っぽい発言 |
-| `eccentricity` | 不思議ちゃん度 | 発言の飛躍度、独自の世界観 |
+| パラメータ | 説明 |
+|-----------|------|
+| `event_enthusiasm` | イベント熱狂度 |
+| `contrarian` | 逆張り度 |
+| `eccentricity` | 不思議ちゃん度 |
 
 ### 2. 追加の状態パラメータ（6個）
 
-`parameters.md` に記載。現在の `mood` に加えて:
+`parameters.md` に詳細を記載。現在の `mood` に追加:
 
-| パラメータ | 説明 | 変化要因 |
-|-----------|------|----------|
-| `energy` | エネルギー | 時間帯、活動量 |
-| `focus` | 集中度 | 連作中は高い |
-| `motivation` | モチベ | 反応、達成感 |
-| `fatigue` | 疲労度 | 投稿数、深夜作業 |
-| `excitement` | 興奮度 | イベント、良い反応 |
-| `mental_health` | メンタル | 反応なし、否定、孤立 |
+| パラメータ | 説明 |
+|-----------|------|
+| `energy` | エネルギー |
+| `focus` | 集中度 |
+| `motivation` | モチベ |
+| `fatigue` | 疲労度 |
+| `excitement` | 興奮度 |
+| `mental_health` | メンタル |
 
-### 3. 記者NPCシステム
+### 3. 活動時間帯の詳細設定
 
-`reporters.md` に記載。専門分野ごとの裏方NPC:
-
-| 記者 | 担当 | 主なソース |
-|------|------|-----------|
-| `reporter_tech` | IT・テクノロジー | はてブ、ITmedia |
-| `reporter_game` | ゲーム | はてブ、電ファミ |
-| `reporter_creative` | 創作・アート | はてブ |
-| `reporter_general` | 一般時事 | はてブ総合 |
-| `reporter_trend` | Xトレンド | X（Twitter） |
-
-**現状**: RSSClientは実装済みだが、記者NPCとしての運用は未実装
-
-### 4. Xトレンド連携
-
-`reporters.md` に記載:
-
-- ホワイトリスト方式（季節イベント、ゲームリリース等のみ許可）
-- ブラックリスト（政治、事件、炎上等を除外）
-- LLMによる最終チェック
-
-### 5. 活動時間帯の詳細設定
-
-`parameters.md` に記載:
+`parameters.md` に詳細を記載:
 
 - `hourly_weight`: 時間帯ごとの活動確率
-- `chronotype`: 朝型(lark)/夜型(owl)/中間
+- `chronotype`: 朝型/夜型/中間
 - `rhythm_stability`: 生活リズムの安定度
-- `daily_schedule`: 時間帯ごとの活動（食事、作業、休憩等）
+- `daily_schedule`: 時間帯ごとの活動
 
-### 6. 制作物システム
+### 4. 制作物システム
 
-`parameters.md` に記載:
-
-```yaml
-creative_works:
-  current:
-    - name: "星降る夜に"
-      type: illustration_series
-      progress: 0.6
-      current_episode: 第3話
-```
+`parameters.md` に詳細を記載:
 
 - 進行中のプロジェクト管理
 - 進捗の変化と発言への反映
 - 完成時の長期記憶への昇格
 
+### 5. 記者NPCシステム
+
+`reporters.md` に詳細を記載。専門分野ごとの裏方NPC:
+
+| 記者 | 担当 |
+|------|------|
+| `reporter_tech` | IT・テクノロジー |
+| `reporter_game` | ゲーム |
+| `reporter_creative` | 創作・アート |
+| `reporter_general` | 一般時事 |
+| `reporter_trend` | Xトレンド |
+
+**現状**: RSSClientは実装済みだが、記者NPCとしての運用は未実装
+
+### 6. Xトレンド連携
+
+`reporters.md` に詳細を記載:
+
+- ホワイトリスト方式
+- ブラックリスト
+- LLMによる最終チェック
+
 ### 7. 追加の性格パラメータ候補
 
-`psychology-reference.md` に記載:
+`psychology-reference.md` に詳細を記載:
 
 - `agreeableness`: 協調性（ビッグファイブから）
+- その他の心理学概念のパラメータ化案
 
 ### 8. 分散アーキテクチャ
 
-`architecture.md` に記載の「天から見下ろさない」設計:
+`architecture.md` に詳細を記載。「天から見下ろさない」設計:
 
 - 各NPCが自分のファイルだけを見て判断
 - 中央コントローラーなし
@@ -96,11 +88,11 @@ creative_works:
 
 | ファイル | 内容 |
 |---------|------|
-| `parameters.md` | 性格・状態パラメータ、活動時間、制作物 |
+| `parameters.md` | 追加パラメータ、活動時間、制作物 |
 | `reporters.md` | 記者NPC、Xトレンド連携 |
 | `architecture.md` | 分散アーキテクチャ構想 |
-| `psychology-reference.md` | ビッグファイブ、協調性パラメータ |
-| `character-ideas.md` | キャラクター名・職業・設定のアイデアメモ |
+| `psychology-reference.md` | 心理学概念のパラメータ化案 |
+| `character-ideas.md` | キャラクター名・職業・設定のアイデア |
 
 ## 実装済み（参考）
 
@@ -115,6 +107,7 @@ feedback_sensitivity
 mood
 
 **その他**:
+- アーキテクチャ（レイヤー構造）
 - 記憶システム（短期・長期・連作）
 - 関係性（グループ・ペア・ストーカー）
 - 文章スタイル加工

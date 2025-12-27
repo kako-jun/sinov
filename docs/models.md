@@ -105,55 +105,7 @@ NPCの状態。`npcs/npc{ID}/state.json` に保存。
 
 NPCの記憶。`npcs/npc{ID}/memory.json` に保存。
 
-```json
-{
-  "npc_id": 1,
-  "long_term_core": {
-    "occupation": "ゲーム開発者",
-    "experience": "5年"
-  },
-  "long_term_acquired": [
-    {
-      "content": "Rustでゲームエンジン作れた",
-      "acquired_at": "2025-01-01T12:00:00",
-      "importance": 0.9,
-      "tags": ["Rust", "ゲームエンジン", "達成"]
-    }
-  ],
-  "short_term": [
-    {
-      "content": "新しいクレートを試してる",
-      "strength": 0.8,
-      "created_at": "2025-01-01T10:00:00",
-      "source": "post"
-    }
-  ],
-  "series": {
-    "active": true,
-    "theme": "Rustゲーム開発日記",
-    "current_index": 2,
-    "total_planned": 4,
-    "posts": ["1日目", "2日目"]
-  },
-  "recent_posts": ["投稿1", "投稿2"],
-  "last_updated": "2025-01-01T12:00:00"
-}
-```
-
-### 記憶の種類
-
-| 種類 | 説明 | 永続性 |
-|------|------|--------|
-| long_term_core | プロフィールから抽出した基本情報 | 不変 |
-| long_term_acquired | 獲得した記憶 | 永続 |
-| short_term | 一時的な関心事 | 減衰する |
-
-### 記憶の流れ
-
-1. 投稿生成 → 短期記憶に追加 (strength=1.0)
-2. リアクション受信 → strength強化 (+0.3)
-3. 時間経過 → strength減衰 (-0.1/tick)
-4. strength ≥ 0.95 → 長期記憶に昇格
+詳細は [memory.md](memory.md) を参照。
 
 ## QueueEntry
 
