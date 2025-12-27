@@ -38,6 +38,13 @@ agreeableness, locus_of_control, self_efficacy
 **状態パラメータ（7個）**:
 mood, energy, focus, motivation, fatigue, excitement, mental_health
 
+**状態パラメータの更新ロジック**:
+- 反応受信時: motivation↑, excitement↑, mental_health↑
+- 投稿時: energy↓, fatigue↑
+- 時間経過: energy（昼間↑/深夜↓）, fatigue↓, excitement↓
+- 無視時: motivation↓, mental_health↓
+- 連作: focus（開始時↑/終了時↓）
+
 **活動時間**:
 - active_hours（時間のリスト）
 - chronotype（朝型/夜型/中間）
@@ -50,6 +57,10 @@ mood, energy, focus, motivation, fatigue, excitement, mental_health
 - CreativeWorks（作品一覧）
 - WORK_TYPES（職業別作品タイプ）
 - PROGRESS_MESSAGES（進捗別発言テンプレート）
+- CreativeWorksManager（進捗更新ロジック）
+  - 投稿時30%確率で進捗更新
+  - 通常+2%, 集中時+5%, ブレイクスルー+10%
+  - 完成時は長期記憶に昇格
 
 **記者システム**:
 - reporter_tech: IT・テクノロジー（RSS）

@@ -1,5 +1,5 @@
 """
-フィードバック処理（記憶・気分・ログ更新）
+フィードバック処理（記憶・気分・状態パラメータ・ログ更新）
 """
 
 from datetime import datetime
@@ -22,6 +22,28 @@ if TYPE_CHECKING:
 INTERACTION_BOOST: dict[str, float] = {
     "reply": 0.3,  # リプライは強い反応
     "reaction": 0.15,  # リアクションは軽い反応
+}
+
+# 状態パラメータの変動量
+STATE_CHANGES: dict[str, dict[str, float]] = {
+    "reply": {
+        "motivation": 0.1,
+        "excitement": 0.15,
+        "mental_health": 0.05,
+    },
+    "reaction": {
+        "motivation": 0.05,
+        "excitement": 0.08,
+        "mental_health": 0.02,
+    },
+    "post": {
+        "energy": -0.05,
+        "fatigue": 0.03,
+    },
+    "ignored": {
+        "motivation": -0.05,
+        "mental_health": -0.02,
+    },
 }
 
 
@@ -138,6 +160,234 @@ class FeedbackHandler:
             return 0.0
         _, _, state = self.npcs[npc_id]
         return state.mood
+
+    def update_state_on_feedback(
+        self,
+        npc_id: int,
+        interaction_type: str,
+    ) -> list[ParameterChange]:
+        """
+        リプライ/リアクションをもらった時に状態パラメータを更新
+
+        Args:
+            npc_id: 元投稿者のNPC ID
+            interaction_type: "reply" or "reaction"
+
+        Returns:
+            変更されたパラメータのリスト
+        """
+        if npc_id not in self.npcs:
+            return []
+
+        changes = STATE_CHANGES.get(interaction_type, {})
+        if not changes:
+            return []
+
+        _, profile, state = self.npcs[npc_id]
+        sensitivity = self._get_feedback_sensitivity(npc_id)
+        result = []
+
+        for param, delta in changes.items():
+            old_value = getattr(state, param, None)
+            if old_value is None:
+                continue
+
+            # feedback_sensitivityで変動量を調整
+            adjusted_delta = delta * (0.5 + sensitivity)
+            new_value = max(0.0, min(1.0, old_value + adjusted_delta))
+
+            if new_value != old_value:
+                setattr(state, param, new_value)
+                result.append(
+                    ParameterChange(
+                        name=param,
+                        old_value=old_value,
+                        new_value=new_value,
+                        reason=f"{interaction_type}を受けた",
+                    )
+                )
+
+        return result
+
+    def update_state_on_post(self, npc_id: int, hour: int) -> list[ParameterChange]:
+        """
+        投稿時に状態パラメータを更新
+
+        Args:
+            npc_id: 投稿したNPC ID
+            hour: 現在の時刻（0-23）
+
+        Returns:
+            変更されたパラメータのリスト
+        """
+        if npc_id not in self.npcs:
+            return []
+
+        _, profile, state = self.npcs[npc_id]
+        result = []
+        changes = STATE_CHANGES.get("post", {})
+
+        for param, delta in changes.items():
+            old_value = getattr(state, param, None)
+            if old_value is None:
+                continue
+
+            # 深夜（0-5時）は疲労が増えやすい
+            if param == "fatigue" and (hour < 5 or hour >= 23):
+                delta *= 1.5
+
+            new_value = max(0.0, min(1.0, old_value + delta))
+            if new_value != old_value:
+                setattr(state, param, new_value)
+                result.append(
+                    ParameterChange(
+                        name=param,
+                        old_value=old_value,
+                        new_value=new_value,
+                        reason="投稿した",
+                    )
+                )
+
+        return result
+
+    def update_state_on_time(self, npc_id: int, hour: int) -> list[ParameterChange]:
+        """
+        時間経過による状態パラメータの更新
+
+        Args:
+            npc_id: NPC ID
+            hour: 現在の時刻（0-23）
+
+        Returns:
+            変更されたパラメータのリスト
+        """
+        if npc_id not in self.npcs:
+            return []
+
+        _, profile, state = self.npcs[npc_id]
+        result = []
+
+        # エネルギー: 昼間（6-18時）は回復、深夜は低下
+        old_energy = state.energy
+        if 6 <= hour < 18:
+            state.energy = min(1.0, state.energy + 0.02)
+        elif hour < 5 or hour >= 23:
+            state.energy = max(0.0, state.energy - 0.02)
+
+        if state.energy != old_energy:
+            result.append(
+                ParameterChange(
+                    name="energy",
+                    old_value=old_energy,
+                    new_value=state.energy,
+                    reason="時間経過",
+                )
+            )
+
+        # 疲労: 時間経過で回復（休息）
+        old_fatigue = state.fatigue
+        state.fatigue = max(0.0, state.fatigue - 0.01)
+        if state.fatigue != old_fatigue:
+            result.append(
+                ParameterChange(
+                    name="fatigue",
+                    old_value=old_fatigue,
+                    new_value=state.fatigue,
+                    reason="時間経過",
+                )
+            )
+
+        # 興奮度: 時間経過で減衰
+        old_excitement = state.excitement
+        state.excitement = max(0.0, state.excitement - 0.02)
+        if state.excitement != old_excitement:
+            result.append(
+                ParameterChange(
+                    name="excitement",
+                    old_value=old_excitement,
+                    new_value=state.excitement,
+                    reason="時間経過",
+                )
+            )
+
+        return result
+
+    def update_state_on_ignored(self, npc_id: int) -> list[ParameterChange]:
+        """
+        投稿が無視された時に状態パラメータを更新
+
+        Args:
+            npc_id: 無視されたNPC ID
+
+        Returns:
+            変更されたパラメータのリスト
+        """
+        if npc_id not in self.npcs:
+            return []
+
+        _, profile, state = self.npcs[npc_id]
+        sensitivity = self._get_feedback_sensitivity(npc_id)
+        result = []
+        changes = STATE_CHANGES.get("ignored", {})
+
+        for param, delta in changes.items():
+            old_value = getattr(state, param, None)
+            if old_value is None:
+                continue
+
+            # 反応への感度が高いほど影響が大きい
+            adjusted_delta = delta * (0.5 + sensitivity)
+            new_value = max(0.0, min(1.0, old_value + adjusted_delta))
+
+            if new_value != old_value:
+                setattr(state, param, new_value)
+                result.append(
+                    ParameterChange(
+                        name=param,
+                        old_value=old_value,
+                        new_value=new_value,
+                        reason="投稿が無視された",
+                    )
+                )
+
+        return result
+
+    def update_focus_on_series(self, npc_id: int, in_series: bool) -> list[ParameterChange]:
+        """
+        連作状態に応じて集中度を更新
+
+        Args:
+            npc_id: NPC ID
+            in_series: 連作中かどうか
+
+        Returns:
+            変更されたパラメータのリスト
+        """
+        if npc_id not in self.npcs:
+            return []
+
+        _, _, state = self.npcs[npc_id]
+        result = []
+        old_focus = state.focus
+
+        if in_series:
+            # 連作中は集中度が上がる
+            state.focus = min(1.0, state.focus + 0.1)
+        else:
+            # 連作終了で集中度が下がる
+            state.focus = max(0.0, state.focus - 0.15)
+
+        if state.focus != old_focus:
+            result.append(
+                ParameterChange(
+                    name="focus",
+                    old_value=old_focus,
+                    new_value=state.focus,
+                    reason="連作中" if in_series else "連作終了",
+                )
+            )
+
+        return result
 
     def log_reply_interaction(
         self,

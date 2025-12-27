@@ -12,6 +12,9 @@ from .activity_log import (
 # --- コンテンツ生成 ---
 from .content import ContentStrategy
 
+# --- 制作物 ---
+from .creative_works import CreativeWorksManager
+
 # --- イベント ---
 from .events import EventCalendar, SeasonalEvent
 
@@ -25,6 +28,8 @@ from .memory import AcquiredMemory, NpcMemory, SeriesState, ShortTermMemory
 from .models import (
     Background,
     Behavior,
+    CreativeWork,
+    CreativeWorks,
     HabitType,
     Interests,
     LineBreakStyle,
@@ -114,6 +119,10 @@ __all__ = [
     # スケジューラ・コンテンツ
     "Scheduler",
     "ContentStrategy",
+    # 制作物
+    "CreativeWork",
+    "CreativeWorks",
+    "CreativeWorksManager",
     # イベント
     "SeasonalEvent",
     "EventCalendar",
