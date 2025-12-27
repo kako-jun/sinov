@@ -21,9 +21,16 @@ class NostrPublisher:
         keys: Keys,
         content: str,
         npc_name: str,
+        aurora_tag: list[str] | None = None,
     ) -> str | None:
         """
         投稿を実行
+
+        Args:
+            keys: 署名用の鍵
+            content: 投稿内容
+            npc_name: NPC名（ログ用）
+            aurora_tag: ウィンドウカラー用タグ ["aurora", topLeft, topRight, bottomLeft, bottomRight]
 
         Returns:
             イベントID（成功時）、None（dry_run時）
@@ -34,15 +41,23 @@ class NostrPublisher:
         if self.dry_run:
             print(f"[DRY RUN] {npc_name}:")
             print(f"  {content}")
+            if aurora_tag:
+                print(f"  aurora: {aurora_tag[1:]}")
             print()
             return None
 
         # タグを作成
-        mypace_tag = Tag.hashtag("mypace")
-        client_tag = Tag.parse(["client", "sinov"])
+        tags = [
+            Tag.hashtag("mypace"),
+            Tag.parse(["client", "sinov"]),
+        ]
+
+        # auroraタグを追加
+        if aurora_tag:
+            tags.append(Tag.parse(aurora_tag))
 
         # イベント作成・署名
-        event = EventBuilder.text_note(content).tags([mypace_tag, client_tag]).sign_with_keys(keys)
+        event = EventBuilder.text_note(content).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 
@@ -53,6 +68,7 @@ class NostrPublisher:
         npc_name: str,
         reply_to_event_id: str,
         reply_to_pubkey: str | None = None,
+        aurora_tag: list[str] | None = None,
     ) -> str | None:
         """
         リプライを投稿
@@ -63,6 +79,7 @@ class NostrPublisher:
             npc_name: NPC名（ログ用）
             reply_to_event_id: リプライ先のイベントID
             reply_to_pubkey: リプライ先の著者pubkey（任意）
+            aurora_tag: ウィンドウカラー用タグ
 
         Returns:
             イベントID（成功時）、None（dry_run時）
@@ -88,6 +105,10 @@ class NostrPublisher:
         # リプライ先の著者pubkeyがあれば追加
         if reply_to_pubkey:
             tags.append(Tag.parse(["p", reply_to_pubkey]))
+
+        # auroraタグを追加
+        if aurora_tag:
+            tags.append(Tag.parse(aurora_tag))
 
         # イベント作成・署名
         event = EventBuilder.text_note(content).tags(tags).sign_with_keys(keys)

@@ -186,9 +186,16 @@ async def post_approved(service: NpcService, factory: "ServiceFactory") -> int:
             npc_key = NpcKey.from_env(entry.npc_id)
             keys = Keys.parse(npc_key.nsec)
 
+            # ウィンドウカラーのauroraタグを取得
+            aurora_tag = None
+            if profile.window_color:
+                aurora_tag = profile.window_color.to_aurora_tag()
+
             # 投稿タイプに応じて投稿
             if entry.post_type == PostType.NORMAL:
-                event_id = await publisher.publish(keys, entry.content, entry.npc_name)
+                event_id = await publisher.publish(
+                    keys, entry.content, entry.npc_name, aurora_tag=aurora_tag
+                )
             elif entry.post_type == PostType.REACTION and entry.reply_to:
                 event_id = await publisher.publish_reaction(
                     keys=keys,
@@ -204,9 +211,12 @@ async def post_approved(service: NpcService, factory: "ServiceFactory") -> int:
                     npc_name=entry.npc_name,
                     reply_to_event_id=entry.reply_to.event_id,
                     reply_to_pubkey=entry.reply_to.pubkey or "",
+                    aurora_tag=aurora_tag,
                 )
             else:
-                event_id = await publisher.publish(keys, entry.content, entry.npc_name)
+                event_id = await publisher.publish(
+                    keys, entry.content, entry.npc_name, aurora_tag=aurora_tag
+                )
 
             if event_id:
                 factory.queue_repo.mark_posted(entry.id, event_id)

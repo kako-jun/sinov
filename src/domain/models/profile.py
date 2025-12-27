@@ -113,6 +113,24 @@ class Background(BaseModel):
     favorite_quotes: list[str] | None = Field(default=None, description="好きな言葉")
 
 
+class WindowColor(BaseModel):
+    """ウィンドウカラー（MYPACE独自機能）
+
+    4つの角の色を指定。Noneの場合はテーマデフォルト。
+    """
+
+    top_left: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
+    top_right: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
+    bottom_left: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
+    bottom_right: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
+
+    def to_aurora_tag(self) -> list[str] | None:
+        """auroraタグ形式に変換（全て指定されている場合のみ）"""
+        if all([self.top_left, self.top_right, self.bottom_left, self.bottom_right]):
+            return ["aurora", self.top_left, self.top_right, self.bottom_left, self.bottom_right]
+        return None
+
+
 class NpcProfile(BaseModel):
     """NPCプロフィール（YAML形式の履歴書）"""
 
@@ -143,4 +161,7 @@ class NpcProfile(BaseModel):
     prompts: Prompts | None = Field(default=None, description="個人プロンプト設定")
     creative_works: CreativeWorks | None = Field(
         default=None, description="制作物（進行中・完成・予定）"
+    )
+    window_color: WindowColor | None = Field(
+        default=None, description="ウィンドウカラー（MYPACE独自機能）"
     )

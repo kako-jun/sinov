@@ -25,6 +25,7 @@ from .profile import (
     NpcProfile,
     Personality,
     Social,
+    WindowColor,
 )
 from .state import (
     NpcKey,
@@ -56,6 +57,7 @@ __all__ = [
     "Social",
     "Background",
     "NpcProfile",
+    "WindowColor",
     # state
     "NpcKey",
     "NpcState",
