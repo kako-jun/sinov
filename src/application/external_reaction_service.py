@@ -334,9 +334,8 @@ class ExternalReactionService:
             pubkey=pubkey,  # 外部ユーザーのpubkey
         )
 
-        # 絵文字を選択
-        emojis = ["👍", "❤️", "+", "⭐", "🙌"]
-        emoji = random.choice(emojis)
+        # MYPACEのステラは「+」のみ
+        emoji = "+"
 
         return QueueEntry(
             npc_id=npc_id,
