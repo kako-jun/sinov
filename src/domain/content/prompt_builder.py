@@ -2,7 +2,7 @@
 プロンプト構築ロジック
 """
 
-from ..models import HabitType, Interests, Prompts, StyleType, WritingStyle
+from ..models import DialectType, HabitType, Interests, Prompts, StyleType, WritingStyle
 from ..text_processor import get_writing_style_prompt_instructions
 
 # 文体スタイルの説明
@@ -14,6 +14,17 @@ STYLE_DESCRIPTIONS: dict[StyleType, str] = {
     StyleType.OTAKU: "オタク構文で書く（「尊い」「神」「推せる」など）",
     StyleType.POLITE: "丁寧語で書く（「〜ですね」「〜ました」など）",
     StyleType.TERSE: "短く簡潔に書く（1文で、余計な言葉を省く）",
+}
+
+# 方言の説明（さりげなく語尾に出る程度）
+DIALECT_DESCRIPTIONS: dict[DialectType, str] = {
+    DialectType.NONE: "",
+    DialectType.KANSAI: "関西弁を少し混ぜる（「〜やん」「〜やで」「〜やねん」「なんでやねん」など語尾に）",
+    DialectType.HAKATA: "博多弁を少し混ぜる（「〜ばい」「〜たい」「〜っちゃ」「よかよか」など語尾に）",
+    DialectType.NAGOYA: "名古屋弁を少し混ぜる（「〜だがや」「〜だがね」「〜だて」など語尾に）",
+    DialectType.TOHOKU: "東北弁を少し混ぜる（「〜だべ」「〜っぺ」「んだ」など語尾に）",
+    DialectType.HIROSHIMA: "広島弁を少し混ぜる（「〜じゃけん」「〜じゃ」「〜けぇ」など語尾に）",
+    DialectType.KYOTO: "京都弁を少し混ぜる（「〜どす」「〜はる」「〜やし」など語尾に、はんなり）",
 }
 
 # 習慣の説明
@@ -36,6 +47,12 @@ class PromptBuilder:
     def get_style_instruction(style: StyleType) -> str:
         """文体スタイルの指示を取得"""
         return STYLE_DESCRIPTIONS.get(style, STYLE_DESCRIPTIONS[StyleType.NORMAL])
+
+    @staticmethod
+    def get_dialect_instruction(dialect: DialectType) -> str:
+        """方言の指示を取得"""
+        desc = DIALECT_DESCRIPTIONS.get(dialect, "")
+        return desc if desc else ""
 
     @staticmethod
     def get_habit_instructions(habits: list[HabitType]) -> str:

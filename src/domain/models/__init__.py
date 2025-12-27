@@ -11,6 +11,7 @@ from .creative_work import (
     CreativeWorks,
 )
 from .enums import (
+    DialectType,
     HabitType,
     LineBreakStyle,
     PunctuationStyle,
@@ -39,6 +40,7 @@ from .writing import (
 __all__ = [
     # enums
     "StyleType",
+    "DialectType",
     "HabitType",
     "LineBreakStyle",
     "PunctuationStyle",

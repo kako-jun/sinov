@@ -48,6 +48,8 @@ class ContentStrategy:
 
         # スタイル指示を収集
         style = self.prompt_builder.get_style_instruction(profile.style)
+        dialect = self.prompt_builder.get_dialect_instruction(profile.dialect)
+        dialect_section = f"\n- {dialect}" if dialect else ""
         prefs = self.prompt_builder.get_preferences_context(profile.interests)
         prefs_section = f"\n\n【この人の好み】\n{prefs}" if prefs else ""
 
@@ -72,7 +74,7 @@ class ContentStrategy:
 文字数: 最大{profile.behavior.post_length_max}文字
 
 【文体】
-{style}{prefs_section}
+{style}{dialect_section}{prefs_section}
 
 【条件】
 - 必ず日本語で書け（中国語は絶対に使うな）
@@ -161,6 +163,8 @@ class ContentStrategy:
 
         # 文体スタイル
         style_instruction = self.prompt_builder.get_style_instruction(profile.style)
+        dialect = self.prompt_builder.get_dialect_instruction(profile.dialect)
+        dialect_section = f"\n- {dialect}" if dialect else ""
 
         # プロンプト（positive/negative）
         prompt_instructions = self.prompt_builder.get_prompt_instructions(merged_prompts)
@@ -176,7 +180,7 @@ class ContentStrategy:
 文字数: 最大{profile.behavior.post_length_max}文字
 
 【文体】
-{style_instruction}
+{style_instruction}{dialect_section}
 
 条件:
 - 必ず日本語で書け
@@ -250,6 +254,8 @@ class ContentStrategy:
 
         # 文体スタイル
         style_instruction = self.prompt_builder.get_style_instruction(profile.style)
+        dialect = self.prompt_builder.get_dialect_instruction(profile.dialect)
+        dialect_section = f"\n- {dialect}" if dialect else ""
 
         # 文章スタイルの癖
         writing_style_instructions = self.prompt_builder.get_writing_style_instructions(
@@ -273,7 +279,7 @@ class ContentStrategy:
 関係: {relationship_type}
 
 【文体】
-{style_instruction}
+{style_instruction}{dialect_section}
 
 【返信のルール】
 - 短めに（20〜80文字程度）
@@ -294,6 +300,8 @@ class ContentStrategy:
         """ぶつぶつ（引用なしの言及）用のプロンプトを生成"""
         # 文体スタイル
         style_instruction = self.prompt_builder.get_style_instruction(profile.style)
+        dialect = self.prompt_builder.get_dialect_instruction(profile.dialect)
+        dialect_section = f"\n- {dialect}" if dialect else ""
 
         # 文章スタイルの癖
         writing_style_instructions = self.prompt_builder.get_writing_style_instructions(
@@ -313,7 +321,7 @@ class ContentStrategy:
 {target_name}さん: {target_content}
 
 【文体】
-{style_instruction}
+{style_instruction}{dialect_section}
 
 【ルール】
 - 直接話しかけない（「〜さん、」で始めない）

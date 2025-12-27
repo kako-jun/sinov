@@ -48,6 +48,7 @@ traits_detail:
   contrarian: 0.2
 # 文体スタイル
 style: normal
+dialect: tohoku
 
 # 特殊な習慣
 habits: []

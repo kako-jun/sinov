@@ -30,6 +30,7 @@ from .models import (
     Behavior,
     CreativeWork,
     CreativeWorks,
+    DialectType,
     HabitType,
     Interests,
     LineBreakStyle,
@@ -105,6 +106,7 @@ __all__ = [
     "TickState",
     # モデル - Enum
     "StyleType",
+    "DialectType",
     "HabitType",
     "LineBreakStyle",
     "PunctuationStyle",

@@ -5,7 +5,7 @@ NPCプロフィール関連のモデル
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 from .creative_work import CreativeWorks
-from .enums import HabitType, StyleType
+from .enums import DialectType, HabitType, StyleType
 from .writing import PersonalityTraits, Prompts, WritingStyle
 
 
@@ -133,6 +133,9 @@ class NpcProfile(BaseModel):
         default=None, description="詳細な性格パラメータ（0.0〜1.0）"
     )
     style: StyleType = Field(default=StyleType.NORMAL, description="文体スタイル")
+    dialect: DialectType = Field(
+        default=DialectType.NONE, description="方言（さりげなく語尾に出る程度）"
+    )
     habits: list[HabitType] = Field(default_factory=list, description="特殊な習慣")
     writing_style: WritingStyle | None = Field(
         default=None, description="文章スタイル設定（誤字率、改行、句読点など）"

@@ -17,6 +17,18 @@ class StyleType(str, Enum):
     TERSE = "terse"  # 短く簡潔
 
 
+class DialectType(str, Enum):
+    """方言（さりげなく語尾に出る程度）"""
+
+    NONE = "none"  # 標準語
+    KANSAI = "kansai"  # 関西弁: 〜やん、〜やで、〜やねん
+    HAKATA = "hakata"  # 博多弁: 〜ばい、〜たい、〜っちゃ
+    NAGOYA = "nagoya"  # 名古屋弁: 〜だがや、〜だがね
+    TOHOKU = "tohoku"  # 東北弁: 〜だべ、〜っぺ
+    HIROSHIMA = "hiroshima"  # 広島弁: 〜じゃけん、〜じゃ
+    KYOTO = "kyoto"  # 京都弁: 〜どす、〜はる、〜やし
+
+
 class HabitType(str, Enum):
     """特殊な習慣"""
 
