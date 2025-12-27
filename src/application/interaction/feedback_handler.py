@@ -401,6 +401,7 @@ class FeedbackHandler:
         new_affinity: float,
         old_mood: float,
         new_mood: float,
+        state_changes: list[ParameterChange] | None = None,
     ) -> None:
         """リプライ相互作用のログを記録"""
         if not self.log_repo:
@@ -417,7 +418,7 @@ class FeedbackHandler:
         )
 
         # 受信側のログ（リプライ受信 + パラメータ変化）
-        changes = []
+        changes: list[ParameterChange] = []
         if old_affinity != new_affinity:
             changes.append(
                 ParameterChange(
@@ -437,6 +438,9 @@ class FeedbackHandler:
                     reason="リプライを受けた",
                 )
             )
+        # 状態パラメータの変化を追加
+        if state_changes:
+            changes.extend(state_changes)
         self.log_repo.add_entry(
             receiver_npc_id,
             ActivityLogger.log_reply_received(
@@ -458,6 +462,7 @@ class FeedbackHandler:
         new_affinity: float,
         old_mood: float,
         new_mood: float,
+        state_changes: list[ParameterChange] | None = None,
     ) -> None:
         """リアクション相互作用のログを記録"""
         if not self.log_repo:
@@ -470,7 +475,7 @@ class FeedbackHandler:
         )
 
         # 受信側のログ
-        changes = []
+        changes: list[ParameterChange] = []
         if old_affinity != new_affinity:
             changes.append(
                 ParameterChange(
@@ -490,6 +495,9 @@ class FeedbackHandler:
                     reason="リアクションを受けた",
                 )
             )
+        # 状態パラメータの変化を追加
+        if state_changes:
+            changes.extend(state_changes)
         self.log_repo.add_entry(
             receiver_npc_id,
             ActivityLogger.log_reaction_received(sender_name, emoji, original_content, changes),

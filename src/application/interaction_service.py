@@ -212,6 +212,9 @@ class InteractionService:
         self.feedback_handler.update_mood_on_feedback(entry.npc_id, "reply")
         new_mood = self.feedback_handler.get_mood(entry.npc_id)
 
+        # 状態パラメータを更新（元投稿者）
+        state_changes = self.feedback_handler.update_state_on_feedback(entry.npc_id, "reply")
+
         print(f"      💬 {profile.name} → {entry.npc_name}")
 
         # ログ記録
@@ -226,6 +229,7 @@ class InteractionService:
             new_affinity=new_affinity,
             old_mood=old_mood,
             new_mood=new_mood,
+            state_changes=state_changes,
         )
 
         return 1
@@ -266,6 +270,9 @@ class InteractionService:
         self.feedback_handler.update_mood_on_feedback(entry.npc_id, "reaction")
         new_mood = self.feedback_handler.get_mood(entry.npc_id)
 
+        # 状態パラメータを更新（元投稿者）
+        state_changes = self.feedback_handler.update_state_on_feedback(entry.npc_id, "reaction")
+
         print(f"      ❤️  {profile.name} → {entry.npc_name}")
 
         # ログ記録
@@ -279,6 +286,7 @@ class InteractionService:
             new_affinity=new_affinity,
             old_mood=old_mood,
             new_mood=new_mood,
+            state_changes=state_changes,
         )
 
         return 1
