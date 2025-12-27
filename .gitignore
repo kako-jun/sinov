@@ -10,6 +10,8 @@ bots/states.json
 npcs/residents/*/memory.json
 npcs/residents/*/state.json
 npcs/residents/*/logs/
+npcs/backend/*/memory.json
+npcs/backend/*/logs/
 npcs/data/queue/
 npcs/data/bulletin_board/
 npcs/data/tick_state.json

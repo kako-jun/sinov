@@ -277,8 +277,8 @@ class ExternalReactionService:
         if profile.traits_detail:
             sociability = profile.traits_detail.sociability
 
-        # 基本確率（低め: 外部なので控えめ）
-        base_prob = 0.1 * (0.5 + sociability)
+        # 基本確率（低め: 外部なので控えめ、17分間隔のtick対応で1/3に）
+        base_prob = 0.033 * (0.5 + sociability)
 
         # 興味マッチしない場合は確率を下げる
         if not boost:
