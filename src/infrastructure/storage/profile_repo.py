@@ -78,6 +78,9 @@ class ProfileRepository:
 
             try:
                 profile = self.load(profile_file)
+                # posts: false なら読み込まない（段階的リリース用）
+                if not profile.posts:
+                    continue
                 profiles.append(profile)
             except Exception as e:
                 print(f"⚠️  Failed to load {resident_dir.name}: {e}, skipping...")
