@@ -1,22 +1,26 @@
 """
-tick コマンド - 1周の処理: 住人N人を順番に処理 + 相互作用 + 最後にレビューア
+tick コマンド - 活動時刻のNPCを処理 + 相互作用 + レビュー + 投稿
 """
 
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from ...application import NpcService, ServiceFactory
-from ...domain import QueueEntry, QueueStatus
+from ...domain import QueueEntry, QueueStatus, Scheduler
 from ..base import init_env, init_llm
 
 if TYPE_CHECKING:
     from ...infrastructure import QueueRepository
 
+# キューの上限（これ以上たまったら生成しない）
+MAX_APPROVED_QUEUE = 20
+
 
 async def cmd_tick(args: argparse.Namespace) -> None:
-    """1周の処理: 住人N人を順番に処理 + 相互作用 + 最後にレビューア"""
+    """活動時刻のNPCを処理 + 相互作用 + レビュー + 投稿"""
     settings = init_env()
     llm = init_llm(settings)
     if not llm:
@@ -26,32 +30,33 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     factory = ServiceFactory(settings, llm)
     service = await factory.create_npc_service()
 
-    # 対象NPCの一覧を取得（IDでソート）
-    all_npc_ids = sorted(service.npcs.keys())
-    total_bots = len(all_npc_ids)
-
-    if total_bots == 0:
-        print("No NPCs found")
+    # approved キューの件数をチェック
+    approved_count = len(factory.queue_repo.get_all(QueueStatus.APPROVED))
+    if approved_count >= MAX_APPROVED_QUEUE:
+        print(
+            f"⏸️  Approved queue full ({approved_count}/{MAX_APPROVED_QUEUE}), skipping generation"
+        )
+        # 投稿処理だけ行う
+        posted = await post_approved(service, factory)
+        print(f"✅ Posted {posted} entries")
         return
 
-    # レビューア枠を除いた住人数を計算
-    # count=10 なら 住人9人 + レビューア1回
-    resident_count = max(1, args.count - 1)
+    # 「今が活動時間」かつ「投稿すべき時刻」のNPCを選ぶ
+    target_ids = []
+    current_hour = datetime.now().hour
+    for npc_id, (_, profile, state) in service.npcs.items():
+        if Scheduler.should_post_now(profile, state):
+            target_ids.append(npc_id)
 
-    # ラウンドロビンで対象範囲を取得
-    start_idx, end_idx = factory.tick_state_repo.advance(resident_count, total_bots)
-
-    # 対象の住人を取得
-    target_ids = all_npc_ids[start_idx:end_idx]
-
-    # 端で折り返す場合
-    if end_idx <= start_idx and start_idx < total_bots:
-        target_ids = all_npc_ids[start_idx:]
+    # 上限を設定（一度に処理しすぎない）
+    max_generate = getattr(args, "count", 10)
+    if len(target_ids) > max_generate:
+        target_ids = target_ids[:max_generate]
 
     tick_state = factory.tick_state_repo.load()
-    print(f"\n🔄 Tick #{tick_state.total_ticks}")
-    idx_range = f"{start_idx}-{end_idx - 1}"
-    print(f"   Processing {len(target_ids)} residents (index {idx_range} of {total_bots})")
+    factory.tick_state_repo.advance(len(target_ids), len(service.npcs))  # カウンタ更新
+    print(f"\n🔄 Tick #{tick_state.total_ticks + 1}")
+    print(f"   {len(target_ids)} NPCs ready to post (hour: {current_hour}:00)")
 
     # --- 住人の処理（順番に） ---
     generated = 0
@@ -100,9 +105,13 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     print("\n   📋 Running reviewer...")
     reviewed = await run_reviewer(service, factory.queue_repo)
 
+    # --- 投稿処理（approved キューから投稿）---
+    print("\n   📤 Posting approved entries...")
+    posted = await post_approved(service, factory)
+
     print(
         f"\n✅ Tick complete: {generated} generated, {total_interactions} interactions, "
-        f"{external_reactions} external, {reviewed} reviewed"
+        f"{external_reactions} external, {reviewed} reviewed, {posted} posted"
     )
 
 
@@ -142,3 +151,72 @@ async def run_reviewer(service: NpcService, queue_repo: QueueRepository) -> int:
             print(f"      ⚠️  {entry.npc_name}: {e}")
 
     return reviewed
+
+
+async def post_approved(service: NpcService, factory: "ServiceFactory") -> int:
+    """approved キューから投稿（活動時刻のNPCのみ）"""
+    from dotenv import load_dotenv
+    from nostr_sdk import Keys
+
+    from ...domain import NpcKey, PostType, Scheduler
+    from ...infrastructure import NostrPublisher
+
+    load_dotenv(".env.keys")
+
+    approved_entries = factory.queue_repo.get_all(QueueStatus.APPROVED)
+    if not approved_entries:
+        print("      No approved entries")
+        return 0
+
+    publisher = NostrPublisher(factory.settings.api_endpoint, dry_run=False)
+    posted = 0
+
+    for entry in approved_entries:
+        # このNPCが今投稿すべき時刻かチェック
+        if entry.npc_id not in service.npcs:
+            continue
+
+        _, profile, state = service.npcs[entry.npc_id]
+
+        # 活動時間かつ投稿時刻をチェック
+        if not Scheduler.should_post_now(profile, state):
+            continue
+
+        try:
+            npc_key = NpcKey.from_env(entry.npc_id)
+            keys = Keys.parse(npc_key.nsec)
+
+            # 投稿タイプに応じて投稿
+            if entry.post_type == PostType.NORMAL:
+                event_id = await publisher.publish(keys, entry.content, entry.npc_name)
+            elif entry.post_type == PostType.REACTION and entry.reply_to:
+                event_id = await publisher.publish_reaction(
+                    keys=keys,
+                    emoji=entry.content,
+                    npc_name=entry.npc_name,
+                    target_event_id=entry.reply_to.event_id,
+                    target_pubkey=entry.reply_to.pubkey or "",
+                )
+            elif entry.post_type == PostType.REPLY and entry.reply_to:
+                event_id = await publisher.publish_reply(
+                    keys=keys,
+                    content=entry.content,
+                    npc_name=entry.npc_name,
+                    reply_to_event_id=entry.reply_to.event_id,
+                    reply_to_pubkey=entry.reply_to.pubkey or "",
+                )
+            else:
+                event_id = await publisher.publish(keys, entry.content, entry.npc_name)
+
+            if event_id:
+                factory.queue_repo.mark_posted(entry.id, event_id)
+                # 次回投稿時刻を更新して保存
+                state.next_post_time = Scheduler.calculate_next_post_time(profile)
+                factory.state_repo.save(state)
+                print(f"      ✅ {entry.npc_name}: {entry.content[:30]}...")
+                posted += 1
+
+        except Exception as e:
+            print(f"      ❌ {entry.npc_name}: {e}")
+
+    return posted

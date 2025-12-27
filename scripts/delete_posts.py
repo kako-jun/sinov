@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 
 def load_posted_entries() -> list[dict[str, Any]]:
     """posted.jsonから投稿済みエントリーを読み込む"""
-    posted_file = Path("bots/data/queue/posted.json")
+    posted_file = Path("npcs/data/queue/posted.json")
     if not posted_file.exists():
         return []
 
@@ -38,7 +38,7 @@ def load_posted_entries() -> list[dict[str, Any]]:
 
 def save_posted_entries(entries: list[dict[str, Any]]) -> None:
     """posted.jsonを保存"""
-    posted_file = Path("bots/data/queue/posted.json")
+    posted_file = Path("npcs/data/queue/posted.json")
     with open(posted_file, "w") as f:
         json.dump(entries, f, ensure_ascii=False, indent=2, default=str)
 
