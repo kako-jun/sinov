@@ -32,6 +32,12 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  chronotype: intermediate  # lark/owl/intermediate
+  hourly_weight:            # 時間帯別活動確率（オプション）
+    10: 0.8
+    22: 1.0
+  rhythm_stability: 0.7     # 生活リズム安定度
+  daily_schedule: {}        # 時間帯別活動（オプション）
 
 social:
   friend_bot_ids: [2, 5]
@@ -57,6 +63,13 @@ traits_detail:           # 詳細な性格パラメータ (0.0-1.0)
   expertise: 0.6         # 習熟度
   intelligence: 0.7      # 知性
   feedback_sensitivity: 0.5  # 反応への感度
+  event_enthusiasm: 0.5  # イベント熱狂度
+  contrarian: 0.3        # 逆張り度
+  eccentricity: 0.2      # 不思議ちゃん度
+  # 心理学由来
+  agreeableness: 0.6     # 協調性（高:協力的、低:競争的）
+  locus_of_control: 0.7  # 統制の所在（高:内的、低:外的）
+  self_efficacy: 0.5     # 自己効力感（高:自信あり、低:不安）
 
 style: normal            # normal/ojisan/young/2ch/otaku/polite/terse
 habits: [wip_poster]     # news_summarizer/emoji_heavy/tip_sharer/wip_poster等
@@ -72,6 +85,16 @@ writing_style:
   line_break: minimal    # none/minimal/sentence/paragraph
   punctuation: full      # full/comma_only/period_only/none
   quirks: [w_heavy]      # 文章の癖
+
+creative_works:           # 制作物（オプション）
+  current:
+    - id: work001
+      name: "星降る夜に"
+      type: illustration_series
+      progress: 0.6
+      current_task: "第3話の背景"
+  completed: []
+  planned: []
 ```
 
 ## NpcState
@@ -88,7 +111,13 @@ NPCの状態。`npcs/npc{ID}/state.json` に保存。
   "last_event_id": "abc123...",
   "post_history": ["投稿1", "投稿2"],
   "discovered_topics": ["WebAssembly"],
-  "mood": 0.3
+  "mood": 0.3,
+  "energy": 0.5,
+  "focus": 0.5,
+  "motivation": 0.5,
+  "fatigue": 0.0,
+  "excitement": 0.0,
+  "mental_health": 0.7
 }
 ```
 
@@ -100,6 +129,12 @@ NPCの状態。`npcs/npc{ID}/state.json` に保存。
 | post_history | 最新20件の投稿内容 |
 | discovered_topics | 進化で獲得したトピック |
 | mood | 気分 (-1.0〜1.0) |
+| energy | エネルギー (0.0〜1.0) |
+| focus | 集中度 (0.0〜1.0) |
+| motivation | モチベーション (0.0〜1.0) |
+| fatigue | 疲労度 (0.0〜1.0) |
+| excitement | 興奮度 (0.0〜1.0) |
+| mental_health | メンタル (0.0〜1.0) |
 
 ## NpcMemory
 

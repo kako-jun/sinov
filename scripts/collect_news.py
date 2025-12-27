@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.domain.news import NewsItem, ReporterConfig
-from src.infrastructure.external import RSSClient
+from src.infrastructure.external import RSSClient, XTrendScraper
 from src.infrastructure.storage.bulletin_repo import BulletinRepository
 
 # 記者設定
@@ -86,6 +86,35 @@ REPORTERS = {
         exclude_keywords=["炎上", "批判", "訴訟", "スキャンダル", "政治", "事件"],
         anonymize=True,
     ),
+    "reporter_general": ReporterConfig(
+        id="reporter_general",
+        specialty="一般時事（IT・創作系）",
+        sources=[
+            {
+                "name": "はてなブックマーク（総合）",
+                "url": "https://b.hatena.ne.jp/hotentry/all.rss",
+            },
+        ],
+        include_keywords=[
+            "テクノロジー",
+            "アプリ",
+            "サービス",
+            "創作",
+            "ツール",
+            "開発",
+        ],
+        exclude_keywords=[
+            "政治",
+            "選挙",
+            "宗教",
+            "事件",
+            "逮捕",
+            "炎上",
+            "訴訟",
+            "戦争",
+        ],
+        anonymize=True,
+    ),
 }
 
 
@@ -122,12 +151,36 @@ def collect_news_for_reporter(
     return all_items
 
 
+def collect_trends(scraper: XTrendScraper) -> list[NewsItem]:
+    """Xトレンドを収集"""
+    all_items = []
+
+    print("  Fetching X trends...")
+    trends = scraper.fetch_trends(limit=10)
+
+    for trend in trends:
+        news_item = NewsItem(
+            id=f"trend_{uuid.uuid4().hex[:8]}",
+            title=trend.name,
+            summary=f"Xでトレンド入り（{trend.category or '話題'}）",
+            category="trend",
+            source="reporter_trend",
+            original_url=None,
+            posted_at=datetime.now(),
+            expires_at=datetime.now() + timedelta(hours=12),  # トレンドは短命
+        )
+        all_items.append(news_item)
+
+    return all_items
+
+
 def main():
     """メイン処理"""
     print("📰 Collecting news from all reporters...")
 
     bulletin_repo = BulletinRepository(Path("bots/data/bulletin_board"))
     rss_client = RSSClient()
+    x_scraper = XTrendScraper()
 
     # 期限切れニュースを削除
     removed = bulletin_repo.cleanup_expired()
@@ -136,6 +189,7 @@ def main():
 
     total_added = 0
 
+    # RSS記者からニュースを収集
     for reporter_id, config in REPORTERS.items():
         print(f"\n📝 {reporter_id} ({config.specialty}):")
 
@@ -145,6 +199,15 @@ def main():
             bulletin_repo.add_news_item(item)
             print(f"    + {item.title[:50]}...")
             total_added += 1
+
+    # Xトレンドを収集
+    print("\n📝 reporter_trend (Xトレンド):")
+    trend_items = collect_trends(x_scraper)
+
+    for item in trend_items[:5]:  # 最大5件
+        bulletin_repo.add_news_item(item)
+        print(f"    + {item.title[:50]}...")
+        total_added += 1
 
     print(f"\n✅ Added {total_added} news items")
 

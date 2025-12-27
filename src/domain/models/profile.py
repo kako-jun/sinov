@@ -4,6 +4,7 @@ NPCプロフィール関連のモデル
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
+from .creative_work import CreativeWorks
 from .enums import HabitType, StyleType
 from .writing import PersonalityTraits, Prompts, WritingStyle
 
@@ -48,6 +49,25 @@ class Behavior(BaseModel):
     post_length_max: int = Field(gt=0, description="投稿の最大文字数")
     use_markdown: bool = Field(default=True, description="Markdownを使うか")
     use_code_blocks: bool = Field(default=False, description="コードブロックを使うか")
+    # 活動時間の詳細設定
+    chronotype: str = Field(
+        default="intermediate",
+        description="朝型/夜型 (lark/owl/intermediate)",
+    )
+    hourly_weight: dict[int, float] = Field(
+        default_factory=dict,
+        description="時間帯別活動確率 (0-23の時間→確率)",
+    )
+    rhythm_stability: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="生活リズム安定度",
+    )
+    daily_schedule: dict[int, dict[str, float]] = Field(
+        default_factory=dict,
+        description="時間帯別活動 (時間→{活動名: 確率})",
+    )
 
     @field_validator("active_hours")
     @classmethod
@@ -63,6 +83,15 @@ class Behavior(BaseModel):
         """最大文字数が最小文字数より大きいかチェック"""
         if "post_length_min" in info.data and v <= info.data["post_length_min"]:
             raise ValueError("post_length_max must be greater than post_length_min")
+        return v
+
+    @field_validator("chronotype")
+    @classmethod
+    def validate_chronotype(cls, v: str) -> str:
+        """chronotypeが有効な値かチェック"""
+        valid = ["lark", "owl", "intermediate"]
+        if v not in valid:
+            raise ValueError(f"chronotype must be one of {valid}")
         return v
 
 
@@ -105,3 +134,6 @@ class NpcProfile(BaseModel):
         default=None, description="文章スタイル設定（誤字率、改行、句読点など）"
     )
     prompts: Prompts | None = Field(default=None, description="個人プロンプト設定")
+    creative_works: CreativeWorks | None = Field(
+        default=None, description="制作物（進行中・完成・予定）"
+    )

@@ -53,6 +53,13 @@ class NpcState(BaseModel):
         le=1.0,
         description="現在の気分（-1.0〜1.0）",
     )
+    # 追加の状態パラメータ（0.0〜1.0）
+    energy: float = Field(default=0.5, ge=0.0, le=1.0, description="エネルギー")
+    focus: float = Field(default=0.5, ge=0.0, le=1.0, description="集中度")
+    motivation: float = Field(default=0.5, ge=0.0, le=1.0, description="モチベーション")
+    fatigue: float = Field(default=0.0, ge=0.0, le=1.0, description="疲労度")
+    excitement: float = Field(default=0.0, ge=0.0, le=1.0, description="興奮度")
+    mental_health: float = Field(default=0.7, ge=0.0, le=1.0, description="メンタル")
 
 
 class TickState(BaseModel):

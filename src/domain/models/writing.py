@@ -32,6 +32,22 @@ class PersonalityTraits(BaseModel):
     expertise: float = Field(default=0.5, ge=0.0, le=1.0, description="習熟度")
     intelligence: float = Field(default=0.5, ge=0.0, le=1.0, description="知性")
     feedback_sensitivity: float = Field(default=0.5, ge=0.0, le=1.0, description="反応への感度")
+    event_enthusiasm: float = Field(default=0.5, ge=0.0, le=1.0, description="イベント熱狂度")
+    contrarian: float = Field(default=0.5, ge=0.0, le=1.0, description="逆張り度")
+    eccentricity: float = Field(default=0.5, ge=0.0, le=1.0, description="不思議ちゃん度")
+    # 心理学由来のパラメータ
+    agreeableness: float = Field(
+        default=0.5, ge=0.0, le=1.0, description="協調性（高:協力的、低:競争的）"
+    )
+    locus_of_control: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="統制の所在（高:内的/自己責任、低:外的/環境のせい）",
+    )
+    self_efficacy: float = Field(
+        default=0.5, ge=0.0, le=1.0, description="自己効力感（高:自信あり、低:不安）"
+    )
 
 
 class Prompts(BaseModel):
