@@ -308,10 +308,13 @@ class NpcService:
 
                     title = item.get("title", "")
                     summary = item.get("summary", "")
+                    url = item.get("original_url", "")
                     if title:
                         news_text = title
                         if summary:
                             news_text += f": {summary}"
+                        if url:
+                            news_text += f" ({url})"
                         news.append(news_text)
                 return news
         except Exception as e:

@@ -51,6 +51,7 @@ style: otaku
 
 # 特殊な習慣
 habits:
+  - hashtag_user
   - tip_sharer
   - wip_poster
 

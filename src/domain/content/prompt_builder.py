@@ -25,6 +25,7 @@ HABIT_DESCRIPTIONS: dict[HabitType, str] = {
     HabitType.QUESTION_ASKER: "質問形式や「〜ってどうなんだろう」が多い",
     HabitType.SELF_DEPRECATING: "自虐的・謙遜した言い方をする",
     HabitType.ENTHUSIASTIC: "テンション高めで熱量のある書き方",
+    HabitType.HASHTAG_USER: "時々ハッシュタグを付ける（#Python #開発 など）",
 }
 
 

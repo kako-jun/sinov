@@ -27,6 +27,7 @@ class HabitType(str, Enum):
     QUESTION_ASKER = "question_asker"  # 質問形式が多い
     SELF_DEPRECATING = "self_deprecating"  # 自虐的
     ENTHUSIASTIC = "enthusiastic"  # テンション高め
+    HASHTAG_USER = "hashtag_user"  # 時々ハッシュタグを付ける
 
 
 class LineBreakStyle(str, Enum):

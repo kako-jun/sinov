@@ -51,6 +51,7 @@ style: young
 
 # 特殊な習慣
 habits:
+  - hashtag_user
   - wip_poster
   - tip_sharer
 
