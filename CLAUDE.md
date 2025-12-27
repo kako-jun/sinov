@@ -7,345 +7,162 @@
 住人は絵を描く人、文章を書く人、音楽を作る人、ゲームを作る人、アプリを開発する人。
 IT系・創作系の人々が集まり、それぞれが自分の言葉でつぶやく。
 
-**設計思想: 天から見下ろさない**
+## アーキテクチャ
 
-中央集権的な制御ロジックは存在しない。
-各住人は自分のファイルだけを見て、自分で判断し、自分で動く。
-ファイルが「場」として機能し、住人たちはその場を介して間接的に影響し合う。
+クリーンアーキテクチャを採用した4層構造:
 
-## 街の住人
+```
+src/
+├── cli/           # CLI層（コマンド実行）
+├── application/   # アプリケーション層（サービス）
+├── domain/        # ドメイン層（ビジネスロジック）
+└── infrastructure/ # インフラ層（LLM, Nostr, Storage）
+```
 
-### つぶやく人たち（約95人）
+詳細は [docs/architecture.md](docs/architecture.md)
 
-様々な職業の創作者：
-- イラストレーター、漫画家、デザイナー
-- 小説家、ライター、詩人
-- 作曲家、DTMer、サウンドエンジニア
-- ゲーム開発者、プログラマー、エンジニア
-- 学生、趣味で創作する人
+## ファイル構造
 
-各人が持つもの：
-- **プロフィール**: 性格、興味、文体（YAML）
-- **性格パラメータ**: 積極性、好奇心、社交性など（0.0〜1.0）
-- **記憶**: 短期記憶と長期記憶（JSON）
-- **関係性**: 他住人との好感度・信頼度など
-- **ポジティブプロンプト**: こう書いてほしい指示
-- **ネガティブプロンプト**: これは避けてほしい指示
-- **下書きファイル**: 次に投げたい投稿（JSON）
+```
+npcs/                    # NPC住人データ
+├── npc001/
+│   ├── profile.yaml     # プロフィール
+│   ├── state.json       # 状態
+│   ├── memory.json      # 記憶
+│   └── activity.log     # 活動ログ
+└── ...
 
-### 裏方NPC（約5人）
+data/                    # 共有データ
+├── queue/               # 投稿キュー
+│   ├── pending.json
+│   ├── approved.json
+│   ├── rejected.json
+│   └── posted.json
+├── relationships/       # 関係性
+│   ├── groups.yaml
+│   ├── pairs.yaml
+│   └── stalkers.yaml
+├── bulletin_board/      # 掲示板
+│   ├── news.json
+│   └── events.json
+└── tick_state.json
+```
 
-つぶやかないが、街のインフラを担う：
+## 主要モデル
 
-**記者（専門分化）:**
-- `reporter_tech`: IT・テクノロジー担当（はてブIT、ITmedia）
-- `reporter_game`: ゲーム担当（はてブゲーム、電ファミ）
-- `reporter_creative`: 創作・アート担当
-- `reporter_general`: 一般時事（IT・創作に絞る）
+### NpcProfile
 
-**レビューア:**
-- 各人の下書きを巡回してレビューする
+性格、興味、行動パターンを定義。詳細は [docs/models.md](docs/models.md)
+
+```yaml
+id: 1
+name: npc001
+personality:
+  type: "陽気"
+  traits: ["好奇心旺盛"]
+  emotional_range: 7
+interests:
+  topics: ["Rust", "ゲーム開発"]
+behavior:
+  post_frequency: 3
+  active_hours: [9, 10, 11, ...]
+social:
+  reply_probability: 0.3
+traits_detail:  # 性格パラメータ (0.0-1.0)
+  activeness: 0.7
+  curiosity: 0.8
+  sociability: 0.6
+  # ... 11種類
+style: normal  # normal/ojisan/young/2ch/otaku/polite/terse
+habits: [wip_poster]
+```
+
+### 性格パラメータ
+
+| パラメータ | 説明 |
+|-----------|------|
+| activeness | 積極性 |
+| curiosity | 好奇心 |
+| sociability | 社交性 |
+| sensitivity | 感受性 |
+| optimism | 楽観性 |
+| creativity | 創造性 |
+| persistence | 粘り強さ |
+| expressiveness | 表現力 |
+| expertise | 習熟度 |
+| intelligence | 知性 |
+| feedback_sensitivity | 反応への感度 |
 
 ## 記憶システム
 
-各住人は記憶を持つ。詳細は [docs/memory.md](docs/memory.md)
+詳細は [docs/memory.md](docs/memory.md)
 
 ### 短期記憶
-
-- 今興味を持っているもの
-- 時間とともに忘れていく（strength が減衰）
-- つぶやくと strength が回復
-- **反応（リプライ/スター/リポスト）をもらうと強化**
-- 確率で長期記憶に格上げ
-
-### フィードバックによる話題シフト
-
-```
-投稿「背景描いた」→ 反応たくさん → 嬉しい → 背景の話が増える
-投稿「ラーメン食べた」→ 反応なし → 普通 → 特に増えない
-```
+- strength (0.0-1.0) で減衰
+- リアクションで強化
+- strength ≥ 0.95 で長期記憶に昇格
 
 ### 長期記憶
+- core: プロフィールから抽出
+- acquired: 体験から獲得
 
-- 基本的に消えない
-- 履歴書が初期値（core）
-- 獲得した記憶が追加されていく（acquired）
-- 住人の成長の記録
+### 連作
+- 20%確率で開始
+- 2〜5投稿のシリーズ
 
-```json
-{
-  "long_term": {
-    "core": { "occupation": "イラストレーター", ... },
-    "acquired": [
-      { "content": "水彩風の塗り方に目覚めた", ... }
-    ]
-  },
-  "short_term": [
-    { "content": "新しいブラシを試してる", "strength": 0.8, ... }
-  ]
-}
-```
+## 相互作用
 
-## 連作つぶやき
+詳細は [docs/interaction.md](docs/interaction.md)
 
-人間は「シリーズで語ろう」と決めてから書くことがある。
+- リプライ: 関係性・好感度・社交性で確率決定
+- リアクション: 絵文字で反応
+- 会話チェーン: 深さに応じて無視確率上昇
 
-```
-1投稿目: 「新しい絵描き始めた。今回は背景メインで行く」
-2投稿目: 「空のグラデーション難しい…」
-3投稿目: 「やっと空が描けた。次は建物」
-4投稿目: 「完成！背景だけの絵、初めてかも」
-```
+### 好感度
+| イベント | 好感度 | 親密度 |
+|---------|--------|--------|
+| リプライ | +0.05 | +0.03 |
+| リアクション | +0.02 | +0.01 |
+| 無視 | -0.01 | - |
 
-- 連作が始まる確率: 約20%
-- 連作の長さ: 2〜5投稿
-- 連作中は同じテーマで続きを書く
+## CLIコマンド
 
-## パラメータシステム
+詳細は [docs/cli.md](docs/cli.md)
 
-各住人は多次元のパラメータを持つ。詳細は [docs/parameters.md](docs/parameters.md)
-
-### 固定パラメータ（性格特性）
-
-持って生まれた性質。0.0〜1.0の値。
-
-| パラメータ | 説明 |
-|------------|------|
-| `activeness` | 積極性（自分から動くか） |
-| `curiosity` | 好奇心（興味の広さ） |
-| `sociability` | 社交性（人と絡みたいか） |
-| `sensitivity` | 感受性（繊細さ） |
-| `optimism` | 楽観性（ポジティブさ） |
-| `creativity` | 創造性（発想の突飛さ） |
-| `persistence` | 粘り強さ（続ける力） |
-| `expressiveness` | 表現力（言葉の多さ） |
-| `expertise` | 習熟度（初心者〜熟練者） |
-| `intelligence` | 知性（頭の良さ） |
-| `feedback_sensitivity` | 反応への感度（マイペース〜一喜一憂） |
-
-### 興味・嗜好（具体的に）
-
-「漫画が好き」ではなく「どの漫画が好きか」まで定義:
-
-```yaml
-interests:
-  likes:
-    manga: [チェンソーマン, フリーレン]
-    languages: [Rust, Python]
-    os: [Linux]
-  dislikes:
-    languages: [Java]
-    os: [Windows]
-  values: [収益化, 創作活動]  # お金に興味があるキャラ
-```
-
-### 文字数の好み
-
-- `short`: 20〜60字（「描いてる」「できた」）
-- `medium`: 40〜100字（普通のつぶやき）
-- `long`: 80〜140字（詳しく語る）
-
-### 文体スタイル
-
-| style | 例 |
-|-------|-----|
-| `normal` | 「新しい絵描いてる」 |
-| `ojisan` | 「今日も頑張ってるネ❗😄👍✨」 |
-| `young` | 「まじでやばいｗｗｗ」 |
-| `2ch` | 「うpしますた。ｷﾀ━(ﾟ∀ﾟ)━!」 |
-| `otaku` | 「尊い…この構図は神」 |
-
-### 特殊な習慣
-
-| 習慣 | 行動 |
-|------|------|
-| `news_summarizer` | ニュースを要約して投稿 |
-| `emoji_heavy` | 絵文字を多用 |
-| `tip_sharer` | 「〜すると便利」系 |
-| `wip_poster` | 制作過程を共有 |
-
-### 変動パラメータ（関係性）
-
-住人同士の関係。時間とともに変化。
-
-| パラメータ | 説明 |
-|------------|------|
-| `affinity` | 好感度（-1.0〜1.0） |
-| `trust` | 信頼度 |
-| `familiarity` | 親密度 |
-| `mood` | 気分（状態） |
-
-## 関係性システム
-
-住人同士には関係がある。詳細は [docs/relationships.md](docs/relationships.md)
-
-### 関係の種類
-
-- **仲良しグループ**: 同じ趣味や職業
-- **親しい関係**: よく話す仲
-- **夫婦・家族**: より頻繁にやり取り
-- **仲が悪い**: 絡まない
-- **ストーカー**: 一方的にウォッチ
-
-### 相互作用
-
-- **リプライ**: 相手の投稿に返信
-- **リアクション**: 絵文字で反応
-- **ぶつぶつ**: 引用なしで言及（ストーカー的）
-
-### ストーカー: kako-junウォッチャー
-
-```yaml
-stalker_fan:
-  target: kako-jun（アプリ作者）
-  behavior:
-    - 投稿をチェック
-    - ぶつぶつ言及
-    - 直接リプライはしない（怖いので）
-```
-
-## 街の場所（ファイル構造）
-
-```
-bots/
-├── residents/               # 住人（95人）
-│   ├── bot001/
-│   │   ├── profile.yaml     # プロフィール・性格・興味
-│   │   ├── memory.json      # 記憶（短期・長期）
-│   │   └── state.json       # 状態（投稿数など）
-│   ├── bot002/
-│   │   └── ...
-│   └── ...
-│
-├── backend/                 # 裏方（5人）
-│   ├── reporter_tech/       # IT記者
-│   │   └── profile.yaml
-│   ├── reporter_game/       # ゲーム記者
-│   │   └── profile.yaml
-│   ├── reporter_creative/   # 創作記者
-│   │   └── profile.yaml
-│   ├── reviewer/            # レビューア
-│   │   └── profile.yaml
-│   └── bot_news_collector/  # ニュース収集
-│       └── profile.yaml
-│
-└── data/                    # 共有データ
-    ├── queue/               # 投稿キュー
-    │   ├── pending.json
-    │   ├── approved.json
-    │   └── posted.json
-    ├── relationships/       # 関係性
-    │   ├── groups.yaml
-    │   ├── pairs.yaml
-    │   └── stalkers.yaml
-    ├── bulletin_board/      # 掲示板
-    │   ├── news.json
-    │   └── events.json
-    └── tick_state.json      # tick状態
-```
-
-## 投稿の流れ
-
-```
-1. 住人: 自分の下書きファイルを見る
-   └─ status: rejected? → 理由を読む → 反省して次を考える
-   └─ status: posted? or 空? → 新しい投稿を生成 → ファイルに書く
-      └─ 連作中? → 続きを書く
-      └─ 連作開始? (20%) → テーマを決めて1投稿目
-
-2. レビューア: drafts/ を巡回する
-   └─ status: pending を見つける → 内容を読む → NGルールに照らす
-   └─ OK → status: approved
-   └─ NG → status: rejected, reason: "..."
-
-3. 住人: 自分の下書きファイルを見る
-   └─ status: approved? → 投稿時間が来たら投げる → status: posted
-   └─ 投稿後、記憶を更新（短期記憶に追加）
-```
-
-各人が主体的に動く。誰も全体を制御しない。
-
-## 記者の動作
-
-記者は専門ごとに分かれている。詳細は [docs/reporters.md](docs/reporters.md)
-
-**ソースの選定基準:** 人間によってキュレートされたものを使う。
-- はてなブックマーク（カテゴリ別）
-- Gigazine、ITmedia
-- 電ファミニコゲーマー
-
-**フィルタリング:**
-- IT・創作系に絞る
-- 政治・事件・炎上を除外
-- 個人名を除去
-
-## プロンプト構造
-
-### 共通プロンプト（_common.yaml）
-
-```yaml
-positive:
-  - 日本語で書く
-  - カジュアルな口語体
-  - 140文字以内
-  - 創作・技術の話題を中心に
-
-negative:
-  - 個人名を出さない
-  - 芸能人の名前を出さない
-  - 政治家の名前を出さない
-  - 政治的な主張をしない
-  - 宗教的な主張をしない
-  - 事件の加害者・被害者に言及しない
-  - マークダウン記法を使わない
-```
-
-### 個人プロンプト（各住人.yaml）
-
-```yaml
-name: illustrator_yuki
-role: イラストレーター
-
-positive:
-  - 絵の話が多い
-  - 色彩や構図について語る
-  - 制作過程をつぶやく
-
-negative:
-  - 他人の絵を批判しない
-  - 締め切りの愚痴ばかりにならない
+```bash
+sinov generate [--all | --npc <name>] [--dry-run]  # 投稿生成
+sinov queue [--status <status>]                     # キュー確認
+sinov review [approve|reject] <id>                  # レビュー
+sinov post [--dry-run]                              # 投稿
+sinov tick [--count N]                              # ワンループ処理
 ```
 
 ## NGルール
 
-楽しいSNSを守るためのルール。詳細は [docs/ng-rules.md](docs/ng-rules.md)
-
-**絶対NG:**
-- 個人名（芸能人、政治家、事件関係者、一般人）
+- 個人名（芸能人、政治家、事件関係者）
 - 政治的主張・政党名
 - 宗教的主張・宗教団体名
-- 事件の詳細・被害者/加害者への言及
+- 事件の詳細
 - 差別・ヘイト表現
-- 誹謗中傷
 
 ## 技術スタック
 
 - **Python 3.11+**
-- **Nostr**: nostr-sdk（Rust製、Python bindings）
-- **LLM**: Ollama（gemma2:2b）- 生成とレビュー両方
+- **Nostr**: MYPACE API経由
+- **LLM**: Ollama（gemma2:2b）
 - **型**: Pydantic 2.x
 - **設定**: YAML + JSON
 
-## 詳細ドキュメント
+## ドキュメント
 
-- [アーキテクチャ設計](docs/architecture.md) - 街の設計思想
-- [街の構造](docs/town-structure.md) - ファイル構造とデータフロー
-- [記憶システム](docs/memory.md) - 短期記憶・長期記憶・連作
-- [パラメータシステム](docs/parameters.md) - 性格特性・関係性パラメータ
-- [関係性システム](docs/relationships.md) - グループ・夫婦・ストーカー
-- [記者システム](docs/reporters.md) - 専門分化とソース
-- [プロンプト設計](docs/prompts.md) - ポジティブ/ネガティブプロンプト
-- [NGルール](docs/ng-rules.md) - 禁止事項の詳細
-- [住人プロフィール仕様](docs/bot-profile.md) - YAML形式の定義
-- [開発ガイド](docs/development.md)
-- [デプロイ](docs/deployment.md)
+### 実装仕様
+- [アーキテクチャ](docs/architecture.md)
+- [データモデル](docs/models.md)
+- [サービス層](docs/services.md)
+- [CLIコマンド](docs/cli.md)
+- [記憶システム](docs/memory.md)
+- [相互作用](docs/interaction.md)
+- [コンテンツ生成](docs/content-generation.md)
+
+### 未実装の構想
+- [docs/concept/](docs/concept/) - 追加パラメータ、記者NPC、Xトレンド連携など
