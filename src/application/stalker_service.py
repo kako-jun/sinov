@@ -71,13 +71,13 @@ class StalkerService:
             if random.random() > stalker.behavior.reaction_probability:
                 continue
 
-            # ターゲットの最新投稿を取得
-            external_post = await self._fetch_external_post(stalker)
-            if not external_post:
+            # ターゲットの最近の投稿を取得
+            external_posts = await self._fetch_external_posts(stalker)
+            if not external_posts:
                 continue
 
             # ぶつぶつ投稿を生成
-            entry = await self._generate_mumble(npc_id, profile, stalker, external_post)
+            entry = await self._generate_mumble(npc_id, profile, stalker, external_posts)
             if entry:
                 self.queue_repo.add(entry)
                 generated += 1
@@ -85,58 +85,60 @@ class StalkerService:
 
         return generated
 
-    async def _fetch_external_post(self, stalker: Stalker) -> dict[str, Any] | None:
+    async def _fetch_external_posts(self, stalker: Stalker, limit: int = 5) -> list[dict[str, Any]]:
         """
-        ターゲットアカウントの最新投稿を取得（MYPACE API経由）
+        ターゲットアカウントの最近の投稿を取得（MYPACE API経由）
         """
         if not stalker.target.pubkey:
-            return None
+            return []
 
         api_endpoint = os.getenv("API_ENDPOINT", "https://api.mypace.llll-ll.com")
         url = f"{api_endpoint}/api/user/{stalker.target.pubkey}/events"
 
         try:
             async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
-                response = await client.get(url, params={"limit": 5})
+                response = await client.get(url, params={"limit": limit})
 
                 if response.status_code != 200:
                     print(f"  ⚠️ API応答: {response.status_code}")
-                    return None
+                    return []
 
                 data = response.json()
                 events = data.get("events", [])
 
                 if not events:
-                    return None
+                    return []
 
-                # 最新の投稿を返す
-                latest = events[0]
-                return {
-                    "event_id": latest.get("id", ""),
-                    "content": latest.get("content", ""),
-                    "created_at": latest.get("created_at", 0),
-                }
+                # 最近の投稿をリストで返す
+                return [
+                    {
+                        "event_id": e.get("id", ""),
+                        "content": e.get("content", ""),
+                        "created_at": e.get("created_at", 0),
+                    }
+                    for e in events
+                ]
 
         except Exception as e:
             print(f"  ⚠️ 投稿取得エラー: {e}")
-            return None
+            return []
 
     async def _generate_mumble(
         self,
         npc_id: int,
         profile: NpcProfile,
         stalker: Stalker,
-        external_post: dict[str, Any],
+        external_posts: list[dict[str, Any]],
     ) -> QueueEntry | None:
         """ぶつぶつ投稿を生成"""
-        if not self.llm_provider:
+        if not self.llm_provider or not external_posts:
             return None
 
         # 反応タイプを選択
         reaction_type = self._select_reaction_type(stalker)
 
-        # プロンプト生成
-        prompt = self._create_mumble_prompt(profile, stalker, external_post, reaction_type)
+        # プロンプト生成（最新の投稿をメインに、他は文脈として使用）
+        prompt = self._create_mumble_prompt(profile, stalker, external_posts, reaction_type)
 
         # LLMで生成
         content = await self.llm_provider.generate(
@@ -149,12 +151,13 @@ class StalkerService:
             text_processor = TextProcessor(profile.writing_style)
             content = text_processor.process(content)
 
-        # MumbleAboutを作成
+        # MumbleAboutを作成（最新の投稿を参照）
+        latest_post = external_posts[0]
         mumble_about = MumbleAbout(
             type="external",
             pubkey=stalker.target.pubkey,
             display_name=stalker.target.display_name,
-            original_content=external_post.get("content", ""),
+            original_content=latest_post.get("content", ""),
         )
 
         return QueueEntry(
@@ -186,12 +189,23 @@ class StalkerService:
         self,
         profile: NpcProfile,
         stalker: Stalker,
-        external_post: dict[str, Any],
+        external_posts: list[dict[str, Any]],
         reaction_type: str,
     ) -> str:
         """ぶつぶつ用のプロンプトを生成"""
         target_name = stalker.target.display_name
-        original_content = external_post.get("content", "")
+
+        # 最新の投稿（メインで反応する対象）
+        latest_content = external_posts[0].get("content", "") if external_posts else ""
+
+        # 過去の投稿を文脈として含める
+        recent_context = ""
+        if len(external_posts) > 1:
+            past_posts = [p.get("content", "")[:80] for p in external_posts[1:4]]
+            if past_posts:
+                recent_context = "\n\n【最近の投稿傾向】\n" + "\n".join(
+                    f"- {p}..." for p in past_posts
+                )
 
         # 反応タイプに応じた指示
         type_instructions = {
@@ -221,8 +235,9 @@ class StalkerService:
         prompt = f"""あなたは{profile.name}です。
 {target_name}さんの投稿を見て、{instruction}投稿を書いてください。
 
-【{target_name}さんの投稿】
-{original_content}
+【{target_name}さんの最新投稿】
+{latest_content}
+{recent_context}
 
 【あなたの性格】
 {profile.personality.type}
