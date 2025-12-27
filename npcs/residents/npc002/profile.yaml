@@ -17,7 +17,7 @@ behavior:
   post_frequency_variance: 0.1
   active_hours: [8, 9, 10, 11, 14, 15, 16, 17, 18, 22, 23]
   post_length_min: 50
-  post_length_max: 280
+  post_length_max: 400
   use_markdown: true
   use_code_blocks: true
 

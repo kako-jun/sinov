@@ -60,6 +60,12 @@ class ContentStrategy:
             + self.prompt_builder.get_rejection_feedback(rejected_posts)
         )
 
+        # Markdown対応の場合は長めの文章もOK
+        if profile.behavior.use_markdown or profile.behavior.use_code_blocks:
+            length_hint = "- 複数の文や段落で書いてもよい"
+        else:
+            length_hint = "- 1文か2文の短い文"
+
         return f"""以下の条件でSNS投稿を1つ書け:
 
 テーマ: {topic}{context}
@@ -70,7 +76,7 @@ class ContentStrategy:
 
 【条件】
 - 必ず日本語で書け（中国語は絶対に使うな）
-- 1文か2文の文
+{length_hint}
 {instructions}
 
 投稿:"""
