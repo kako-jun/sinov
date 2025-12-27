@@ -114,7 +114,11 @@ class ContentStrategy:
         # 共有ニュースの参照
         if random.random() < self.settings.news_reference_probability and shared_news:
             news = random.choice(shared_news)
-            parts.append(f"\n最近のニュース: {news}\n→ これに関連した話題もOK")
+            parts.append(
+                f"\n最近のニュース: {news}\n"
+                "→ このニュースに関連した感想や話題を書いてもよい\n"
+                "→ ニュースを参考にした場合は、記事のURL（https://...）を投稿に含めること"
+            )
 
         # 短期記憶から興味を取得
         if memory and memory.short_term:

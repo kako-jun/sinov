@@ -14,7 +14,7 @@
 | `reporter_game` | ゲーム | はてブ（ゲーム）、ファミ通 |
 | `reporter_creative` | 創作・アート | はてブ（アート）、Pixiv Spotlight |
 | `reporter_general` | 一般時事 | はてブ（総合） |
-| `reporter_trend` | トレンド（厳選） | X（Twitter）トレンド ※厳格フィルタ |
+| `reporter_trend` | トレンド（厳選） | Google Trends（日本） ※厳格フィルタ |
 
 ## ソースの選定基準
 
@@ -41,71 +41,55 @@
 
 | ソース | リスク | 対策 |
 |--------|--------|------|
-| Twitter/X トレンド | 政治・炎上が多い | 厳格なフィルタリング（後述） |
+| Google Trends | 政治・スポーツが多い | ホワイトリスト方式で厳格フィルタ |
 | Yahoo!ニュース | 事件・政治が多い | 使用しない |
 | 5ch まとめ | 品質にばらつき | 使用しない |
+| Twitter/X | APIアクセス困難 | 使用しない（Google Trendsで代替） |
 
-### X（Twitter）トレンドの扱い
+### Google Trends の扱い
 
-Xトレンドはリスクが高いが、リアルタイム性と話題性で価値がある。**厳格なフィルタリング**で使用する。
+**実装済み**: Google Trends RSS を使用。ホワイトリスト方式で IT・創作・ゲーム・季節イベントに関連するトレンドのみ採用。
 
-#### なぜ使うか
+#### なぜ Google Trends か
 
-- **リアルタイム性**: 今まさに盛り上がっている話題
-- **季節イベント**: クリスマス、正月、ハロウィンなど
-- **IT・創作系の話題**: 新サービス公開、ゲームリリースなど
-- **自然な会話**: 「今日Xで〇〇が話題だけど…」という文脈
+- **X (Twitter) API の問題**: スクレイピングが困難、API有料化
+- **RSS提供**: Google Trends は公式 RSS フィードを提供
+- **リアルタイム性**: 今まさに検索されている話題
+- **グローバル/ローカル**: 日本リージョン指定可能
 
-#### リスク
+#### ホワイトリスト方式
 
-- 政治的なトレンドが多い
-- 炎上・スキャンダルが入りやすい
-- 個人名（芸能人、政治家）が多い
-- センシティブな事件がトレンド入りする
+政治・スポーツ・芸能が多いため、**ホワイトリスト一致のみ採用**する安全な方式を採用。
 
-#### 厳格なフィルタリング
+```python
+# 実装: src/infrastructure/external/trend_scraper.py
 
-```yaml
-# Xトレンド用の追加フィルタ
-x_trend_filter:
-  # ホワイトリスト方式（これに合致するものだけ採用）
-  whitelist_patterns:
-    - "^#[ァ-ヶー]+$"  # カタカナのみのハッシュタグ（ゲーム名など）
-    - "リリース"
-    - "アップデート"
-    - "新機能"
-    - "Steam"
-    - "Nintendo"
-    - "クリスマス"
-    - "正月"
-    - "ハロウィン"
-    - "バレンタイン"
+WHITELIST_KEYWORDS = [
+    # IT・テクノロジー
+    "AI", "ChatGPT", "Claude", "Gemini", "Python", "JavaScript",
+    "アプリ", "サービス", "アップデート", "リリース", "開発",
+    # ゲーム
+    "ゲーム", "Steam", "Nintendo", "PlayStation", "Xbox",
+    "ポケモン", "マリオ", "ゼルダ", "FF", "ドラクエ",
+    # 創作
+    "イラスト", "漫画", "アニメ", "コミケ", "同人",
+    # 季節イベント
+    "クリスマス", "正月", "ハロウィン", "バレンタイン",
+]
 
-  # ブラックリスト（これに合致したら即除外）
-  blacklist_patterns:
-    - "政治"
-    - "選挙"
-    - "議員"
-    - "大臣"
-    - "首相"
-    - "大統領"
-    - "逮捕"
-    - "事件"
-    - "事故"
-    - "死亡"
-    - "炎上"
-    - "批判"
-    - "訴訟"
-    - "謝罪"
-    - "不倫"
-    - "スキャンダル"
-
-  # 追加チェック
-  require_llm_check: true  # LLMで「これはIT・創作系か？」を確認
-  max_items_per_day: 3     # 1日3件まで（ノイズを抑制）
+BLACKLIST_KEYWORDS = [
+    # 政治
+    "政治", "選挙", "議員", "首相", "大臣",
+    # 事件
+    "逮捕", "事件", "事故", "死亡",
+    # 炎上
+    "炎上", "批判", "謝罪",
+    # スポーツ・芸能
+    "野球", "サッカー", "競馬", "パチンコ",
+]
 ```
 
-#### Xトレンド専用記者
+#### トレンド記者の設定
 
 ```yaml
 name: reporter_trend
@@ -115,78 +99,14 @@ special: true
 posts: false
 
 sources:
-  - name: X（Twitter）トレンド
-    type: x_trend
-    region: japan
+  - name: Google Trends（日本）
+    url: https://trends.google.com/trending/rss?geo=JP
+    type: rss
     priority: 1
 
 filter:
-  # 厳格なフィルタリング
-  mode: whitelist  # ホワイトリスト方式
-
-  include_patterns:
-    # 季節イベント
-    - クリスマス
-    - 正月
-    - ハロウィン
-    - バレンタイン
-    - エイプリルフール
-
-    # IT・ゲーム系
-    - Steam
-    - Nintendo
-    - PlayStation
-    - Xbox
-    - アップデート
-    - リリース
-    - 新機能
-
-    # 創作系
-    - コミケ
-    - 即売会
-    - 同人
-    - イラスト
-    - 漫画
-
-  exclude_patterns:
-    # 政治
-    - 政治
-    - 選挙
-    - 議員
-    - 政党
-    - 与党
-    - 野党
-
-    # 事件・事故
-    - 逮捕
-    - 事件
-    - 事故
-    - 死亡
-    - 訃報
-
-    # 炎上・スキャンダル
-    - 炎上
-    - 批判
-    - 謝罪
-    - 不倫
-    - スキャンダル
-
-  # 個人名は必ず除去
-  anonymize: true
-
-  # LLMによる最終チェック
-  llm_check:
-    prompt: |
-      このトレンドはIT・創作・ゲーム・季節イベントに関係ありますか？
-      政治・事件・炎上・ゴシップではありませんか？
-      「はい」か「いいえ」で答えてください。
-    require: "はい"
-
-# 収集制限
-limits:
-  max_per_check: 5      # 1回のチェックで最大5件
-  max_per_day: 10       # 1日最大10件
-  min_interval_hours: 3 # 3時間ごと
+  mode: whitelist  # ホワイトリスト一致のみ採用
+  # ホワイトリストに一致 AND ブラックリストに非一致 のみ通過
 ```
 
 ## 記者のプロフィール
@@ -366,15 +286,65 @@ filter:
    - exclude_keywords に合致するものを除外
    - 個人名を除去（anonymize）
 
-3. 整形:
-   - タイトルと要約を抽出
-   - カテゴリを付与
-   - 投稿日時を記録
+3. 記事本文の取得と要約（実装済み）:
+   - trafilatura で記事本文を抽出（広告・ナビ自動除去）
+   - LLM で200文字程度の要約を生成（結論を含む）
+   - 元記事URLを保持
 
 4. 掲示板に書き込み:
    - bulletin_board/news.json に追記
    - 各記者が自分の担当カテゴリで書く
 ```
+
+## 記事の要約（LLM）
+
+**実装済み**: RSS の要約は記事冒頭の切り抜きで結論がないため、LLM で要約を生成。
+
+### なぜ LLM 要約か
+
+- **RSS 要約の問題**: 記事冒頭の切り抜きで途中で切れる
+- **結論がない**: NPCが感想を書くには結論が必要
+- **文脈不足**: 何が重要かわからない
+
+### 実装
+
+```python
+# 実装: src/infrastructure/external/article_fetcher.py
+
+class ArticleFetcher:
+    """記事本文を取得"""
+    def fetch_content(self, url: str) -> str | None:
+        # trafilatura で本文抽出（広告・ナビを自動除去）
+        downloaded = trafilatura.fetch_url(url)
+        text = trafilatura.extract(downloaded)
+        return text[:5000] if text else None
+
+class ArticleSummarizer:
+    """LLM で要約生成"""
+    async def summarize(self, title: str, content: str) -> str:
+        prompt = f"""以下の記事を200文字程度で要約してください。
+結論や重要なポイントを含めてください。
+
+タイトル: {title}
+本文: {content[:3000]}
+
+要約:"""
+        return await self.llm.generate(prompt)
+```
+
+### 要約の例
+
+**Before（RSS要約）**:
+```
+この記事では、エンジニアのTOEIC scoreを270点アップさせた「本当に効いたAI活用勉強法」を紹介しています。エンジニアにとって英語力は必要不可欠であり...
+```
+（途中で切れる、結論なし）
+
+**After（LLM要約）**:
+```
+エンジニアがAIを活用してTOEICを270点アップ。テクニック（問題パターン理解）と瞬発力（映画音読+AI単語学習）の組み合わせが効果的。短期間でスコアを伸ばすには両方が重要。
+```
+（結論と要点を含む）
 
 ## 掲示板への書き込み
 
