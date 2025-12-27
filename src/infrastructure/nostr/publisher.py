@@ -63,7 +63,10 @@ class NostrPublisher:
             preview = content[:280]
             folded = content[280:]
             tags.append(Tag.parse(["teaser", folded]))
-            final_content = f"{preview}\n\n...READ MORE"
+            # NPCのプロフィールページへのリンク
+            pubkey = keys.public_key().to_hex()
+            profile_url = f"https://mypace.llll-ll.com/user/{pubkey}"
+            final_content = f"{preview}\n\n...[READ MORE]({profile_url})"
 
         # イベント作成・署名
         event = EventBuilder.text_note(final_content).tags(tags).sign_with_keys(keys)
@@ -126,7 +129,10 @@ class NostrPublisher:
             preview = content[:280]
             folded = content[280:]
             tags.append(Tag.parse(["teaser", folded]))
-            final_content = f"{preview}\n\n...READ MORE"
+            # NPCのプロフィールページへのリンク
+            pubkey = keys.public_key().to_hex()
+            profile_url = f"https://mypace.llll-ll.com/user/{pubkey}"
+            final_content = f"{preview}\n\n...[READ MORE]({profile_url})"
 
         # イベント作成・署名
         event = EventBuilder.text_note(final_content).tags(tags).sign_with_keys(keys)
