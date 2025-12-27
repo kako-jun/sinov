@@ -372,7 +372,8 @@ def get_all_npc_dirs() -> list[Path]:
     if backend_dir.exists():
         dirs.extend(sorted(backend_dir.iterdir()))
 
-    return [d for d in dirs if d.is_dir() and d.name.startswith("npc")]
+    # npcで始まるもの + バックエンド（reporter, reviewer）
+    return [d for d in dirs if d.is_dir()]
 
 
 def load_profile(profile_path: Path) -> dict | None:
@@ -451,17 +452,20 @@ def main():
 
     for npc_dir in npc_dirs:
         npc_name = npc_dir.name
-        npc_id = int(npc_name.replace("npc", ""))
         profile_path = npc_dir / "profile.yaml"
 
-        # バックエンドは除外
-        if "backend" in str(npc_dir):
-            print(f"  ⏭️  {npc_name}: skipped (backend)")
-            skipped += 1
-            continue
+        # バックエンドも処理する（reporter系はwarm、reviewerはgray）
+        is_backend = "backend" in str(npc_dir)
 
-        # 色なし対象
-        if npc_id in no_color_ids:
+        # NPC IDを取得（バックエンドは名前からハッシュ）
+        if npc_name.startswith("npc"):
+            npc_id = int(npc_name.replace("npc", ""))
+        else:
+            # バックエンドは名前からユニークなIDを生成
+            npc_id = hash(npc_name) % 10000 + 1000
+
+        # 色なし対象（バックエンドは除外しない）
+        if npc_id in no_color_ids and not is_backend:
             # 既存のwindow_colorを削除
             update_profile_yaml(profile_path, None)
             print(f"  ⏭️  {npc_name}: skipped (no color)")
@@ -480,6 +484,13 @@ def main():
             country = flag_countries[country_idx]
             color = FLAG_PALETTES[country]
             category = f"flag:{country}"
+        elif is_backend:
+            # バックエンドNPCの色設定
+            if "reviewer" in npc_name:
+                category = "gray"
+            else:
+                category = "warm"  # reporter系は暖色
+            color = get_unique_palette(category, npc_id + 1000)  # IDオフセットでユニーク化
         else:
             # カテゴリ判定してユニークパレット取得
             category = get_npc_category(profile)
