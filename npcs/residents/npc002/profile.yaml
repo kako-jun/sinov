@@ -22,8 +22,8 @@ interests:
   - Go
   - C++
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.1
+  post_frequency: 0.4
+  post_frequency_variance: 0.7
   active_hours:
   - 8
   - 9
@@ -40,6 +40,9 @@ behavior:
   post_length_max: 400
   use_markdown: true
   use_code_blocks: true
+  active_days:
+  - 3
+  - 6
 social:
   friend_bot_ids:
   - 1
@@ -88,3 +91,4 @@ writing_style:
 window_color:
   bottom_left: '#4A6171'
   bottom_right: '#4A6171'
+posts: true

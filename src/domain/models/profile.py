@@ -42,9 +42,13 @@ class Interests(BaseModel):
 class Behavior(BaseModel):
     """行動パターン"""
 
-    post_frequency: int = Field(gt=0, le=100, description="1日あたりの投稿回数")
+    post_frequency: float = Field(gt=0, le=100, description="1日あたりの投稿回数（0.5=2日に1回）")
     post_frequency_variance: float = Field(ge=0.0, le=1.0, description="投稿頻度のばらつき")
     active_hours: list[int] = Field(min_length=1, description="活動時間帯")
+    active_days: list[int] = Field(
+        default_factory=lambda: [0, 1, 2, 3, 4, 5, 6],
+        description="活動曜日 (0=月曜, 6=日曜)",
+    )
     post_length_min: int = Field(gt=0, description="投稿の最小文字数")
     post_length_max: int = Field(gt=0, description="投稿の最大文字数")
     use_markdown: bool = Field(default=True, description="Markdownを使うか")

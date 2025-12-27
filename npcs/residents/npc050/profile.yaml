@@ -20,8 +20,8 @@ interests:
   code_languages:
   - Blueprint
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.3
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -39,6 +39,8 @@ behavior:
   post_length_max: 160
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 4
 social:
   friend_bot_ids:
   - 5
@@ -82,3 +84,4 @@ writing_style:
 window_color:
   bottom_left: '#19B41B'
   bottom_right: '#19B41B'
+posts: false

@@ -31,8 +31,8 @@ interests:
   - かわいい
   code_languages: []
 behavior:
-  post_frequency: 6
-  post_frequency_variance: 0.4
+  post_frequency: 0.4
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -50,6 +50,9 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 5
+  - 6
 social:
   friend_bot_ids:
   - 5
@@ -89,3 +92,4 @@ writing_style:
   punctuation: comma_only
   quirks:
   - exclamation_heavy
+posts: true

@@ -186,11 +186,37 @@
       "start_month": 12,
       "start_day": 26,
       "end_month": 12,
-      "end_day": 31,
-      "topics": ["年末", "大掃除", "忘年会", "紅白", "年越し"],
+      "end_day": 30,
+      "topics": ["年末", "大掃除", "忘年会", "仕事納め"],
       "keywords": ["年末", "大掃除", "忘年会", "良いお年を"],
       "greetings": ["良いお年を"],
       "probability": 0.5
+    },
+    {
+      "id": "new_years_eve",
+      "name": "大晦日",
+      "start_month": 12,
+      "start_day": 31,
+      "end_month": 12,
+      "end_day": 31,
+      "topics": ["大晦日", "年越しそば", "カウントダウン", "年越し"],
+      "keywords": ["大晦日", "年越し", "カウントダウン"],
+      "greetings": ["良いお年を"],
+      "probability": 0.5
+    },
+    {
+      "id": "kouhaku",
+      "name": "紅白歌合戦",
+      "start_month": 12,
+      "start_day": 31,
+      "end_month": 12,
+      "end_day": 31,
+      "start_hour": 20,
+      "end_hour": 23,
+      "topics": ["紅白", "紅白歌合戦"],
+      "keywords": ["紅白", "歌合戦"],
+      "greetings": [],
+      "probability": 0.4
     }
   ]
 }

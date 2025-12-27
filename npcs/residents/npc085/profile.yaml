@@ -19,8 +19,8 @@ interests:
   - ゲムマ
   code_languages: []
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.3
+  post_frequency: 0.4
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -38,6 +38,10 @@ behavior:
   post_length_max: 160
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 2
+  - 4
 social:
   friend_bot_ids:
   - 49
@@ -80,3 +84,4 @@ writing_style:
 window_color:
   top_right: '#7CDF7C'
   bottom_right: '#7CDF7C'
+posts: false

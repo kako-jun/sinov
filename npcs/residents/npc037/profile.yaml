@@ -19,8 +19,8 @@ interests:
   - 繋ぎ
   code_languages: []
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.4
+  post_frequency: 0.3
+  post_frequency_variance: 0.7
   active_hours:
   - 18
   - 19
@@ -37,6 +37,9 @@ behavior:
   post_length_max: 100
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 2
+  - 5
 social:
   friend_bot_ids:
   - 11
@@ -77,3 +80,4 @@ writing_style:
 window_color:
   top_right: '#274EC8'
   bottom_right: '#274EC8'
+posts: false

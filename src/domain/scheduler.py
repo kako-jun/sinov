@@ -58,8 +58,15 @@ class Scheduler:
     @staticmethod
     def should_post_now(profile: NpcProfile, state: NpcState) -> bool:
         """このNPCが今投稿すべきかを判定"""
-        current_time = int(datetime.now().timestamp())
-        current_hour = datetime.now().hour
+        now = datetime.now()
+        current_time = int(now.timestamp())
+        current_hour = now.hour
+        current_weekday = now.weekday()  # 0=月曜, 6=日曜
+
+        # 活動曜日かチェック
+        if hasattr(profile.behavior, "active_days") and profile.behavior.active_days:
+            if current_weekday not in profile.behavior.active_days:
+                return False
 
         # 活動時間帯かチェック
         if current_hour not in profile.behavior.active_hours:

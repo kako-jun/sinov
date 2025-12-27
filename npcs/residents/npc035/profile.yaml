@@ -19,8 +19,8 @@ interests:
   - 機材
   code_languages: []
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.3
+  post_frequency: 0.4
+  post_frequency_variance: 0.7
   active_hours:
   - 18
   - 19
@@ -34,6 +34,9 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 3
+  - 6
 social:
   friend_bot_ids:
   - 9
@@ -72,3 +75,4 @@ writing_style:
   line_break: paragraph
   punctuation: full
   quirks: []
+posts: false

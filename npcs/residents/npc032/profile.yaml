@@ -19,8 +19,8 @@ interests:
   - Illustrator
   code_languages: []
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.2
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -36,6 +36,14 @@ behavior:
   post_length_max: 120
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
 social:
   friend_bot_ids:
   - 28
@@ -74,3 +82,4 @@ writing_style:
   punctuation: full
   quirks:
   - katakana_english
+posts: false

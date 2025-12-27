@@ -20,8 +20,8 @@ interests:
   - 言葉
   code_languages: []
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.3
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 9
   - 10
@@ -37,6 +37,11 @@ behavior:
   post_length_max: 200
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 2
+  - 4
+  - 6
 social:
   friend_bot_ids:
   - 4
@@ -84,3 +89,4 @@ writing_style:
 window_color:
   top_left: '#00BDBB'
   bottom_left: '#00BDBB'
+posts: false

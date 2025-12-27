@@ -3,7 +3,7 @@ name: お肉にはケチャップ派
 role: 記者
 specialty: 創作・アート
 special: true
-posts: true
+posts: false
 personality:
   type: 情報通
   traits:

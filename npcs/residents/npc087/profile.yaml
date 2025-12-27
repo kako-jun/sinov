@@ -19,8 +19,8 @@ interests:
   - 複製
   code_languages: []
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.2
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -39,6 +39,11 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 1
+  - 2
+  - 4
+  - 5
 social:
   friend_bot_ids:
   - 18
@@ -76,3 +81,4 @@ writing_style:
   line_break: sentence
   punctuation: comma_only
   quirks: []
+posts: false

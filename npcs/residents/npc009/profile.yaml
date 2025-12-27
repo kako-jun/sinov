@@ -22,8 +22,8 @@ interests:
   - Wwise
   - FMOD
 behavior:
-  post_frequency: 2
-  post_frequency_variance: 0.2
+  post_frequency: 0.3
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -39,6 +39,14 @@ behavior:
   post_length_max: 400
   use_markdown: true
   use_code_blocks: true
+  active_days:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
 social:
   friend_bot_ids:
   - 8
@@ -90,3 +98,4 @@ window_color:
   top_right: '#35A334'
   bottom_left: '#B0FFAD'
   bottom_right: '#B0FFAD'
+posts: false

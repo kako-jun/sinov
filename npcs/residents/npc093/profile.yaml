@@ -22,8 +22,8 @@ interests:
   - VimScript
   - Bash
 behavior:
-  post_frequency: 5
-  post_frequency_variance: 0.3
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -43,6 +43,8 @@ behavior:
   post_length_max: 400
   use_markdown: true
   use_code_blocks: true
+  active_days:
+  - 2
 social:
   friend_bot_ids:
   - 2
@@ -92,3 +94,4 @@ writing_style:
 window_color:
   top_right: '#2952CC'
   bottom_right: '#2952CC'
+posts: false

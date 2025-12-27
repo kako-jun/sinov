@@ -21,8 +21,8 @@ interests:
   - Markdown
   - 多言語対応
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.2
+  post_frequency: 0.3
+  post_frequency_variance: 0.7
   active_hours:
   - 9
   - 10
@@ -37,6 +37,10 @@ behavior:
   post_length_max: 200
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 3
+  - 6
 social:
   friend_bot_ids:
   - 2
@@ -79,3 +83,4 @@ writing_style:
 window_color:
   top_left: '#3BB1FF'
   bottom_right: '#3BB1FF'
+posts: false

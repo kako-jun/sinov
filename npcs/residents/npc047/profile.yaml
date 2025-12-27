@@ -19,8 +19,8 @@ interests:
   - 歌会
   code_languages: []
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.2
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 7
   - 8
@@ -36,6 +36,10 @@ behavior:
   post_length_max: 100
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 1
+  - 3
+  - 5
 social:
   friend_bot_ids:
   - 14
@@ -78,3 +82,4 @@ window_color:
   top_right: '#213647'
   bottom_left: '#5483DA'
   bottom_right: '#213647'
+posts: false

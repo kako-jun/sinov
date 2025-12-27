@@ -19,8 +19,8 @@ interests:
   - 登録者
   code_languages: []
 behavior:
-  post_frequency: 7
-  post_frequency_variance: 0.4
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 12
   - 13
@@ -39,6 +39,9 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 1
+  - 4
 social:
   friend_bot_ids:
   - 21
@@ -80,3 +83,4 @@ writing_style:
 window_color:
   top_left: '#FF7DDB'
   bottom_left: '#FF7DDB'
+posts: false

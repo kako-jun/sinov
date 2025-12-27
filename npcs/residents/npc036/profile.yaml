@@ -19,8 +19,8 @@ interests:
   - 機材
   code_languages: []
 behavior:
-  post_frequency: 6
-  post_frequency_variance: 0.5
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 12
   - 13
@@ -39,6 +39,11 @@ behavior:
   post_length_max: 120
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 1
+  - 2
+  - 4
+  - 5
 social:
   friend_bot_ids:
   - 35
@@ -79,3 +84,4 @@ writing_style:
 window_color:
   top_left: '#1CEDEE'
   bottom_left: '#1CEDEE'
+posts: false

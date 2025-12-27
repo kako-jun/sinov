@@ -16,6 +16,8 @@ class SeasonalEvent(BaseModel):
     start_day: int = Field(ge=1, le=31, description="開始日")
     end_month: int = Field(ge=1, le=12, description="終了月")
     end_day: int = Field(ge=1, le=31, description="終了日")
+    start_hour: int | None = Field(default=None, ge=0, le=23, description="開始時刻（任意）")
+    end_hour: int | None = Field(default=None, ge=0, le=23, description="終了時刻（任意）")
     topics: list[str] = Field(default_factory=list, description="関連トピック")
     keywords: list[str] = Field(default_factory=list, description="使いやすいキーワード")
     greetings: list[str] = Field(default_factory=list, description="挨拶例")
@@ -28,24 +30,35 @@ class SeasonalEvent(BaseModel):
 
         current_month = date.month
         current_day = date.day
+        current_hour = date.hour
 
         # 年をまたぐイベント（例: 12/25〜1/3）
         if self.start_month > self.end_month:
             if current_month >= self.start_month:
-                return current_day >= self.start_day or current_month > self.start_month
+                if not (current_day >= self.start_day or current_month > self.start_month):
+                    return False
             elif current_month <= self.end_month:
-                return current_day <= self.end_day or current_month < self.end_month
-            return False
+                if not (current_day <= self.end_day or current_month < self.end_month):
+                    return False
+            else:
+                return False
+        else:
+            # 同じ年内のイベント
+            if current_month < self.start_month or current_month > self.end_month:
+                return False
 
-        # 同じ年内のイベント
-        if current_month < self.start_month or current_month > self.end_month:
-            return False
+            if current_month == self.start_month and current_day < self.start_day:
+                return False
 
-        if current_month == self.start_month and current_day < self.start_day:
-            return False
+            if current_month == self.end_month and current_day > self.end_day:
+                return False
 
-        if current_month == self.end_month and current_day > self.end_day:
-            return False
+        # 時刻チェック（同一日のイベントで時刻指定がある場合）
+        if self.start_hour is not None and self.end_hour is not None:
+            # 同日イベントの時刻制限
+            if self.start_month == self.end_month and self.start_day == self.end_day:
+                if current_hour < self.start_hour or current_hour > self.end_hour:
+                    return False
 
         return True
 

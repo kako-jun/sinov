@@ -20,8 +20,8 @@ interests:
   code_languages:
   - 多言語対応
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.3
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 9
   - 10
@@ -40,6 +40,8 @@ behavior:
   post_length_max: 160
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 2
 social:
   friend_bot_ids:
   - 2
@@ -82,3 +84,4 @@ window_color:
   top_right: '#152936'
   bottom_left: '#4876D0'
   bottom_right: '#152936'
+posts: false

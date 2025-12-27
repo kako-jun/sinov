@@ -20,8 +20,8 @@ interests:
   - ファン
   code_languages: []
 behavior:
-  post_frequency: 7
-  post_frequency_variance: 0.5
+  post_frequency: 0.4
+  post_frequency_variance: 0.7
   active_hours:
   - 12
   - 13
@@ -39,6 +39,10 @@ behavior:
   post_length_max: 100
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 2
+  - 4
 social:
   friend_bot_ids:
   - 4
@@ -84,3 +88,4 @@ writing_style:
 window_color:
   top_right: '#EDE900'
   bottom_right: '#EDE900'
+posts: false

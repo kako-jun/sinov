@@ -19,8 +19,8 @@ interests:
   - 入稿
   code_languages: []
 behavior:
-  post_frequency: 6
-  post_frequency_variance: 0.5
+  post_frequency: 0.6
+  post_frequency_variance: 0.7
   active_hours:
   - 14
   - 15
@@ -39,6 +39,8 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
 social:
   friend_bot_ids:
   - 12
@@ -88,3 +90,4 @@ window_color:
   top_right: '#60A3F1'
   bottom_left: '#60A3F1'
   bottom_right: '#60A3F1'
+posts: false

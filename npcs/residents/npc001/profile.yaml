@@ -33,8 +33,8 @@ interests:
   - TypeScript
   - JavaScript
 behavior:
-  post_frequency: 5
-  post_frequency_variance: 0.3
+  post_frequency: 0.6
+  post_frequency_variance: 0.7
   active_hours:
   - 9
   - 10
@@ -53,6 +53,14 @@ behavior:
   post_length_max: 400
   use_markdown: true
   use_code_blocks: true
+  active_days:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
 social:
   friend_bot_ids:
   - 2
@@ -93,3 +101,4 @@ window_color:
   top_right: '#72B0EF'
   bottom_left: '#1CEDEE'
   bottom_right: '#1CEDEE'
+posts: true

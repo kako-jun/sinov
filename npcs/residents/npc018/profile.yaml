@@ -21,8 +21,8 @@ interests:
   code_languages:
   - Python
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.4
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 11
   - 12
@@ -38,6 +38,9 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 1
+  - 4
 social:
   friend_bot_ids:
   - 4
@@ -78,3 +81,4 @@ writing_style:
 window_color:
   bottom_left: '#B66545'
   bottom_right: '#B66545'
+posts: true

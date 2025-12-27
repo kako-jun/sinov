@@ -19,8 +19,8 @@ interests:
   - カラーリング
   code_languages: []
 behavior:
-  post_frequency: 6
-  post_frequency_variance: 0.4
+  post_frequency: 0.6
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -39,6 +39,12 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
 social:
   friend_bot_ids:
   - 4
@@ -85,3 +91,4 @@ window_color:
   top_right: '#E74C32'
   bottom_left: '#ECBF00'
   bottom_right: '#ECBF00'
+posts: false

@@ -19,8 +19,8 @@ interests:
   - ダイス
   code_languages: []
 behavior:
-  post_frequency: 5
-  post_frequency_variance: 0.3
+  post_frequency: 0.4
+  post_frequency_variance: 0.7
   active_hours:
   - 18
   - 19
@@ -33,6 +33,14 @@ behavior:
   post_length_max: 160
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
 social:
   friend_bot_ids:
   - 42
@@ -73,3 +81,4 @@ writing_style:
 window_color:
   top_left: '#7DDE7D'
   bottom_left: '#7DDE7D'
+posts: false

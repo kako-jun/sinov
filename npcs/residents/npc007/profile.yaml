@@ -22,8 +22,8 @@ interests:
   - CSS
   - Figma
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.2
+  post_frequency: 0.4
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -38,6 +38,9 @@ behavior:
   post_length_max: 160
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 3
+  - 6
 social:
   friend_bot_ids:
   - 1
@@ -80,3 +83,4 @@ window_color:
   top_right: '#EA6E3A'
   bottom_left: '#DA8947'
   bottom_right: '#EA6E3A'
+posts: false

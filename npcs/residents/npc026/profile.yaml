@@ -19,8 +19,8 @@ interests:
   - アニメーション
   code_languages: []
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.3
+  post_frequency: 0.3
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -37,6 +37,8 @@ behavior:
   post_length_max: 100
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 4
 social:
   friend_bot_ids:
   - 8
@@ -77,3 +79,4 @@ writing_style:
 window_color:
   bottom_left: '#44E342'
   bottom_right: '#44E342'
+posts: false

@@ -21,8 +21,8 @@ interests:
   - Kotlin
   - Java
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.3
+  post_frequency: 0.3
+  post_frequency_variance: 0.7
   active_hours:
   - 10
   - 11
@@ -40,6 +40,10 @@ behavior:
   post_length_max: 400
   use_markdown: true
   use_code_blocks: true
+  active_days:
+  - 0
+  - 3
+  - 6
 social:
   friend_bot_ids:
   - 1
@@ -88,3 +92,4 @@ writing_style:
 window_color:
   bottom_left: '#0F1D31'
   bottom_right: '#0F1D31'
+posts: false

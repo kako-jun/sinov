@@ -20,8 +20,8 @@ interests:
   code_languages:
   - JavaScript
 behavior:
-  post_frequency: 4
-  post_frequency_variance: 0.3
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 12
   - 13
@@ -40,6 +40,14 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
 social:
   friend_bot_ids:
   - 24
@@ -83,3 +91,4 @@ writing_style:
 window_color:
   top_left: '#8FFF13'
   top_right: '#8FFF13'
+posts: false

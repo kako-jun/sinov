@@ -21,8 +21,8 @@ interests:
   - HTML
   - CSS
 behavior:
-  post_frequency: 6
-  post_frequency_variance: 0.4
+  post_frequency: 0.3
+  post_frequency_variance: 0.7
   active_hours:
   - 9
   - 10
@@ -41,6 +41,8 @@ behavior:
   post_length_max: 140
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 0
 social:
   friend_bot_ids:
   - 1
@@ -81,3 +83,4 @@ writing_style:
 window_color:
   top_left: '#70B9D1'
   top_right: '#70B9D1'
+posts: false

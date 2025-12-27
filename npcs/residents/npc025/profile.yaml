@@ -19,8 +19,8 @@ interests:
   - ライティング
   code_languages: []
 behavior:
-  post_frequency: 3
-  post_frequency_variance: 0.3
+  post_frequency: 0.5
+  post_frequency_variance: 0.7
   active_hours:
   - 9
   - 10
@@ -36,6 +36,9 @@ behavior:
   post_length_max: 160
   use_markdown: false
   use_code_blocks: false
+  active_days:
+  - 2
+  - 5
 social:
   friend_bot_ids:
   - 5
@@ -78,3 +81,4 @@ window_color:
   top_right: '#DD0000'
   bottom_left: '#FFCC00'
   bottom_right: '#FFCC00'
+posts: false
