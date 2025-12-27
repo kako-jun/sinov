@@ -97,14 +97,21 @@ class InteractionManager:
         sociability_factor = 0.5 + sociability
         reply_prob *= sociability_factor
 
-        # 判定
+        # リアクション確率（リプライより高頻度、ベース15%〜25%）
+        # 社交性と好感度で調整
+        base_reaction_prob = 0.15 + (sociability * 0.10)  # 0.15〜0.25
+        if affinity > 0.5:
+            base_reaction_prob *= 1.2
+        elif affinity > 0.7:
+            base_reaction_prob *= 1.5
+
+        # まずリアクションを判定（スターはリプライより気軽）
+        if random.random() < base_reaction_prob:
+            return True, "reaction"
+
+        # リプライは低確率
         if random.random() < reply_prob:
             return True, "reply"
-
-        # リアクション確率（リプライ確率の1.5倍程度）
-        reaction_prob = reply_prob * 1.5
-        if random.random() < reaction_prob:
-            return True, "reaction"
 
         return False, None
 

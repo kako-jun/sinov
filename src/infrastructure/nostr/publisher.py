@@ -49,7 +49,7 @@ class NostrPublisher:
         # タグを作成
         tags = [
             Tag.hashtag("mypace"),
-            Tag.parse(["t", "npc"]),
+            Tag.parse(["npc"]),
             Tag.parse(["client", "sinov"]),
         ]
 
@@ -57,8 +57,16 @@ class NostrPublisher:
         if aurora_tag:
             tags.append(Tag.parse(aurora_tag))
 
+        # 長文の場合はteaserタグを追加（280文字超）
+        final_content = content
+        if len(content) > 280:
+            preview = content[:280]
+            folded = content[280:]
+            tags.append(Tag.parse(["teaser", folded]))
+            final_content = f"{preview}\n\n...READ MORE"
+
         # イベント作成・署名
-        event = EventBuilder.text_note(content).tags(tags).sign_with_keys(keys)
+        event = EventBuilder.text_note(final_content).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 
@@ -97,7 +105,7 @@ class NostrPublisher:
         # タグを作成
         tags = [
             Tag.hashtag("mypace"),
-            Tag.parse(["t", "npc"]),
+            Tag.parse(["npc"]),
             Tag.parse(["client", "sinov"]),
             # リプライ先のイベントID（rootとreplyを同じにする = 直接リプライ）
             Tag.parse(["e", reply_to_event_id, "", "root"]),
@@ -112,8 +120,16 @@ class NostrPublisher:
         if aurora_tag:
             tags.append(Tag.parse(aurora_tag))
 
+        # 長文の場合はteaserタグを追加（280文字超）
+        final_content = content
+        if len(content) > 280:
+            preview = content[:280]
+            folded = content[280:]
+            tags.append(Tag.parse(["teaser", folded]))
+            final_content = f"{preview}\n\n...READ MORE"
+
         # イベント作成・署名
-        event = EventBuilder.text_note(content).tags(tags).sign_with_keys(keys)
+        event = EventBuilder.text_note(final_content).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 
@@ -145,9 +161,10 @@ class NostrPublisher:
 
         # タグを作成
         tags = [
-            Tag.parse(["t", "npc"]),
+            Tag.parse(["npc"]),
             Tag.parse(["e", target_event_id]),
             Tag.parse(["p", target_pubkey]),
+            Tag.parse(["stella", "1"]),  # MYPACEのステラ（リアクション強度）
         ]
 
         # kind:7 リアクションイベントを作成
