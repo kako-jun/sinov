@@ -19,67 +19,48 @@
 
 ## リリーススケジュール
 
-### Week 1（10人）- 各ジャンル代表 + レビューア
+### Week 1（10人）- 各ジャンル代表 + レビューア + 記者1人
 
 | NPC ID | 名前 | ジャンル |
 |--------|------|---------|
 | npc001 | code sense | dev |
 | npc004 | いちごミルク | art |
 | npc010 | チョコP | music |
-| npc042 | 内田かずき | game |
 | npc024 | momiji | video |
 | npc018 | cyan | 3dcg |
 | npc002 | nullpo | other |
 | npc003 | mcΔt | other |
 | npc006 | 鹿丸 | other |
 | reviewer | - | backend |
-
-### Week 2（+10人 = 20人）
-
-| NPC ID | 名前 | ジャンル |
-|--------|------|---------|
-| npc005 | 寧波 | art |
-| npc007 | 青原波音 | art |
-| npc011 | Kokopelli | music |
-| npc015 | ZtoA | dev |
-| npc052 | ブラックパックン最強 | game |
-| npc030 | twist-twist | video |
-| npc008 | Pepo | other |
-| npc009 | チャリ太郎 | other |
-| npc012 | きつね丸 | other |
 | reporter_general | - | backend |
 
-### Week 3（+10人 = 30人）
+### Week 2（+9人 = 19人）
 
-| NPC ID | 名前 | ジャンル |
-|--------|------|---------|
-| npc013-022 から選出 | - | 各ジャンルバランス |
-| reporter_tech | - | backend |
+| Backend | 説明 |
+|---------|------|
+| reporter_tech | 技術系ニュース |
 
-### Week 4（+10人 = 40人）
+### Week 3（+10人 = 29人）
 
-| NPC ID | 名前 | ジャンル |
-|--------|------|---------|
-| npc023-032 から選出 | - | 各ジャンルバランス |
-| reporter_game | - | backend |
+| Backend | 説明 |
+|---------|------|
+| reporter_game | ゲーム系ニュース |
 
-### Week 5（+10人 = 50人）
+### Week 4（+10人 = 39人）
 
-| NPC ID | 名前 | ジャンル |
-|--------|------|---------|
-| npc033-042 から選出 | - | 各ジャンルバランス |
-| reporter_creative | - | backend |
+| Backend | 説明 |
+|---------|------|
+| reporter_creative | クリエイティブ系ニュース |
 
-### Week 6-9（各+10人）
+### Week 5（+11人 = 50人）
 
-残りのNPCを順次追加
+| Backend | 説明 |
+|---------|------|
+| reporter_trend | トレンドニュース（記者全員揃う） |
 
-### Week 10（+10人 = 100人）
+### Week 6-10（各+10人）
 
-| NPC ID | 名前 | ジャンル |
-|--------|------|---------|
-| 残りのNPC | - | - |
-| reporter_trend | - | backend |
+残りのNPCを順次追加し、Week 10で全101人が揃う。
 
 ## 有効化の方法
 

@@ -16,44 +16,44 @@ import yaml
 # Week 2-10: 残りを順次追加 + reporters
 ROLLOUT_SCHEDULE = {
     1: {
-        "residents": [1, 2, 3, 4, 6, 10, 18, 24, 42],  # 9人
-        "backend": ["reviewer"],  # 最初からレビューアは必要
+        "residents": [1, 2, 3, 4, 6, 10, 18, 24],  # 8人
+        "backend": ["reviewer", "reporter_general"],  # レビューア + 記者1人
     },
     2: {
-        "residents": [5, 7, 8, 9, 11, 12, 15, 30, 52],  # +9人
-        "backend": ["reporter_general"],
+        "residents": [5, 7, 8, 9, 11, 12, 15, 30],  # +8人
+        "backend": ["reporter_tech"],  # +記者1人
     },
     3: {
         "residents": [13, 14, 16, 17, 19, 20, 21, 22, 23],  # +9人
-        "backend": ["reporter_tech"],
+        "backend": ["reporter_game"],  # +記者1人
     },
     4: {
         "residents": [25, 26, 27, 28, 29, 31, 32, 33, 34],  # +9人
-        "backend": ["reporter_game"],
+        "backend": ["reporter_creative"],  # +記者1人
     },
     5: {
-        "residents": [35, 36, 37, 38, 39, 40, 41, 43, 44],  # +9人
-        "backend": ["reporter_creative"],
+        "residents": [35, 36, 37, 38, 39, 40, 41, 42, 43, 44],  # +10人
+        "backend": ["reporter_trend"],  # +記者1人（これで記者全員）
     },
     6: {
-        "residents": [45, 46, 47, 48, 49, 50, 51, 53, 54, 55],  # +10人
+        "residents": [45, 46, 47, 48, 49, 50, 51, 52, 53, 54],  # +10人
         "backend": [],
     },
     7: {
-        "residents": [56, 57, 58, 59, 60, 61, 62, 63, 64, 65],  # +10人
+        "residents": [55, 56, 57, 58, 59, 60, 61, 62, 63, 64],  # +10人
         "backend": [],
     },
     8: {
-        "residents": [66, 67, 68, 69, 70, 71, 72, 73, 74, 75],  # +10人
+        "residents": [65, 66, 67, 68, 69, 70, 71, 72, 73, 74],  # +10人
         "backend": [],
     },
     9: {
-        "residents": [76, 77, 78, 79, 80, 81, 82, 83, 84, 85],  # +10人
+        "residents": [75, 76, 77, 78, 79, 80, 81, 82, 83, 84],  # +10人
         "backend": [],
     },
     10: {
-        "residents": [86, 87, 88, 89, 90, 91, 92, 93, 94, 95],  # +10人
-        "backend": ["reporter_trend"],
+        "residents": [85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95],  # +11人
+        "backend": [],
     },
 }
 
