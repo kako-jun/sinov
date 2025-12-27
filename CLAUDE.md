@@ -148,8 +148,21 @@ habits: [wip_poster]
 sinov generate [--all | --npc <name>] [--dry-run]  # 投稿生成
 sinov queue [--status <status>]                     # キュー確認
 sinov review [approve|reject] <id>                  # レビュー
-sinov post [--dry-run]                              # 投稿
-sinov tick [--count N]                              # ワンループ処理
+sinov tick [--count N]                              # ワンループ処理（生成→レビュー→投稿）
+```
+
+### tickコマンドの動作
+
+1. 活動時刻のNPCを選択（`active_hours` + `next_post_time`）
+2. 投稿生成 → 相互作用 → レビュー → 投稿
+3. 承認キューが20件超で生成一時停止
+
+### スクリプト
+
+```bash
+python scripts/set_profiles.py          # Nostrプロフィール設定
+python scripts/delete_posts.py list     # 投稿済み一覧
+python scripts/delete_posts.py delete-all --confirm  # 全削除
 ```
 
 ## NGルール
