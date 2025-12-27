@@ -39,3 +39,4 @@ uv.lock
 # MCP
 .mcp.json
 .serena/
+logs/

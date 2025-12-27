@@ -25,6 +25,7 @@ behavior:
   post_frequency: 0.4
   post_frequency_variance: 0.7
   active_hours:
+  - 0
   - 8
   - 9
   - 10
