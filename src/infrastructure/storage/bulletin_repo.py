@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from ...domain.news import BulletinBoard, NewsItem
+from ...domain import BulletinBoard, NewsItem
 
 
 class BulletinRepository:

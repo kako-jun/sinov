@@ -2,7 +2,11 @@
 Sinov - MYPACE SNS Bot Management System
 """
 
-from .application import NpcService
+from .application import (
+    InteractionService,
+    NpcService,
+    ServiceFactory,
+)
 from .config import Settings
 from .domain import (
     Background,
@@ -13,6 +17,8 @@ from .domain import (
     NpcProfile,
     NpcState,
     Personality,
+    QueueEntry,
+    QueueStatus,
     Scheduler,
     Social,
 )
@@ -21,12 +27,15 @@ from .infrastructure import (
     NostrPublisher,
     OllamaProvider,
     ProfileRepository,
+    QueueRepository,
     StateRepository,
 )
 
 __all__ = [
     # Application
     "NpcService",
+    "InteractionService",
+    "ServiceFactory",
     # Config
     "Settings",
     # Domain
@@ -40,10 +49,13 @@ __all__ = [
     "NpcState",
     "Scheduler",
     "ContentStrategy",
+    "QueueEntry",
+    "QueueStatus",
     # Infrastructure
     "LLMProvider",
     "OllamaProvider",
     "NostrPublisher",
     "ProfileRepository",
     "StateRepository",
+    "QueueRepository",
 ]

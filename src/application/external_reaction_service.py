@@ -14,15 +14,15 @@ import httpx
 from ..domain import (
     ActivityLogger,
     ContentStrategy,
+    NpcKey,
     NpcProfile,
     NpcState,
     PostType,
     QueueEntry,
     QueueStatus,
+    ReplyTarget,
     TextProcessor,
 )
-from ..domain.models import NpcKey
-from ..domain.queue import ReplyTarget
 from ..infrastructure import LLMProvider, LogRepository, QueueRepository
 
 
@@ -61,89 +61,91 @@ class ExternalReactionService:
         Returns:
             生成したエントリー数
         """
-        # 既に反応済みのイベントIDを読み込み（重複防止）
         self._load_reacted_events()
 
-        # タイムラインから外部投稿を取得
-        external_posts = await self._fetch_timeline_posts(limit=50)
+        external_posts = await self._get_filtered_external_posts()
         if not external_posts:
-            print("  📭 外部投稿なし")
-            return 0
-
-        # 住人のpubkey一覧（除外用）
-        resident_pubkeys = {
-            key.pubkey for _, (key, _, _) in self.npcs.items()
-        }
-
-        # 外部投稿のみにフィルタ
-        external_posts = [
-            p for p in external_posts
-            if p.get("pubkey") not in resident_pubkeys
-        ]
-
-        if not external_posts:
-            print("  📭 外部投稿なし（フィルタ後）")
             return 0
 
         print(f"  📬 外部投稿: {len(external_posts)}件")
 
-        total_entries = 0
-        npc_ids = target_npc_ids or list(self.npcs.keys())
+        total = 0
+        for npc_id in target_npc_ids or list(self.npcs.keys()):
+            total += await self._process_npc_reactions(npc_id, external_posts, max_posts_per_bot)
+        return total
 
-        for npc_id in npc_ids:
-            if npc_id not in self.npcs:
-                continue
+    async def _get_filtered_external_posts(self) -> list[dict[str, Any]]:
+        """外部投稿を取得してフィルタ"""
+        posts = await self._fetch_timeline_posts(limit=50)
+        if not posts:
+            print("  📭 外部投稿なし")
+            return []
 
-            _, profile, state = self.npcs[npc_id]
+        resident_pubkeys = {key.pubkey for _, (key, _, _) in self.npcs.items()}
+        filtered = [p for p in posts if p.get("pubkey") not in resident_pubkeys]
 
-            # このNPCの反応数
-            reactions_added = 0
+        if not filtered:
+            print("  📭 外部投稿なし（フィルタ後）")
+        return filtered
 
-            for post in external_posts:
-                if reactions_added >= max_posts_per_bot:
-                    break
+    async def _process_npc_reactions(
+        self, npc_id: int, posts: list[dict[str, Any]], max_per_bot: int
+    ) -> int:
+        """単一NPCの反応処理"""
+        if npc_id not in self.npcs:
+            return 0
 
-                event_id = post.get("id", post.get("event_id", ""))
+        _, profile, _ = self.npcs[npc_id]
+        reactions_added = 0
 
-                # 重複チェック（このNPCが既にこの投稿に反応済み）
-                reaction_key = f"{npc_id}:{event_id}"
-                if reaction_key in self._reacted_events:
-                    continue
+        for post in posts:
+            if reactions_added >= max_per_bot:
+                break
+            added = await self._try_react_to_post(npc_id, profile, post)
+            reactions_added += added
 
-                # 興味マッチング
-                if not self._matches_interests(post, profile):
-                    continue
+        return reactions_added
 
-                # 反応するか判定
-                reaction_type = self._decide_reaction(profile, post)
-                if not reaction_type:
-                    continue
+    async def _try_react_to_post(
+        self, npc_id: int, profile: NpcProfile, post: dict[str, Any]
+    ) -> int:
+        """投稿への反応を試みる"""
+        event_id = post.get("id", post.get("event_id", ""))
+        reaction_key = f"{npc_id}:{event_id}"
 
-                # エントリー生成
-                entry = await self._generate_entry(
-                    npc_id, profile, post, reaction_type
-                )
-                if entry:
-                    self.queue_repo.add(entry)
-                    self._reacted_events.add(reaction_key)
-                    reactions_added += 1
-                    total_entries += 1
+        if reaction_key in self._reacted_events:
+            return 0
+        if not self._matches_interests(post, profile):
+            return 0
 
-                    # ログ記録
-                    if self.log_repo:
-                        target_info = f"external:{post.get('pubkey', '')[:8]}"
-                        self.log_repo.add_entry(
-                            npc_id,
-                            ActivityLogger.log_external_reaction(
-                                reaction_type=reaction_type,
-                                target=target_info,
-                                content=post.get("content", "")[:50],
-                            ),
-                        )
+        reaction_type = self._decide_reaction(profile, post)
+        if not reaction_type:
+            return 0
 
-                    print(f"    {profile.name} → {reaction_type} to external post")
+        entry = await self._generate_entry(npc_id, profile, post, reaction_type)
+        if not entry:
+            return 0
 
-        return total_entries
+        self.queue_repo.add(entry)
+        self._reacted_events.add(reaction_key)
+        self._log_reaction(npc_id, profile, post, reaction_type)
+        return 1
+
+    def _log_reaction(
+        self, npc_id: int, profile: NpcProfile, post: dict[str, Any], reaction_type: str
+    ) -> None:
+        """反応をログに記録"""
+        if self.log_repo:
+            target_info = f"external:{post.get('pubkey', '')[:8]}"
+            self.log_repo.add_entry(
+                npc_id,
+                ActivityLogger.log_external_reaction(
+                    reaction_type=reaction_type,
+                    target=target_info,
+                    content=post.get("content", "")[:50],
+                ),
+            )
+        print(f"    {profile.name} → {reaction_type} to external post")
 
     def _load_reacted_events(self) -> None:
         """既に反応済みのイベントIDを読み込み"""
@@ -287,9 +289,7 @@ class ExternalReactionService:
 
         # リプライの場合
         if reaction_type == "reply":
-            return await self._generate_reply_entry(
-                npc_id, profile, event_id, pubkey, content
-            )
+            return await self._generate_reply_entry(npc_id, profile, event_id, pubkey, content)
 
         return None
 

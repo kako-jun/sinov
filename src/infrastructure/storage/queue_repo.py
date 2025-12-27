@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
-from ...domain.queue import QueueEntry, QueueStatus
+from ...domain import QueueEntry, QueueStatus
 
 
 class QueueRepository:

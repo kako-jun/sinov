@@ -4,8 +4,7 @@ NPC状態リポジトリ
 
 from pathlib import Path
 
-from ...domain.models import NpcState
-from ...domain.npc_utils import format_npc_name
+from ...domain import NpcState, format_npc_name
 from .base_repo import ResidentJsonRepository
 
 

@@ -8,7 +8,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from ...domain.activity_log import DailyLog, LogEntry
+from ...domain import DailyLog, LogEntry
 
 
 class LogRepository:

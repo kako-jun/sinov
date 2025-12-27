@@ -9,7 +9,7 @@ from pathlib import Path
 
 import yaml
 
-from ...domain.relationships import (
+from ...domain import (
     Affinity,
     Group,
     GroupInteraction,
@@ -21,6 +21,15 @@ from ...domain.relationships import (
     StalkerReaction,
     StalkerTarget,
 )
+
+# 関係タイプから好感度への変換マップ
+PAIR_TYPE_AFFINITY: dict[str, float] = {
+    "close_friends": 0.5,
+    "couple": 0.8,
+    "siblings": 0.6,
+    "rivals": 0.2,
+    "awkward": -0.3,
+}
 
 
 class RelationshipRepository:
@@ -197,38 +206,39 @@ class RelationshipRepository:
 
     def initialize_affinities_from_relationships(self, relationship_data: RelationshipData) -> None:
         """関係性データから好感度の初期値を設定"""
-        # 全NPC IDを収集
-        all_bots = set()
+        all_bots = self._collect_all_bots(relationship_data)
+
+        for npc_id in all_bots:
+            affinity = self.load_affinity(npc_id)
+            self._init_group_affinities(affinity, npc_id, relationship_data.groups)
+            self._init_pair_affinities(affinity, npc_id, relationship_data.pairs)
+            self.save_affinity(affinity)
+
+    def _collect_all_bots(self, relationship_data: RelationshipData) -> set[str]:
+        """全NPC IDを収集"""
+        all_bots: set[str] = set()
         for group in relationship_data.groups:
             all_bots.update(group.members)
         for pair in relationship_data.pairs:
             all_bots.update(pair.members)
+        return all_bots
 
-        # 各NPCの好感度を初期化
-        for npc_id in all_bots:
-            affinity = self.load_affinity(npc_id)
+    def _init_group_affinities(self, affinity: Affinity, npc_id: str, groups: list[Group]) -> None:
+        """グループメンバーとの好感度を初期化"""
+        for group in groups:
+            if npc_id in group.members:
+                for member in group.members:
+                    if member != npc_id and member not in affinity.targets:
+                        affinity.set_affinity(member, 0.3)
 
-            # グループメンバーとの好感度
-            for group in relationship_data.groups:
-                if npc_id in group.members:
-                    for member in group.members:
-                        if member != npc_id and member not in affinity.targets:
-                            affinity.set_affinity(member, 0.3)
-
-            # ペアとの好感度
-            for pair in relationship_data.pairs:
-                if npc_id in pair.members:
-                    other = [m for m in pair.members if m != npc_id][0]
-                    if other not in affinity.targets:
-                        if pair.type.value == "close_friends":
-                            affinity.set_affinity(other, 0.5)
-                        elif pair.type.value == "couple":
-                            affinity.set_affinity(other, 0.8)
-                        elif pair.type.value == "siblings":
-                            affinity.set_affinity(other, 0.6)
-                        elif pair.type.value == "rivals":
-                            affinity.set_affinity(other, 0.2)
-                        elif pair.type.value == "awkward":
-                            affinity.set_affinity(other, -0.3)
-
-            self.save_affinity(affinity)
+    def _init_pair_affinities(self, affinity: Affinity, npc_id: str, pairs: list[Pair]) -> None:
+        """ペアとの好感度を初期化"""
+        for pair in pairs:
+            if npc_id not in pair.members:
+                continue
+            other = next(m for m in pair.members if m != npc_id)
+            if other in affinity.targets:
+                continue
+            base_affinity = PAIR_TYPE_AFFINITY.get(pair.type.value)
+            if base_affinity is not None:
+                affinity.set_affinity(other, base_affinity)

@@ -4,9 +4,9 @@ generate コマンド - 投稿を生成してキューに追加
 
 import argparse
 
+from ...application import ServiceFactory
 from ...domain import QueueEntry, QueueStatus, extract_npc_id
-from ...infrastructure import QueueRepository
-from ..base import init_env, init_llm, init_service
+from ..base import init_env, init_llm
 
 
 async def cmd_generate(args: argparse.Namespace) -> None:
@@ -16,8 +16,9 @@ async def cmd_generate(args: argparse.Namespace) -> None:
     if not llm:
         return
 
-    service = await init_service(settings, llm)
-    queue_repo = QueueRepository(settings.queue_dir)
+    # ServiceFactoryを使ってサービスを構築
+    factory = ServiceFactory(settings, llm)
+    service = await factory.create_npc_service()
 
     # dry_run の場合は dry_run.json に追加
     target_status = QueueStatus.DRY_RUN if args.dry_run else QueueStatus.PENDING
@@ -49,7 +50,7 @@ async def cmd_generate(args: argparse.Namespace) -> None:
                 content=content,
                 status=target_status,
             )
-            queue_repo.add(entry)
+            factory.queue_repo.add(entry)
 
             print(f"  [{entry.id}] {profile.name}: {content[:40]}...")
             generated += 1

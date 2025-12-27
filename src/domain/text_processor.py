@@ -7,8 +7,12 @@
 
 import random
 import re
+from typing import TYPE_CHECKING, Callable
 
 from .models import LineBreakStyle, PunctuationStyle, WritingQuirk, WritingStyle
+
+if TYPE_CHECKING:
+    pass
 
 # 誤字変換テーブル（打ち間違いやすい文字の組み合わせ）
 TYPO_MAP = {
@@ -27,6 +31,14 @@ TYPO_MAP = {
     "を": ["お", "ほ"],
     "っ": ["つ", ""],
     "ー": ["ｰ", "-"],
+}
+
+# プロンプトで指示する癖（後処理不要）
+PROMPT_ONLY_QUIRKS: set[WritingQuirk] = {
+    WritingQuirk.PARENTHESES,
+    WritingQuirk.ARROW,
+    WritingQuirk.KATAKANA_ENGLISH,
+    WritingQuirk.ABBREVIATION,
 }
 
 
@@ -119,57 +131,47 @@ class TextProcessor:
 
     def _apply_single_quirk(self, text: str, quirk: WritingQuirk) -> str:
         """個別の癖を適用"""
+        # プロンプトで指示する癖は後処理不要
+        if quirk in PROMPT_ONLY_QUIRKS:
+            return text
 
-        if quirk == WritingQuirk.W_HEAVY:
-            # 文末に「w」を追加
-            text = self._add_to_sentence_end(text, "w", probability=0.4)
-
-        elif quirk == WritingQuirk.KUSA:
-            # 「笑」「w」を「草」に変換
-            text = text.replace("笑", "草")
-            text = re.sub(r"w+", "草", text)
-
-        elif quirk == WritingQuirk.ELLIPSIS_HEAVY:
-            # 文末に「…」を追加
-            text = self._add_to_sentence_end(text, "…", probability=0.3)
-
-        elif quirk == WritingQuirk.SUFFIX_NE:
-            # 文末に「ね」を追加
-            text = self._add_suffix_to_sentences(text, "ね", probability=0.3)
-
-        elif quirk == WritingQuirk.SUFFIX_NA:
-            # 文末に「な」を追加
-            text = self._add_suffix_to_sentences(text, "な", probability=0.3)
-
-        elif quirk == WritingQuirk.EXCLAMATION_HEAVY:
-            # 「。」を「！」に変換
-            text = self._replace_randomly(text, "。", "！", probability=0.4)
-
-        elif quirk == WritingQuirk.QUESTION_HEAVY:
-            # 文末に「？」を追加
-            text = self._add_to_sentence_end(text, "？", probability=0.2)
-
-        elif quirk == WritingQuirk.TILDE_HEAVY:
-            # 語尾に「〜」を追加
-            text = self._add_to_sentence_end(text, "〜", probability=0.3)
-
-        elif quirk == WritingQuirk.PARENTHESES:
-            # （）で補足を入れる（これはプロンプトで指示）
-            pass
-
-        elif quirk == WritingQuirk.ARROW:
-            # 「→」を使う（これはプロンプトで指示）
-            pass
-
-        elif quirk == WritingQuirk.KATAKANA_ENGLISH:
-            # カタカナ英語を使う（これはプロンプトで指示）
-            pass
-
-        elif quirk == WritingQuirk.ABBREVIATION:
-            # 略語を使う（これはプロンプトで指示）
-            pass
-
+        handler = QUIRK_HANDLERS.get(quirk)
+        if handler:
+            return handler(self, text)
         return text
+
+    def _apply_w_heavy(self, text: str) -> str:
+        """文末に「w」を追加"""
+        return self._add_to_sentence_end(text, "w", probability=0.4)
+
+    def _apply_kusa(self, text: str) -> str:
+        """「笑」「w」を「草」に変換"""
+        text = text.replace("笑", "草")
+        return re.sub(r"w+", "草", text)
+
+    def _apply_ellipsis(self, text: str) -> str:
+        """文末に「…」を追加"""
+        return self._add_to_sentence_end(text, "…", probability=0.3)
+
+    def _apply_suffix_ne(self, text: str) -> str:
+        """文末に「ね」を追加"""
+        return self._add_suffix_to_sentences(text, "ね", probability=0.3)
+
+    def _apply_suffix_na(self, text: str) -> str:
+        """文末に「な」を追加"""
+        return self._add_suffix_to_sentences(text, "な", probability=0.3)
+
+    def _apply_exclamation(self, text: str) -> str:
+        """「。」を「！」に変換"""
+        return self._replace_randomly(text, "。", "！", probability=0.4)
+
+    def _apply_question(self, text: str) -> str:
+        """文末に「？」を追加"""
+        return self._add_to_sentence_end(text, "？", probability=0.2)
+
+    def _apply_tilde(self, text: str) -> str:
+        """語尾に「〜」を追加"""
+        return self._add_to_sentence_end(text, "〜", probability=0.3)
 
     def _apply_typos(self, text: str) -> str:
         """誤字を挿入"""
@@ -189,6 +191,7 @@ class TextProcessor:
 
     def _add_to_sentence_end(self, text: str, suffix: str, probability: float) -> str:
         """文末に文字を追加"""
+
         # 文末（。！？の前、または最後）に追加
         def replace_end(match: re.Match[str]) -> str:
             matched: str = match.group(0)
@@ -204,9 +207,7 @@ class TextProcessor:
 
         return text
 
-    def _add_suffix_to_sentences(
-        self, text: str, suffix: str, probability: float
-    ) -> str:
+    def _add_suffix_to_sentences(self, text: str, suffix: str, probability: float) -> str:
         """文末に語尾を追加（句読点の前）"""
 
         def replace_end(match: re.Match[str]) -> str:
@@ -217,9 +218,7 @@ class TextProcessor:
 
         return re.sub(r"([。！？])", replace_end, text)
 
-    def _replace_randomly(
-        self, text: str, old: str, new: str, probability: float
-    ) -> str:
+    def _replace_randomly(self, text: str, old: str, new: str, probability: float) -> str:
         """確率的に文字を置換"""
         result = []
         for char in text:
@@ -228,6 +227,19 @@ class TextProcessor:
             else:
                 result.append(char)
         return "".join(result)
+
+
+# 癖ハンドラーのマッピング（クラス定義後に初期化）
+QUIRK_HANDLERS: dict[WritingQuirk, Callable[["TextProcessor", str], str]] = {
+    WritingQuirk.W_HEAVY: TextProcessor._apply_w_heavy,
+    WritingQuirk.KUSA: TextProcessor._apply_kusa,
+    WritingQuirk.ELLIPSIS_HEAVY: TextProcessor._apply_ellipsis,
+    WritingQuirk.SUFFIX_NE: TextProcessor._apply_suffix_ne,
+    WritingQuirk.SUFFIX_NA: TextProcessor._apply_suffix_na,
+    WritingQuirk.EXCLAMATION_HEAVY: TextProcessor._apply_exclamation,
+    WritingQuirk.QUESTION_HEAVY: TextProcessor._apply_question,
+    WritingQuirk.TILDE_HEAVY: TextProcessor._apply_tilde,
+}
 
 
 # プロンプトで指示する癖の説明文

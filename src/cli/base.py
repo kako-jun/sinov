@@ -4,18 +4,10 @@ CLI共通の初期化関数
 
 from dotenv import load_dotenv
 
-from ..application import NpcService
+from ..application import ServiceFactory
 from ..config import Settings
-from ..domain import extract_npc_id
-from ..infrastructure import (
-    LogRepository,
-    MemoryRepository,
-    NostrPublisher,
-    OllamaProvider,
-    ProfileRepository,
-    QueueRepository,
-    StateRepository,
-)
+from ..domain import NpcKey, extract_npc_id
+from ..infrastructure import OllamaProvider
 
 
 def init_env() -> Settings:
@@ -40,37 +32,13 @@ def init_llm(settings: Settings) -> OllamaProvider | None:
         return None
 
 
-async def init_service(settings: Settings, llm: OllamaProvider) -> NpcService:
-    """NpcServiceを初期化"""
-    publisher = NostrPublisher(settings.api_endpoint, dry_run=True)
-    profile_repo = ProfileRepository(settings.residents_dir, settings.backend_dir)
-    state_repo = StateRepository(settings.residents_dir)
-    memory_repo = MemoryRepository(settings.residents_dir)
-    queue_repo = QueueRepository(settings.queue_dir)
-    log_repo = LogRepository(str(settings.residents_dir))
-
-    service = NpcService(
-        settings=settings,
-        llm_provider=llm,
-        publisher=publisher,
-        profile_repo=profile_repo,
-        state_repo=state_repo,
-        memory_repo=memory_repo,
-        queue_repo=queue_repo,
-        log_repo=log_repo,
-    )
-
-    print("Loading NPCs...")
-    await service.load_bots()
-    await service.initialize_keys()
-
-    return service
+def create_factory(settings: Settings, llm: OllamaProvider | None = None) -> ServiceFactory:
+    """ServiceFactoryを作成"""
+    return ServiceFactory(settings, llm)
 
 
 def get_target_pubkey(resident: str) -> str | None:
     """住人名（npc001形式）からpubkeyを取得"""
-    from ..domain import NpcKey
-
     npc_id = extract_npc_id(resident)
     if npc_id is None:
         return None

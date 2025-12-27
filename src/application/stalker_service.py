@@ -10,19 +10,18 @@ import httpx
 
 from ..domain import (
     ContentStrategy,
+    MumbleAbout,
+    NpcKey,
     NpcProfile,
     NpcState,
     PostType,
     QueueEntry,
     QueueStatus,
+    Stalker,
     TextProcessor,
     extract_npc_id,
 )
-from ..domain.models import NpcKey
-from ..domain.queue import MumbleAbout
-from ..domain.relationships import Stalker
-from ..infrastructure import LLMProvider, QueueRepository
-from ..infrastructure.storage.relationship_repo import RelationshipRepository
+from ..infrastructure import LLMProvider, QueueRepository, RelationshipRepository
 
 
 class StalkerService:
@@ -219,7 +218,8 @@ class StalkerService:
         if constraints:
             constraints_text = "\n制約:\n" + "\n".join(f"- {c}" for c in constraints)
 
-        prompt = f"""あなたは{profile.name}です。{target_name}さんの投稿を見て、{instruction}投稿を書いてください。
+        prompt = f"""あなたは{profile.name}です。
+{target_name}さんの投稿を見て、{instruction}投稿を書いてください。
 
 【{target_name}さんの投稿】
 {original_content}

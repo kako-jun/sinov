@@ -5,8 +5,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from ...domain.memory import NpcMemory
-from ...domain.npc_utils import format_npc_name
+from ...domain import NpcMemory, format_npc_name
 from .base_repo import ResidentJsonRepository
 
 

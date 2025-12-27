@@ -1,5 +1,6 @@
 """ドメイン層（ビジネスロジック）"""
 
+# --- アクティビティログ ---
 from .activity_log import (
     ActivityLogger,
     DailyLog,
@@ -7,10 +8,20 @@ from .activity_log import (
     LogEventType,
     ParameterChange,
 )
+
+# --- コンテンツ生成 ---
 from .content import ContentStrategy
+
+# --- イベント ---
 from .events import EventCalendar, SeasonalEvent
-from .interaction import InteractionManager, calculate_ignore_probability, is_closing_message
+
+# --- 相互作用 ---
+from .interaction import InteractionManager
+
+# --- 記憶 ---
 from .memory import AcquiredMemory, NpcMemory, SeriesState, ShortTermMemory
+
+# --- モデル（Enum・型定義） ---
 from .models import (
     Background,
     Behavior,
@@ -30,9 +41,17 @@ from .models import (
     WritingQuirk,
     WritingStyle,
 )
+
+# --- ニュース ---
 from .news import BulletinBoard, NewsItem, ReporterConfig
+
+# --- ユーティリティ ---
 from .npc_utils import extract_npc_id, format_npc_name
+
+# --- 性格分析 ---
 from .personality import PersonalityAnalyzer
+
+# --- キュー ---
 from .queue import (
     ConversationContext,
     MumbleAbout,
@@ -41,6 +60,8 @@ from .queue import (
     QueueStatus,
     ReplyTarget,
 )
+
+# --- 関係性 ---
 from .relationships import (
     Affinity,
     Group,
@@ -54,13 +75,19 @@ from .relationships import (
     StalkerReaction,
     StalkerTarget,
 )
+
+# --- スケジューラ ---
 from .scheduler import Scheduler
-from .text_processor import TextProcessor, get_writing_style_prompt_instructions
+
+# --- テキスト処理 ---
+from .text_processor import TextProcessor
 
 __all__ = [
+    # ユーティリティ
     "format_npc_name",
     "extract_npc_id",
     "PersonalityAnalyzer",
+    # モデル - 基本型
     "NpcKey",
     "Personality",
     "PersonalityTraits",
@@ -71,6 +98,7 @@ __all__ = [
     "NpcProfile",
     "NpcState",
     "TickState",
+    # モデル - Enum
     "StyleType",
     "HabitType",
     "LineBreakStyle",
@@ -78,26 +106,31 @@ __all__ = [
     "WritingQuirk",
     "WritingStyle",
     "Prompts",
+    # 記憶
     "ShortTermMemory",
     "AcquiredMemory",
     "SeriesState",
     "NpcMemory",
+    # スケジューラ・コンテンツ
     "Scheduler",
     "ContentStrategy",
+    # イベント
     "SeasonalEvent",
     "EventCalendar",
+    # 相互作用
     "InteractionManager",
-    "calculate_ignore_probability",
-    "is_closing_message",
+    # ニュース
     "NewsItem",
     "BulletinBoard",
     "ReporterConfig",
+    # キュー
     "QueueEntry",
     "QueueStatus",
     "PostType",
     "ReplyTarget",
     "ConversationContext",
     "MumbleAbout",
+    # 関係性
     "RelationshipType",
     "GroupInteraction",
     "Group",
@@ -109,11 +142,12 @@ __all__ = [
     "Stalker",
     "Affinity",
     "RelationshipData",
+    # アクティビティログ
     "LogEventType",
     "ParameterChange",
     "LogEntry",
     "DailyLog",
     "ActivityLogger",
+    # テキスト処理
     "TextProcessor",
-    "get_writing_style_prompt_instructions",
 ]

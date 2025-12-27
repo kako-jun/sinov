@@ -11,6 +11,11 @@ from enum import Enum
 from typing import Any
 
 
+def _truncate(text: str, max_len: int) -> str:
+    """テキストを指定長で切り詰め"""
+    return text[:max_len] + "..." if len(text) > max_len else text
+
+
 class LogEventType(Enum):
     """ログイベントの種類"""
 
@@ -324,7 +329,7 @@ class ActivityLogger:
             details={
                 "sender": sender,
                 "emoji": emoji,
-                "target_content": target_content[:50] + "..." if len(target_content) > 50 else target_content,
+                "target_content": _truncate(target_content, 50),
             },
             parameter_changes=parameter_changes or [],
         )
@@ -343,7 +348,7 @@ class ActivityLogger:
             details={
                 "recipient": recipient,
                 "emoji": emoji,
-                "target_content": target_content[:50] + "..." if len(target_content) > 50 else target_content,
+                "target_content": _truncate(target_content, 50),
             },
         )
 

@@ -2,12 +2,17 @@
 tick コマンド - 1周の処理: 住人N人を順番に処理 + 相互作用 + 最後にレビューア
 """
 
-import argparse
+from __future__ import annotations
 
-from ...application import ExternalReactionService, InteractionService, NpcService
+import argparse
+from typing import TYPE_CHECKING
+
+from ...application import NpcService, ServiceFactory
 from ...domain import QueueEntry, QueueStatus
-from ...infrastructure import QueueRepository, RelationshipRepository, TickStateRepository
-from ..base import init_env, init_llm, init_service
+from ..base import init_env, init_llm
+
+if TYPE_CHECKING:
+    from ...infrastructure import QueueRepository
 
 
 async def cmd_tick(args: argparse.Namespace) -> None:
@@ -17,10 +22,9 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     if not llm:
         return
 
-    service = await init_service(settings, llm)
-    queue_repo = QueueRepository(settings.queue_dir)
-    tick_state_repo = TickStateRepository(settings.tick_state_file)
-    relationship_repo = RelationshipRepository(settings.relationships_dir)
+    # ServiceFactoryを使ってサービスを構築
+    factory = ServiceFactory(settings, llm)
+    service = await factory.create_npc_service()
 
     # 対象NPCの一覧を取得（IDでソート）
     all_npc_ids = sorted(service.npcs.keys())
@@ -35,7 +39,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     resident_count = max(1, args.count - 1)
 
     # ラウンドロビンで対象範囲を取得
-    start_idx, end_idx = tick_state_repo.advance(resident_count, total_bots)
+    start_idx, end_idx = factory.tick_state_repo.advance(resident_count, total_bots)
 
     # 対象の住人を取得
     target_ids = all_npc_ids[start_idx:end_idx]
@@ -44,11 +48,10 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     if end_idx <= start_idx and start_idx < total_bots:
         target_ids = all_npc_ids[start_idx:]
 
-    tick_state = tick_state_repo.load()
+    tick_state = factory.tick_state_repo.load()
     print(f"\n🔄 Tick #{tick_state.total_ticks}")
-    print(
-        f"   Processing {len(target_ids)} residents (index {start_idx}-{end_idx - 1} of {total_bots})"
-    )
+    idx_range = f"{start_idx}-{end_idx - 1}"
+    print(f"   Processing {len(target_ids)} residents (index {idx_range} of {total_bots})")
 
     # --- 住人の処理（順番に） ---
     generated = 0
@@ -63,7 +66,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
                 content=content,
                 status=QueueStatus.PENDING,
             )
-            queue_repo.add(entry)
+            factory.queue_repo.add(entry)
 
             print(f"   ✏️  {profile.name}: {content[:40]}...")
             generated += 1
@@ -72,30 +75,14 @@ async def cmd_tick(args: argparse.Namespace) -> None:
 
     # --- 相互作用処理 ---
     print("\n   💬 Processing interactions...")
-    interaction_service = InteractionService(
-        llm_provider=llm,
-        queue_repo=queue_repo,
-        relationship_repo=relationship_repo,
-        content_strategy=service.content_strategy,
-        npcs=service.npcs,
-        memory_repo=service.memory_repo,
-        affinity_settings=settings.affinity,
-        profile_repo=service.profile_repo,
-        log_repo=service.log_repo,
-    )
+    interaction_service = factory.create_interaction_service(service)
     interactions = await interaction_service.process_interactions(target_ids)
     chain_replies = await interaction_service.process_reply_chains(target_ids)
     total_interactions = interactions + chain_replies
 
     # --- 外部ユーザーへの反応処理 ---
     print("\n   🌐 Processing external reactions...")
-    external_service = ExternalReactionService(
-        llm_provider=llm,
-        queue_repo=queue_repo,
-        content_strategy=service.content_strategy,
-        npcs=service.npcs,
-        log_repo=service.log_repo,
-    )
+    external_service = factory.create_external_reaction_service(service)
     external_reactions = await external_service.process_external_reactions(
         target_npc_ids=target_ids,
         max_posts_per_bot=1,  # 控えめに1人1投稿まで
@@ -111,7 +98,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
 
     # --- レビューア処理 ---
     print("\n   📋 Running reviewer...")
-    reviewed = await run_reviewer(service, queue_repo)
+    reviewed = await run_reviewer(service, factory.queue_repo)
 
     print(
         f"\n✅ Tick complete: {generated} generated, {total_interactions} interactions, "

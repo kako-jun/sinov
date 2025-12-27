@@ -2,13 +2,25 @@
 好感度サービス（好感度の更新・減衰処理）
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from ..config import AffinitySettings
-from ..domain import PostType, QueueStatus, format_npc_name
-from ..domain.relationships import RelationshipData
-from ..infrastructure import QueueRepository
-from ..infrastructure.storage.relationship_repo import RelationshipRepository
+from ..domain import (
+    NpcKey,
+    NpcProfile,
+    NpcState,
+    PostType,
+    QueueStatus,
+    RelationshipData,
+    format_npc_name,
+)
+
+if TYPE_CHECKING:
+    NpcDataDict = dict[int, tuple[NpcKey, NpcProfile, NpcState]]
+from ..infrastructure import QueueRepository, RelationshipRepository
 
 
 class AffinityService:
@@ -86,7 +98,7 @@ class AffinityService:
                 f"{old_familiarity:.2f} → {new_familiarity:.2f}"
             )
 
-    def process_decay(self, target_npc_ids: list[int], npcs: dict) -> int:
+    def process_decay(self, target_npc_ids: list[int], npcs: NpcDataDict) -> int:
         """
         好感度の減衰処理を実行（疎遠期間による減衰）
 

@@ -6,8 +6,7 @@ from pathlib import Path
 
 import yaml
 
-from ...domain.models import NpcProfile, Prompts
-from ...domain.npc_utils import format_npc_name
+from ...domain import NpcProfile, Prompts, format_npc_name
 
 
 class ProfileRepository:

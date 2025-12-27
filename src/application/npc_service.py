@@ -115,9 +115,7 @@ class NpcService:
             print(f"      📝 連作開始: {theme} ({total}投稿)")
             # ログ記録
             if self.log_repo:
-                self.log_repo.add_entry(
-                    npc_id, ActivityLogger.log_series_start(theme, total)
-                )
+                self.log_repo.add_entry(npc_id, ActivityLogger.log_series_start(theme, total))
 
         # 共有ニュース読み込み
         shared_news = self._load_shared_news()
@@ -181,7 +179,9 @@ class NpcService:
                 prompt_summary = prompt[:100] + "..." if len(prompt) > 100 else prompt
                 series_info = None
                 if memory.series.active:
-                    series_info = f"連作「{memory.series.theme}」{memory.series.current_index + 1}/{memory.series.total_planned}"
+                    idx = memory.series.current_index + 1
+                    total = memory.series.total_planned
+                    series_info = f"連作「{memory.series.theme}」{idx}/{total}"
                 self.log_repo.add_entry(
                     npc_id,
                     ActivityLogger.log_post_generate(content, prompt_summary, series_info),
@@ -343,10 +343,7 @@ class NpcService:
 
         try:
             entries = self.queue_repo.get_recent_rejected(npc_id, limit=3)
-            return [
-                {"content": e.content, "reason": e.review_note or "理由不明"}
-                for e in entries
-            ]
+            return [{"content": e.content, "reason": e.review_note or "理由不明"} for e in entries]
         except Exception as e:
             print(f"⚠️  Failed to load rejected posts: {e}")
             return []
@@ -361,7 +358,8 @@ class NpcService:
         if not self.llm_provider:
             raise RuntimeError("LLM provider is not available")
 
-        review_prompt = f"""あなたはSNS投稿のレビューアです。以下の投稿がルールに違反していないかチェックしてください。
+        review_prompt = f"""あなたはSNS投稿のレビューアです。
+以下の投稿がルールに違反していないかチェックしてください。
 
 【投稿内容】
 {content}
@@ -400,9 +398,7 @@ NG
     def log_review(self, npc_id: int, content: str, approved: bool, reason: str | None) -> None:
         """レビュー結果をログに記録"""
         if self.log_repo:
-            self.log_repo.add_entry(
-                npc_id, ActivityLogger.log_review(content, approved, reason)
-            )
+            self.log_repo.add_entry(npc_id, ActivityLogger.log_review(content, approved, reason))
 
     def _save_states(self) -> None:
         """全NPCの状態を保存"""
