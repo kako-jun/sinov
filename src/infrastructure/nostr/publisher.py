@@ -49,6 +49,7 @@ class NostrPublisher:
         # タグを作成
         tags = [
             Tag.hashtag("mypace"),
+            Tag.parse(["t", "npc"]),
             Tag.parse(["client", "sinov"]),
         ]
 
@@ -96,6 +97,7 @@ class NostrPublisher:
         # タグを作成
         tags = [
             Tag.hashtag("mypace"),
+            Tag.parse(["t", "npc"]),
             Tag.parse(["client", "sinov"]),
             # リプライ先のイベントID（rootとreplyを同じにする = 直接リプライ）
             Tag.parse(["e", reply_to_event_id, "", "root"]),
@@ -143,6 +145,7 @@ class NostrPublisher:
 
         # タグを作成
         tags = [
+            Tag.parse(["t", "npc"]),
             Tag.parse(["e", target_event_id]),
             Tag.parse(["p", target_pubkey]),
         ]
