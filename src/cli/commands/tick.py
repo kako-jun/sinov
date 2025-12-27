@@ -106,6 +106,9 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     )
 
 
+REVIEWER_NPC_ID = 101  # レビューアのNPC ID
+
+
 async def run_reviewer(service: NpcService, queue_repo: QueueRepository) -> int:
     """pending のエントリーをレビュー（Gemmaを使用）"""
     pending_entries = queue_repo.get_all(QueueStatus.PENDING)
@@ -127,8 +130,12 @@ async def run_reviewer(service: NpcService, queue_repo: QueueRepository) -> int:
                 queue_repo.reject(entry.id, reason)
                 print(f"      ❌ {entry.npc_name}: {reason}")
 
-            # ログ記録
+            # 投稿者のログに記録
             service.log_review(entry.npc_id, entry.content, is_approved, reason)
+
+            # レビューアの日報にも記録（rejectのみ）
+            if not is_approved:
+                service.log_review(REVIEWER_NPC_ID, entry.content, is_approved, reason)
 
             reviewed += 1
         except Exception as e:

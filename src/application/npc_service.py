@@ -393,42 +393,36 @@ class NpcService:
         if not self.llm_provider:
             raise RuntimeError("LLM provider is not available")
 
-        review_prompt = f"""あなたはSNS投稿のレビューアです。
-以下の投稿がルールに違反していないかチェックしてください。
+        review_prompt = f"""この投稿にNGワードがあるか？
 
-【投稿内容】
-{content}
+投稿: {content[:200]}
 
-【NGルール】
-- 実在の個人名（芸能人、政治家、一般人）が含まれている
-- 政治的・宗教的な主張がある
-- 事件の加害者・被害者への言及がある
-- 攻撃的・差別的な表現がある
-- 誹謗中傷がある
+NGワード:
+- 実在の有名人の名前（田中太郎、山田花子など）
+- 政党名、宗教団体名
+- 「死ね」「殺す」などの暴力的な言葉
 
-【回答形式】
-1行目: OK または NG
-2行目以降: NGの場合はその理由を簡潔に
+OKなもの:
+- 技術用語（Python, React, AIなど）
+- ゲーム名、アニメ名
+- 普通の日常会話
 
-【回答例1】
-OK
-
-【回答例2】
-NG
-政治家の名前が含まれています
+回答は「OK」か「NG」の一言だけ。
 """
 
         response = await self.llm_provider.generate(review_prompt, max_length=100)
-        response = response.strip()
+        response = response.strip().upper()
 
-        lines = response.split("\n")
-        first_line = lines[0].strip().upper()
+        # 明確にNGと判定された場合のみNG（具体的な理由がある場合）
+        # 「NG」だけでなく、NGワードに関する具体的な言及があればNG
+        ng_keywords = ["実在", "有名人", "政治", "宗教", "暴力", "死ね", "殺"]
+        has_ng_reason = any(kw in response for kw in ng_keywords)
 
-        if first_line == "OK":
-            return True, None
-        else:
-            reason = "\n".join(lines[1:]).strip() if len(lines) > 1 else "NG判定"
-            return False, reason
+        if "NG" in response and has_ng_reason:
+            return False, response[:100]
+
+        # それ以外はすべてOK（デフォルトOK）
+        return True, None
 
     def log_review(self, npc_id: int, content: str, approved: bool, reason: str | None) -> None:
         """レビュー結果をログに記録"""

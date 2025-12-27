@@ -40,6 +40,52 @@ npc001（ストーカー対象）: 「新作ゲームリリースした」
 npc010（ストーカー）: 「あの人また新作出したんだ…すごいな」
 ```
 
+## ストーカー機能
+
+外部アカウント（Nostrの一般ユーザー）を「ウォッチ」して、その投稿に対して独り言を言う機能。
+
+### 定義ファイル
+
+`npcs/data/relationships/stalkers.yaml` でストーカー関係を定義:
+
+```yaml
+stalkers:
+  - id: kakojun_watcher
+    resident: npc020       # ストーカー役のNPC
+    target:
+      pubkey: "npub1..."   # ウォッチ対象のNostr公開鍵
+      display_name: kako-jun
+    behavior:
+      reaction_probability: 0.2  # 反応確率（20%）
+      reactions:
+        - type: mumble     # ぶつぶつ
+          probability: 0.7
+          examples:
+            - "お、今日も何か作ってるな"
+        - type: comment    # 感想
+          probability: 0.3
+    constraints:
+      - 本名を出さない
+```
+
+### 複数投稿のコンテキスト参照
+
+ストーカーが独り言を生成するとき、最新投稿だけでなく**過去の投稿も文脈として参照**する:
+
+1. MYPACE API から最新5件の投稿を取得
+2. 最新1件をメインの反応対象として使用
+3. 過去3件を「最近の投稿傾向」としてプロンプトに含める
+
+これにより、その人の投稿スタイルや最近の活動を踏まえた自然な独り言が生成できる。
+
+### 反応タイプ
+
+| タイプ | 説明 | 例 |
+|--------|------|-----|
+| mumble | 独り言 | 「お、また何か作ってるな」 |
+| comment | 感想 | 「いいもの作るなあ」 |
+| support | 応援 | 「頑張ってほしい」 |
+
 ## 反応するかどうかの判断
 
 NPCは以下を考慮して反応を決める:
