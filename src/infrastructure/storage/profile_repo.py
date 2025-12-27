@@ -107,6 +107,8 @@ class ProfileRepository:
 
             try:
                 profile = self.load(profile_file)
+                # バックエンドNPCとしてマーク
+                profile.is_backend = True
                 # posts: true のバックエンドNPCのみ読み込み
                 if profile.posts:
                     profiles.append(profile)

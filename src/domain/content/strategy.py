@@ -42,8 +42,10 @@ class ContentStrategy:
         topic = self._select_topic(profile, state, memory, event_topics)
         recent_posts = memory.recent_posts if memory else state.post_history
 
-        # コンテキスト情報を収集
-        context = self._build_topic_context(memory, recent_posts, shared_news, topic)
+        # コンテキスト情報を収集（記者NPCは必ずニュースを参照）
+        context = self._build_topic_context(
+            memory, recent_posts, shared_news, topic, force_news=profile.is_backend
+        )
         history_constraint = self._build_history_constraint(recent_posts)
 
         # スタイル指示を収集
@@ -104,6 +106,7 @@ class ContentStrategy:
         recent_posts: list[str],
         shared_news: list[str] | None,
         topic: str,
+        force_news: bool = False,
     ) -> str:
         """トピック関連のコンテキストを構築"""
         parts: list[str] = []
@@ -113,14 +116,23 @@ class ContentStrategy:
             last = recent_posts[-1]
             parts.append(f'\n前回の投稿: "{last}"\n→ この流れを続けるか、関連した話題にする')
 
-        # 共有ニュースの参照
-        if random.random() < self.settings.news_reference_probability and shared_news:
+        # 共有ニュースの参照（記者は必ず参照）
+        should_ref_news = force_news or random.random() < self.settings.news_reference_probability
+        if should_ref_news and shared_news:
             news = random.choice(shared_news)
-            parts.append(
-                f"\n最近のニュース: {news}\n"
-                "→ このニュースに関連した感想や話題を書いてもよい\n"
-                "→ ニュースを参考にした場合は、記事のURL（https://...）を投稿に含めること"
-            )
+            if force_news:
+                # 記者の場合は必須として指示
+                parts.append(
+                    f"\n【あなたが集めたニュース】\n{news}\n"
+                    "→ このニュースについて感想を述べよ\n"
+                    "→ 記事のURL（https://...）を必ず投稿に含めること"
+                )
+            else:
+                parts.append(
+                    f"\n最近のニュース: {news}\n"
+                    "→ このニュースに関連した感想や話題を書いてもよい\n"
+                    "→ ニュースを参考にした場合は、記事のURL（https://...）を投稿に含めること"
+                )
 
         # 短期記憶から興味を取得
         if memory and memory.short_term:
