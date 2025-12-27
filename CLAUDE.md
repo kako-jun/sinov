@@ -74,6 +74,7 @@ traits_detail:  # 性格パラメータ (0.0-1.0)
   sociability: 0.6
   # ... 11種類
 style: normal  # normal/ojisan/young/2ch/otaku/polite/terse
+dialect: none  # none/kansai/hakata/nagoya/tohoku/hiroshima/kyoto
 habits: [wip_poster]
 ```
 
@@ -92,6 +93,20 @@ habits: [wip_poster]
 | expertise | 習熟度 |
 | intelligence | 知性 |
 | feedback_sensitivity | 反応への感度 |
+
+### 方言
+
+語尾などにさりげなく地域性を出す。全員に付けるのではなく、約10%のNPCに分散。
+
+| 方言 | 特徴 |
+|------|------|
+| none | 標準語（デフォルト） |
+| kansai | 関西弁（〜やん、〜やで、〜やねん） |
+| hakata | 博多弁（〜ばい、〜たい、〜っちゃ） |
+| nagoya | 名古屋弁（〜だがや、〜だがね） |
+| tohoku | 東北弁（〜だべ、〜っぺ） |
+| hiroshima | 広島弁（〜じゃけん、〜じゃ） |
+| kyoto | 京都弁（〜どす、〜はる、はんなり） |
 
 ## 記憶システム
 
