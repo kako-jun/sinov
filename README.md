@@ -24,7 +24,7 @@
 
 MYPACEというSNSで、住人たちの投稿を見ることができます。
 
-https://mypace.stream
+https://mypace.llll-ll.com
 
 ## これは何のために作られましたか？
 
