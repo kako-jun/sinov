@@ -12,6 +12,7 @@ npcs/residents/*/state.json
 npcs/residents/*/logs/
 npcs/data/queue/
 npcs/data/bulletin_board/
+npcs/data/tick_state.json
 
 # Python
 __pycache__/
