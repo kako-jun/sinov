@@ -45,6 +45,10 @@ class ExternalReactionService:
         self.api_endpoint = os.getenv("API_ENDPOINT", "https://api.mypace.llll-ll.com")
         # 反応済みイベントIDのキャッシュ（重複防止）
         self._reacted_events: set[str] = set()
+        # 投稿ごとの反応カウント（群がり防止）
+        self._post_reaction_counts: dict[str, int] = {}
+        # 1投稿あたりの最大NPC反応数
+        self.max_reactions_per_post = 2
 
     async def process_external_reactions(
         self,
@@ -116,6 +120,11 @@ class ExternalReactionService:
         if reaction_key in self._reacted_events:
             return 0
 
+        # この投稿に既に十分なNPCが反応していたらスキップ
+        current_count = self._post_reaction_counts.get(event_id, 0)
+        if current_count >= self.max_reactions_per_post:
+            return 0
+
         # 興味マッチするか、低確率でランダム反応
         matches = self._matches_interests(post, profile)
         random_chance = random.random() < 0.05  # 5%の確率でランダム反応
@@ -132,6 +141,8 @@ class ExternalReactionService:
 
         self.queue_repo.add(entry)
         self._reacted_events.add(reaction_key)
+        # 投稿ごとの反応カウントを増やす
+        self._post_reaction_counts[event_id] = current_count + 1
         self._log_reaction(npc_id, profile, post, reaction_type)
         return 1
 
@@ -153,13 +164,19 @@ class ExternalReactionService:
 
     def _load_reacted_events(self) -> None:
         """既に反応済みのイベントIDを読み込み"""
+        self._post_reaction_counts.clear()
         # キューから外部向けの投稿済み/承認済みエントリーを取得
         for status in [QueueStatus.POSTED, QueueStatus.APPROVED, QueueStatus.PENDING]:
             entries = self.queue_repo.get_all(status)
             for entry in entries:
                 if entry.reply_to and entry.reply_to.resident.startswith("external:"):
-                    reaction_key = f"{entry.npc_id}:{entry.reply_to.event_id}"
+                    event_id = entry.reply_to.event_id
+                    reaction_key = f"{entry.npc_id}:{event_id}"
                     self._reacted_events.add(reaction_key)
+                    # 投稿ごとの反応数もカウント
+                    self._post_reaction_counts[event_id] = (
+                        self._post_reaction_counts.get(event_id, 0) + 1
+                    )
 
     async def _fetch_timeline_posts(self, limit: int = 50) -> list[dict[str, Any]]:
         """タイムラインから投稿を取得"""
