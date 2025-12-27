@@ -18,7 +18,7 @@ behavior:
   active_hours: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
   post_length_min: 40
   post_length_max: 160
-  use_markdown: false
+  use_markdown: true
   use_code_blocks: true
 
 social:

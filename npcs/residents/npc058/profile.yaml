@@ -18,8 +18,8 @@ behavior:
   active_hours: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
   post_length_min: 30
   post_length_max: 160
-  use_markdown: false
-  use_code_blocks: false
+  use_markdown: true
+  use_code_blocks: true
 
 social:
   friend_bot_ids: [1, 2, 57]

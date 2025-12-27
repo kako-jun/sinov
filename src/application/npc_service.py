@@ -147,14 +147,16 @@ class NpcService:
                 prompt, max_length=profile.behavior.post_length_max
             )
 
-            # クリーンアップ
-            content = self.content_strategy.clean_content(content)
+            # クリーンアップ（use_markdown/use_code_blocks設定を考慮）
+            use_markdown = profile.behavior.use_markdown
+            use_code_blocks = profile.behavior.use_code_blocks
+            content = self.content_strategy.clean_content(content, use_markdown, use_code_blocks)
 
-            # バリデーション
-            if not self.content_strategy.validate_content(content):
+            # バリデーション（use_markdown/use_code_blocks設定を考慮）
+            if not self.content_strategy.validate_content(content, use_markdown, use_code_blocks):
                 print(
                     f"⚠️  Retry {attempt + 1}/{self.settings.content.llm_retry_count}: "
-                    "Markdown symbols detected"
+                    "Invalid content detected"
                 )
                 continue
 
@@ -175,8 +177,8 @@ class NpcService:
 
             # ログ記録（投稿生成）
             if self.log_repo:
-                # プロンプトを要約（最初の100文字）
-                prompt_summary = prompt[:100] + "..." if len(prompt) > 100 else prompt
+                # フルプロンプトを記録（デバッグ用）
+                prompt_summary = prompt
                 series_info = None
                 if memory.series.active:
                     idx = memory.series.current_index + 1

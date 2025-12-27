@@ -67,9 +67,7 @@ class LogEntry:
         # 詳細情報
         for key, value in self.details.items():
             label = self._get_detail_label(key)
-            if isinstance(value, str) and len(value) > 100:
-                # 長い文字列は省略
-                value = value[:100] + "..."
+            # プロンプトは省略せずに出力
             lines.append(f"- **{label}**: {value}")
 
         # パラメータ変化

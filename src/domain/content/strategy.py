@@ -130,7 +130,10 @@ class ContentStrategy:
         if not check_posts:
             return ""
         constraint = "\n\n過去の投稿:\n" + "\n".join(f"- {p}" for p in check_posts)
-        return constraint + "\n\n⚠️ これらとまったく同じ内容・表現は使うな"
+        return (
+            constraint + "\n\n⚠️ 上記と同じ内容・似た内容・同じ表現は絶対に使うな。"
+            "新しい切り口や別のトピックで書け"
+        )
 
     def _create_series_prompt(
         self,
@@ -186,13 +189,17 @@ class ContentStrategy:
         total = random.randint(2, 5)
         return theme, total
 
-    def clean_content(self, content: str) -> str:
+    def clean_content(
+        self, content: str, use_markdown: bool = False, use_code_blocks: bool = False
+    ) -> str:
         """生成されたコンテンツをクリーンアップ"""
-        return self.processor.clean(content)
+        return self.processor.clean(content, use_markdown, use_code_blocks)
 
-    def validate_content(self, content: str) -> bool:
+    def validate_content(
+        self, content: str, use_markdown: bool = False, use_code_blocks: bool = False
+    ) -> bool:
         """コンテンツが有効かチェック"""
-        return self.processor.validate(content)
+        return self.processor.validate(content, use_markdown, use_code_blocks)
 
     def adjust_length(
         self,
