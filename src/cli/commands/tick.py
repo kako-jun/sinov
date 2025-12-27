@@ -178,9 +178,21 @@ async def post_approved(service: NpcService, factory: "ServiceFactory") -> int:
 
         _, profile, state = service.npcs[entry.npc_id]
 
-        # 活動時間かつ投稿時刻をチェック
-        if not Scheduler.should_post_now(profile, state):
-            continue
+        # リアクションは活動時間内ならすぐ投稿（next_post_timeを無視）
+        # 通常投稿・リプライはnext_post_timeもチェック
+        if entry.post_type == PostType.REACTION:
+            # 活動時間・曜日のみチェック
+            current_hour = datetime.now().hour
+            current_weekday = datetime.now().weekday()
+            if current_hour not in profile.behavior.active_hours:
+                continue
+            if hasattr(profile.behavior, "active_days") and profile.behavior.active_days:
+                if current_weekday not in profile.behavior.active_days:
+                    continue
+        else:
+            # 通常投稿・リプライは完全チェック
+            if not Scheduler.should_post_now(profile, state):
+                continue
 
         try:
             npc_key = NpcKey.from_env(entry.npc_id)
@@ -220,9 +232,10 @@ async def post_approved(service: NpcService, factory: "ServiceFactory") -> int:
 
             if event_id:
                 factory.queue_repo.mark_posted(entry.id, event_id)
-                # 次回投稿時刻を更新して保存
-                state.next_post_time = Scheduler.calculate_next_post_time(profile)
-                factory.state_repo.save(state)
+                # リアクション以外は次回投稿時刻を更新
+                if entry.post_type != PostType.REACTION:
+                    state.next_post_time = Scheduler.calculate_next_post_time(profile)
+                    factory.state_repo.save(state)
                 print(f"      ✅ {entry.npc_name}: {entry.content[:30]}...")
                 posted += 1
 
