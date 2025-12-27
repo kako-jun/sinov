@@ -56,7 +56,14 @@ class ContentProcessor:
             # 最小長に満たない場合は補完
             content = content + " " * (min_length - len(content))
         elif len(content) > max_length:
-            # 最大長を超える場合はトリミング
-            content = content[:max_length].rsplit(" ", 1)[0] + "..."
+            # 最大長を超える場合は句点・読点で切る
+            truncated = content[:max_length]
+            # 最後の句点・読点・感嘆符・疑問符を探す
+            for punct in ["。", "！", "？", "!", "?", "、", ","]:
+                last_pos = truncated.rfind(punct)
+                if last_pos > max_length // 2:  # 半分より後ろにあれば採用
+                    return truncated[: last_pos + 1]
+            # 見つからなければそのまま切る（...は付けない）
+            content = truncated
 
         return content

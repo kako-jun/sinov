@@ -172,6 +172,7 @@ class ContentStrategy:
 - 必ず日本語で書け
 - 前の投稿と関連した続きを書く
 - {idx}投稿目らしい展開にする
+- 「N/N投稿目」「N投稿目」などの番号を本文に書くな
 {prompt_instructions}
 
 {idx}投稿目:"""

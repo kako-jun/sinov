@@ -75,11 +75,15 @@ class TestContentProcessorAdjustLength:
         assert len(result) == 5
         assert result.startswith("Hi")
 
-    def test_too_long_truncates_with_ellipsis(self) -> None:
-        """長すぎる場合は切り詰めて省略記号"""
-        result = ContentProcessor.adjust_length("これは長い文章です", 1, 5)
-        assert len(result) <= 8  # max + "..."
-        assert result.endswith("...")
+    def test_too_long_truncates_at_punctuation(self) -> None:
+        """長すぎる場合は句読点で切り詰め"""
+        # 句点がある場合はそこで切る
+        result = ContentProcessor.adjust_length("これは長い。文章です", 1, 8)
+        assert result == "これは長い。"
+        # 句点がない場合はそのまま切る
+        result2 = ContentProcessor.adjust_length("これは長い文章です", 1, 5)
+        assert result2 == "これは長い"
+        assert len(result2) == 5
 
     def test_exact_min_length(self) -> None:
         """ちょうど最小長"""
