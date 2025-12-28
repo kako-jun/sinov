@@ -289,6 +289,11 @@ class ContentStrategy:
         if merged_prompts and merged_prompts.negative:
             negative_instructions = "\n- " + "\n- ".join(merged_prompts.negative[:5])
 
+        # 自分の興味・専門分野
+        my_interests = ""
+        if profile.interests.topics:
+            my_interests = "、".join(profile.interests.topics[:5])
+
         prompt = f"""あなたは{profile.name}です。リプライを書いてください。
 
 【相手の投稿】
@@ -300,13 +305,17 @@ class ContentStrategy:
 【相手との関係】
 関係: {relationship_type}
 
+【あなたの興味・専門】
+{my_interests}
+
 【文体】
 {style_instruction}{dialect_section}
 
 【返信のルール】
+- 相手の投稿をよく読み、内容を踏まえて返信する
+- 自分の興味・専門と絡められる場合は自然に絡める
 - 短めに（20〜80文字程度）
-- 会話の文脈に沿った返信をする
-- 必ず日本語で書く
+- 必ず日本語で書く（中国語は絶対に使うな）
 - 絵文字は基本的に使わない（使っても1つまで）
 - 「〜だよね？」「〜ですよね！」など不自然に前向きな表現は避ける{closing_hint}{negative_instructions}{writing_style_instructions}
 

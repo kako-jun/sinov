@@ -8,6 +8,14 @@ import re
 class ContentProcessor:
     """生成されたコンテンツの処理を担当"""
 
+    # 日本語では使わない簡体字（中国語検出用）
+    CHINESE_ONLY_CHARS = set(
+        "们个专与为乌习书买产亲亿仅从仓仪价伟传伤伦伪众优会伞伯体佣侠侣侥侦侧侨侬侮侯侵便俊俏俐俗俘信俩俪俭修俯俱俳"
+        "倍倒倔倘候倚借倡倦债值倾偏偎偏偕做停偶偷偻傀傅傈傍傣傥傧储傩催傲傻像僚僧僵僻儒儡儿兑兜党兰关兴兹养兽冁内冈冉"
+        "册军农冠冯冰况冶冷冻净凄准凉凋凌减凑凛凝几凡凤凫凭凯凰击凿刍划刘则刚创初删判刨利别刮到制刷券刹刺刻刽剀剁剂剃"
+        "削前剐剑剔剖剥剧剩剪副割剿劈劝办务劢动劣劫励劲劳势勋勐勒勖勘募勤勰勺勾勿匀包匆匈匍匏匐匕化北匙匝匠匡匣匦匮匹"
+    )
+
     # LLMが生成しがちなプレースホルダーパターン
     PLACEHOLDER_PATTERNS = [
         r"\[リンク[:：].*?\]",
@@ -54,6 +62,9 @@ class ContentProcessor:
     @staticmethod
     def validate(content: str, use_markdown: bool = False, use_code_blocks: bool = False) -> bool:
         """コンテンツが有効かチェック"""
+        # 中国語（簡体字）が含まれていたらNG
+        if ContentProcessor.contains_chinese(content):
+            return False
         # Markdown非対応の場合のみヘッダー・強調をチェック
         if not use_markdown:
             if "###" in content or "**" in content:
@@ -63,6 +74,12 @@ class ContentProcessor:
             if "```" in content:
                 return False
         return True
+
+    @staticmethod
+    def contains_chinese(content: str) -> bool:
+        """中国語（簡体字）が含まれているかチェック"""
+        # 1文字でも簡体字があればNG
+        return any(c in ContentProcessor.CHINESE_ONLY_CHARS for c in content)
 
     @staticmethod
     def adjust_length(

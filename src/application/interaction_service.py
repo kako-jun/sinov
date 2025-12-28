@@ -337,9 +337,12 @@ class InteractionService:
         affinity_map = self.relationship_repo.load_affinity(from_name)
         return affinity_map.get_affinity(to_name)
 
-    async def process_reply_chains(self, target_npc_ids: list[int]) -> int:
+    async def process_reply_chains(self, target_npc_ids: list[int] | None = None) -> int:
         """
         既存の会話スレッドへの返信を処理
+
+        Args:
+            target_npc_ids: 処理対象のNPC ID（Noneなら全NPC対象）
 
         Returns:
             生成された返信数
@@ -368,10 +371,10 @@ class InteractionService:
             return None
 
     def _should_process_chain(
-        self, target_bot_id: int, entry: QueueEntry, target_npc_ids: list[int]
+        self, target_bot_id: int, entry: QueueEntry, target_npc_ids: list[int] | None = None
     ) -> bool:
-        """チェーンリプライを処理すべきかを判定"""
-        if target_bot_id not in target_npc_ids:
+        """チェーンリプライを処理すべきかを判定（target_npc_ids=Noneなら全NPC対象）"""
+        if target_npc_ids is not None and target_bot_id not in target_npc_ids:
             return False
         if target_bot_id not in self.npcs:
             return False
@@ -381,7 +384,9 @@ class InteractionService:
             return False
         return True
 
-    async def _process_chain_entry(self, entry: QueueEntry, target_npc_ids: list[int]) -> int:
+    async def _process_chain_entry(
+        self, entry: QueueEntry, target_npc_ids: list[int] | None = None
+    ) -> int:
         """単一のチェーンエントリーを処理"""
         target_bot_id = self._extract_target_bot_id(entry)
         if target_bot_id is None:

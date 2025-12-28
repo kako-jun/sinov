@@ -119,7 +119,7 @@ async def cmd_post(args: argparse.Namespace) -> None:
         return
 
     load_dotenv(".env.keys")
-    publisher = NostrPublisher(settings.api_endpoint, dry_run=False)
+    publisher = NostrPublisher(settings.api_endpoint, dry_run=settings.dry_run)
 
     print(f"\n📤 Posting {len(entries)} entries...\n")
     posted = 0

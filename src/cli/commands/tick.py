@@ -41,7 +41,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
         print(f"✅ Posted {posted} entries")
         return
 
-    # 「今が活動時間」かつ「投稿すべき時刻」のNPCを選ぶ
+    # 「今が活動時間」かつ「投稿すべき時刻」のNPCを選ぶ（通常投稿用）
     target_ids = []
     current_hour = datetime.now().hour
     for npc_id, (_, profile, state) in service.npcs.items():
@@ -82,7 +82,8 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     print("\n   💬 Processing interactions...")
     interaction_service = factory.create_interaction_service(service)
     interactions = await interaction_service.process_interactions(target_ids)
-    chain_replies = await interaction_service.process_reply_chains(target_ids)
+    # リプライチェーンは全NPC対象（target_ids関係なく返信可能）
+    chain_replies = await interaction_service.process_reply_chains()
     total_interactions = interactions + chain_replies
 
     # --- 外部ユーザーへの反応処理 ---
@@ -168,7 +169,7 @@ async def post_approved(service: NpcService, factory: "ServiceFactory") -> int:
         print("      No approved entries")
         return 0
 
-    publisher = NostrPublisher(factory.settings.api_endpoint, dry_run=False)
+    publisher = NostrPublisher(factory.settings.api_endpoint, dry_run=factory.settings.dry_run)
     posted = 0
 
     for entry in approved_entries:
