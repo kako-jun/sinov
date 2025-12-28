@@ -3,7 +3,7 @@ name: はらたいらPayPay
 role: 記者
 specialty: Xトレンド（IT・ゲーム・創作）
 special: true
-posts: false
+posts: true
 personality:
   type: 情報通
   traits:

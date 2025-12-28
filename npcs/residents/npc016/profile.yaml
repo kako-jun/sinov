@@ -100,4 +100,4 @@ writing_style:
   line_break: sentence
   punctuation: none
   quirks: []
-posts: false
+posts: true

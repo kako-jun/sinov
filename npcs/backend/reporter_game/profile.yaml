@@ -3,7 +3,7 @@ name: 犬バス
 role: 記者
 specialty: ゲーム
 special: true
-posts: false
+posts: true
 personality:
   type: 情報通
   traits:

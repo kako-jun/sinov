@@ -99,4 +99,4 @@ writing_style:
   punctuation: none
   quirks:
   - parentheses
-posts: false
+posts: true

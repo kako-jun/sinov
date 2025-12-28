@@ -95,4 +95,4 @@ writing_style:
   line_break: sentence
   punctuation: comma_only
   quirks: []
-posts: false
+posts: true

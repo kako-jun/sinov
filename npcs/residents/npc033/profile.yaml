@@ -105,4 +105,4 @@ window_color:
   top_right: '#E74C32'
   bottom_left: '#ECBF00'
   bottom_right: '#ECBF00'
-posts: false
+posts: true

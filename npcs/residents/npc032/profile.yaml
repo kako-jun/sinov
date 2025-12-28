@@ -93,4 +93,4 @@ writing_style:
   punctuation: full
   quirks:
   - katakana_english
-posts: false
+posts: true

@@ -3,7 +3,7 @@ name: しまうー
 role: 記者
 specialty: IT・テクノロジー
 special: true
-posts: false
+posts: true
 personality:
   type: 情報通
   traits:

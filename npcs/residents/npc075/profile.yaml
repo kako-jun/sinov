@@ -103,4 +103,4 @@ window_color:
   top_right: '#FFDF00'
   bottom_left: '#FFDF00'
   bottom_right: '#009B3A'
-posts: false
+posts: true

@@ -117,4 +117,4 @@ window_color:
   top_right: '#C78D0E'
   bottom_left: '#C78D0E'
   bottom_right: '#C78D0E'
-posts: false
+posts: true

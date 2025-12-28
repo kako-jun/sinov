@@ -98,4 +98,4 @@ window_color:
   top_right: '#4EC981'
   bottom_left: '#4EC981'
   bottom_right: '#4EC981'
-posts: false
+posts: true

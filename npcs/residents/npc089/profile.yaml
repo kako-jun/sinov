@@ -87,4 +87,4 @@ window_color:
   top_right: '#4588BD'
   bottom_left: '#00BAC3'
   bottom_right: '#00BAC3'
-posts: false
+posts: true

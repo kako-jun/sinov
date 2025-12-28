@@ -93,4 +93,4 @@ window_color:
   top_right: '#EA6E3A'
   bottom_left: '#DA8947'
   bottom_right: '#EA6E3A'
-posts: false
+posts: true

@@ -111,4 +111,4 @@ window_color:
   bottom_right: '#2952CC'
   top_left: '#FFFFFF'
   bottom_left: '#FFFFFF'
-posts: false
+posts: true

@@ -95,4 +95,4 @@ writing_style:
   line_break: minimal
   punctuation: full
   quirks: []
-posts: false
+posts: true
