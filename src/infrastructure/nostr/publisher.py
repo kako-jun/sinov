@@ -8,6 +8,9 @@ from typing import Any
 import httpx
 from nostr_sdk import EventBuilder, Keys, Kind, Tag
 
+# MYPACE専用Kind（他のNostrクライアントからは見えない）
+KIND_MYPACE = 42000
+
 
 class NostrPublisher:
     """MYPACE API経由でNostr投稿を行う"""
@@ -68,8 +71,8 @@ class NostrPublisher:
             profile_url = f"https://mypace.llll-ll.com/user/{pubkey}"
             final_content = f"{preview}\n\n...[READ MORE]({profile_url})"
 
-        # イベント作成・署名
-        event = EventBuilder.text_note(final_content).tags(tags).sign_with_keys(keys)
+        # イベント作成・署名（Kind 42000: MYPACE専用）
+        event = EventBuilder(Kind(KIND_MYPACE), final_content).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 
@@ -134,8 +137,8 @@ class NostrPublisher:
             profile_url = f"https://mypace.llll-ll.com/user/{pubkey}"
             final_content = f"{preview}\n\n...[READ MORE]({profile_url})"
 
-        # イベント作成・署名
-        event = EventBuilder.text_note(final_content).tags(tags).sign_with_keys(keys)
+        # イベント作成・署名（Kind 42000: MYPACE専用）
+        event = EventBuilder(Kind(KIND_MYPACE), final_content).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 
