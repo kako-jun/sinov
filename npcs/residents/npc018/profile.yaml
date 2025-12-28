@@ -81,4 +81,6 @@ writing_style:
 window_color:
   bottom_left: '#B66545'
   bottom_right: '#B66545'
+  top_left: '#FFFFFF'
+  top_right: '#FFFFFF'
 posts: true

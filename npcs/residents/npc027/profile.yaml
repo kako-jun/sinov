@@ -88,4 +88,6 @@ writing_style:
 window_color:
   top_left: '#37A9FF'
   bottom_right: '#37A9FF'
+  top_right: '#FFFFFF'
+  bottom_left: '#FFFFFF'
 posts: false

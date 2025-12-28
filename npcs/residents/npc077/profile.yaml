@@ -76,4 +76,6 @@ writing_style:
 window_color:
   top_right: '#CC0229'
   bottom_right: '#CC0229'
+  top_left: '#FFFFFF'
+  bottom_left: '#FFFFFF'
 posts: false

@@ -60,5 +60,7 @@ review_rules:
 - 攻撃的・差別的な表現
 - 誹謗中傷
 window_color:
-  top_right: '#939892'
+  top_left: '#939892'
+  top_right: '#FFFFFF'
+  bottom_left: '#FFFFFF'
   bottom_right: '#939892'

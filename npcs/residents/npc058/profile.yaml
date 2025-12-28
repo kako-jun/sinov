@@ -92,4 +92,6 @@ writing_style:
 window_color:
   bottom_left: '#0F1D31'
   bottom_right: '#0F1D31'
+  top_left: '#FFFFFF'
+  top_right: '#FFFFFF'
 posts: false

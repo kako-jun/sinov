@@ -103,3 +103,5 @@ filter:
 window_color:
   top_right: '#C60124'
   bottom_right: '#C60124'
+  top_left: '#FFFFFF'
+  bottom_left: '#FFFFFF'

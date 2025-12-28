@@ -80,4 +80,6 @@ writing_style:
 window_color:
   top_right: '#274EC8'
   bottom_right: '#274EC8'
+  top_left: '#FFFFFF'
+  bottom_left: '#FFFFFF'
 posts: false

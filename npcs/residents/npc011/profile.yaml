@@ -86,4 +86,6 @@ writing_style:
 window_color:
   top_left: '#C181C0'
   bottom_right: '#C181C0'
+  top_right: '#FFFFFF'
+  bottom_left: '#FFFFFF'
 posts: false

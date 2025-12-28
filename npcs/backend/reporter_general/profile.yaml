@@ -128,4 +128,6 @@ filter:
   anonymize: true
 window_color:
   top_left: '#B06420'
-  top_right: '#B06420'
+  top_right: '#FFFFFF'
+  bottom_left: '#FFFFFF'
+  bottom_right: '#B06420'

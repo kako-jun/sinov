@@ -86,3 +86,5 @@ filter:
 window_color:
   bottom_left: '#FF9E6D'
   bottom_right: '#FF9E6D'
+  top_left: '#FFFFFF'
+  top_right: '#FFFFFF'
