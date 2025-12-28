@@ -41,6 +41,16 @@ behavior:
   active_days:
   - 3
   - 6
+  hourly_weight:
+    10: 0.5
+    11: 0.5
+    12: 0.5
+    13: 0.5
+    14: 0.5
+    15: 0.5
+    16: 0.5
+    17: 0.5
+    18: 0.5
 social:
   friend_bot_ids:
   - 1

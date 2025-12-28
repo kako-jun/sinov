@@ -36,6 +36,10 @@ behavior:
   post_length_max: 280
   use_markdown: true
   use_code_blocks: false
+  hourly_weight:
+    10: 0.2
+    16: 0.2
+    22: 0.2
 social:
   friend_bot_ids: []
   reply_probability: 0.0
