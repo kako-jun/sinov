@@ -5,6 +5,7 @@ tick コマンド - 活動時刻のNPCを処理 + 相互作用 + レビュー + 
 from __future__ import annotations
 
 import argparse
+import random
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -51,6 +52,7 @@ async def cmd_tick(args: argparse.Namespace) -> None:
     # 上限を設定（一度に処理しすぎない）
     max_generate = getattr(args, "count", 10)
     if len(target_ids) > max_generate:
+        random.shuffle(target_ids)  # 公平に選ぶためシャッフル
         target_ids = target_ids[:max_generate]
 
     tick_state = factory.tick_state_repo.load()
