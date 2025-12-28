@@ -39,6 +39,9 @@ behavior:
   - 21
   - 22
   - 23
+  - 0
+  - 1
+  - 2
   post_length_min: 30
   post_length_max: 400
   use_markdown: true
@@ -65,6 +68,10 @@ behavior:
     21: 0.5
     22: 0.5
     23: 0.5
+    0: 0.5
+    1: 0.5
+    2: 0.5
+  chronotype: owl
 social:
   friend_bot_ids:
   - 3

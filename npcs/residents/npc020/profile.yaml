@@ -52,6 +52,7 @@ behavior:
     0: 0.5
     1: 0.5
     2: 0.5
+  chronotype: owl
 social:
   friend_bot_ids:
   - 2
