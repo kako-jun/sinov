@@ -60,19 +60,8 @@ class NostrPublisher:
         if aurora_tag:
             tags.append(Tag.parse(aurora_tag))
 
-        # 長文の場合はteaserタグを追加（280文字超）
-        final_content = content
-        if len(content) > 280:
-            preview = content[:280]
-            folded = content[280:]
-            tags.append(Tag.parse(["teaser", folded]))
-            # NPCのプロフィールページへのリンク
-            pubkey = keys.public_key().to_hex()
-            profile_url = f"https://mypace.llll-ll.com/user/{pubkey}"
-            final_content = f"{preview}\n\n...[READ MORE]({profile_url})"
-
         # イベント作成・署名（Kind 42000: MYPACE専用）
-        event = EventBuilder(Kind(KIND_MYPACE), final_content).tags(tags).sign_with_keys(keys)
+        event = EventBuilder(Kind(KIND_MYPACE), content).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 
@@ -126,19 +115,8 @@ class NostrPublisher:
         if aurora_tag:
             tags.append(Tag.parse(aurora_tag))
 
-        # 長文の場合はteaserタグを追加（280文字超）
-        final_content = content
-        if len(content) > 280:
-            preview = content[:280]
-            folded = content[280:]
-            tags.append(Tag.parse(["teaser", folded]))
-            # NPCのプロフィールページへのリンク
-            pubkey = keys.public_key().to_hex()
-            profile_url = f"https://mypace.llll-ll.com/user/{pubkey}"
-            final_content = f"{preview}\n\n...[READ MORE]({profile_url})"
-
         # イベント作成・署名（Kind 42000: MYPACE専用）
-        event = EventBuilder(Kind(KIND_MYPACE), final_content).tags(tags).sign_with_keys(keys)
+        event = EventBuilder(Kind(KIND_MYPACE), content).tags(tags).sign_with_keys(keys)
 
         return await self._send_event(event)
 
