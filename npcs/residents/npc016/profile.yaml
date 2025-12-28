@@ -39,7 +39,6 @@ behavior:
   - 15
   - 16
   - 17
-  - 18
   post_length_min: 40
   post_length_max: 400
   use_markdown: true
@@ -49,6 +48,10 @@ behavior:
   - 3
   - 5
   hourly_weight:
+    5: 0.5
+    6: 0.5
+    7: 0.5
+    8: 0.5
     9: 0.5
     10: 0.5
     11: 0.5
@@ -58,11 +61,6 @@ behavior:
     15: 0.5
     16: 0.5
     17: 0.5
-    18: 0.5
-    5: 0.5
-    6: 0.5
-    7: 0.5
-    8: 0.5
   chronotype: lark
 social:
   friend_bot_ids:
