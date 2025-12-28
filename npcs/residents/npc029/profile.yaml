@@ -61,6 +61,7 @@ behavior:
     16: 0.5
     17: 0.5
     18: 0.5
+  chronotype: lark
 social:
   friend_bot_ids:
   - 86

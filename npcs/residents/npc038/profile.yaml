@@ -22,6 +22,9 @@ behavior:
   post_frequency: 0.3
   post_frequency_variance: 0.7
   active_hours:
+  - 5
+  - 6
+  - 7
   - 8
   - 9
   - 10
@@ -61,6 +64,10 @@ behavior:
     18: 0.5
     19: 0.5
     20: 0.5
+    5: 0.5
+    6: 0.5
+    7: 0.5
+  chronotype: lark
 social:
   friend_bot_ids:
   - 21
