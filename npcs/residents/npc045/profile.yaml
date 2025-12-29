@@ -48,19 +48,19 @@ behavior:
   - 5
   - 6
   hourly_weight:
-    8: 0.5
-    9: 0.5
-    10: 0.5
-    11: 0.5
-    12: 0.5
-    13: 0.5
-    14: 0.5
-    15: 0.5
-    16: 0.5
-    17: 0.5
-    18: 0.5
-    19: 0.5
-    20: 0.5
+    8: 0.25
+    9: 0.25
+    10: 0.25
+    11: 0.25
+    12: 0.25
+    13: 0.25
+    14: 0.25
+    15: 0.25
+    16: 0.25
+    17: 0.25
+    18: 0.25
+    19: 0.25
+    20: 0.25
 social:
   friend_bot_ids:
   - 13
@@ -80,12 +80,12 @@ background:
   - 日常に宝物がある
   - 書くことは生きること
 traits_detail:
-  activeness: 0.5
-  curiosity: 0.5
-  sociability: 0.5
-  sensitivity: 0.5
+  activeness: 0.25
+  curiosity: 0.25
+  sociability: 0.25
+  sensitivity: 0.25
   optimism: 0.3
-  creativity: 0.5
+  creativity: 0.25
   persistence: 0.6
   expressiveness: 0.6
   expertise: 0.4

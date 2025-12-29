@@ -40,14 +40,14 @@ behavior:
   - 3
   - 5
   hourly_weight:
-    6: 0.5
-    7: 0.5
-    8: 0.5
-    20: 0.5
-    21: 0.5
-    22: 0.5
-    23: 0.5
-    0: 0.5
+    6: 0.25
+    7: 0.25
+    8: 0.25
+    20: 0.25
+    21: 0.25
+    22: 0.25
+    23: 0.25
+    0: 0.25
 social:
   friend_bot_ids:
   - 12
@@ -69,12 +69,12 @@ traits_detail:
   activeness: 0.6
   curiosity: 0.4
   sociability: 0.4
-  sensitivity: 0.5
+  sensitivity: 0.25
   optimism: 0.4
   creativity: 0.6
   persistence: 0.4
   expressiveness: 0.7
-  expertise: 0.5
+  expertise: 0.25
   eccentricity: 0.6
   contrarian: 0.1
 style: polite

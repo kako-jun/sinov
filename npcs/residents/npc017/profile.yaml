@@ -41,15 +41,15 @@ behavior:
   active_days:
   - 6
   hourly_weight:
-    10: 0.5
-    11: 0.5
-    12: 0.5
-    13: 0.5
-    14: 0.5
-    19: 0.5
-    20: 0.5
-    21: 0.5
-    22: 0.5
+    10: 0.25
+    11: 0.25
+    12: 0.25
+    13: 0.25
+    14: 0.25
+    19: 0.25
+    20: 0.25
+    21: 0.25
+    22: 0.25
 social:
   friend_bot_ids:
   - 1
@@ -70,7 +70,7 @@ background:
   - わからないことを恥じない
 traits_detail:
   activeness: 0.7
-  curiosity: 0.5
+  curiosity: 0.25
   sociability: 0.6
   sensitivity: 0.6
   optimism: 0.9
@@ -79,7 +79,7 @@ traits_detail:
   expressiveness: 0.7
   expertise: 0.6
   eccentricity: 0.3
-  contrarian: 0.5
+  contrarian: 0.25
 style: normal
 habits: []
 writing_style:

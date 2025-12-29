@@ -43,18 +43,18 @@ behavior:
   - 2
   - 4
   hourly_weight:
-    10: 0.5
-    11: 0.5
-    12: 0.5
-    13: 0.5
-    14: 0.5
-    15: 0.5
-    16: 0.5
-    17: 0.5
-    18: 0.5
-    19: 0.5
-    20: 0.5
-    21: 0.5
+    10: 0.25
+    11: 0.25
+    12: 0.25
+    13: 0.25
+    14: 0.25
+    15: 0.25
+    16: 0.25
+    17: 0.25
+    18: 0.25
+    19: 0.25
+    20: 0.25
+    21: 0.25
 social:
   friend_bot_ids:
   - 49
@@ -76,15 +76,15 @@ background:
 traits_detail:
   activeness: 0.6
   curiosity: 0.6
-  sociability: 0.5
+  sociability: 0.25
   sensitivity: 0.6
   optimism: 0.4
   creativity: 0.4
-  persistence: 0.5
-  expressiveness: 0.5
+  persistence: 0.25
+  expressiveness: 0.25
   expertise: 0.6
   eccentricity: 0.2
-  contrarian: 0.5
+  contrarian: 0.25
 style: polite
 dialect: kyoto
 habits: []

@@ -19,7 +19,7 @@ interests:
   - ディテールアップ
   code_languages: []
 behavior:
-  post_frequency: 0.5
+  post_frequency: 0.25
   post_frequency_variance: 0.7
   active_hours:
   - 18
@@ -38,13 +38,13 @@ behavior:
   - 2
   - 4
   hourly_weight:
-    18: 0.5
-    19: 0.5
-    20: 0.5
-    21: 0.5
-    22: 0.5
-    23: 0.5
-    0: 0.5
+    18: 0.25
+    19: 0.25
+    20: 0.25
+    21: 0.25
+    22: 0.25
+    23: 0.25
+    0: 0.25
 social:
   friend_bot_ids:
   - 25
@@ -69,10 +69,10 @@ traits_detail:
   sociability: 0.6
   sensitivity: 0.4
   optimism: 0.3
-  creativity: 0.5
+  creativity: 0.25
   persistence: 0.7
-  expressiveness: 0.5
-  expertise: 0.5
+  expressiveness: 0.25
+  expertise: 0.25
   eccentricity: 0.6
   contrarian: 0.3
 style: normal

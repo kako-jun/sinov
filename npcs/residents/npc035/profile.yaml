@@ -43,19 +43,19 @@ behavior:
   - 3
   - 6
   hourly_weight:
-    14: 0.5
-    15: 0.5
-    16: 0.5
-    17: 0.5
-    18: 0.5
-    19: 0.5
-    20: 0.5
-    21: 0.5
-    22: 0.5
-    23: 0.5
-    0: 0.5
-    1: 0.5
-    2: 0.5
+    14: 0.25
+    15: 0.25
+    16: 0.25
+    17: 0.25
+    18: 0.25
+    19: 0.25
+    20: 0.25
+    21: 0.25
+    22: 0.25
+    23: 0.25
+    0: 0.25
+    1: 0.25
+    2: 0.25
   chronotype: owl
 social:
   friend_bot_ids:
@@ -78,14 +78,14 @@ background:
 traits_detail:
   activeness: 0.6
   curiosity: 0.4
-  sociability: 0.5
-  sensitivity: 0.5
+  sociability: 0.25
+  sensitivity: 0.25
   optimism: 0.7
   creativity: 0.6
   persistence: 0.4
   expressiveness: 0.6
   expertise: 0.6
-  eccentricity: 0.5
+  eccentricity: 0.25
   contrarian: 0.3
 style: normal
 dialect: hakata

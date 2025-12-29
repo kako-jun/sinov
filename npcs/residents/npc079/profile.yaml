@@ -42,15 +42,15 @@ behavior:
   - 5
   - 6
   hourly_weight:
-    8: 0.5
-    9: 0.5
-    10: 0.5
-    11: 0.5
-    12: 0.5
-    13: 0.5
-    14: 0.5
-    15: 0.5
-    16: 0.5
+    8: 0.25
+    9: 0.25
+    10: 0.25
+    11: 0.25
+    12: 0.25
+    13: 0.25
+    14: 0.25
+    15: 0.25
+    16: 0.25
 social:
   friend_bot_ids:
   - 59
@@ -71,15 +71,15 @@ background:
   - 技術は変わっても本質は同じ
 traits_detail:
   activeness: 0.4
-  curiosity: 0.5
+  curiosity: 0.25
   sociability: 0.3
   sensitivity: 0.4
   optimism: 0.4
   creativity: 0.6
   persistence: 0.6
-  expressiveness: 0.5
-  expertise: 0.5
-  eccentricity: 0.5
+  expressiveness: 0.25
+  expertise: 0.25
+  eccentricity: 0.25
   contrarian: 0.4
 style: normal
 habits:

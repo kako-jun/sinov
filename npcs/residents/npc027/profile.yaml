@@ -48,22 +48,22 @@ behavior:
   - 4
   - 6
   hourly_weight:
-    10: 0.5
-    11: 0.5
-    12: 0.5
-    13: 0.5
-    14: 0.5
-    15: 0.5
-    16: 0.5
-    17: 0.5
-    18: 0.5
-    19: 0.5
-    20: 0.5
-    21: 0.5
-    22: 0.5
-    23: 0.5
-    0: 0.5
-    1: 0.5
+    10: 0.25
+    11: 0.25
+    12: 0.25
+    13: 0.25
+    14: 0.25
+    15: 0.25
+    16: 0.25
+    17: 0.25
+    18: 0.25
+    19: 0.25
+    20: 0.25
+    21: 0.25
+    22: 0.25
+    23: 0.25
+    0: 0.25
+    1: 0.25
 social:
   friend_bot_ids:
   - 4
@@ -84,17 +84,17 @@ background:
   - 推しは推せるときに推せ
   - 原稿は命より重い
 traits_detail:
-  activeness: 0.5
+  activeness: 0.25
   curiosity: 0.6
   sociability: 0.8
-  sensitivity: 0.5
+  sensitivity: 0.25
   optimism: 1.0
   creativity: 0.6
   persistence: 0.4
   expressiveness: 0.9
-  expertise: 0.5
+  expertise: 0.25
   eccentricity: 0.2
-  contrarian: 0.5
+  contrarian: 0.25
 style: normal
 habits: []
 writing_style:

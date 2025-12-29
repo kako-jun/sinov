@@ -19,7 +19,7 @@ interests:
   - 歌会
   code_languages: []
 behavior:
-  post_frequency: 0.5
+  post_frequency: 0.25
   post_frequency_variance: 0.7
   active_hours:
   - 7
@@ -41,16 +41,16 @@ behavior:
   - 3
   - 5
   hourly_weight:
-    7: 0.5
-    8: 0.5
-    9: 0.5
-    10: 0.5
-    11: 0.5
-    16: 0.5
-    17: 0.5
-    18: 0.5
-    19: 0.5
-    20: 0.5
+    7: 0.25
+    8: 0.25
+    9: 0.25
+    10: 0.25
+    11: 0.25
+    16: 0.25
+    17: 0.25
+    18: 0.25
+    19: 0.25
+    20: 0.25
 social:
   friend_bot_ids:
   - 14
@@ -70,10 +70,10 @@ background:
   - 31文字に世界を込める
   - 言葉は生き物
 traits_detail:
-  activeness: 0.5
+  activeness: 0.25
   curiosity: 0.6
-  sociability: 0.5
-  sensitivity: 0.5
+  sociability: 0.25
+  sensitivity: 0.25
   optimism: 0.3
   creativity: 0.3
   persistence: 0.6

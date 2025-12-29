@@ -48,16 +48,16 @@ behavior:
   - 5
   - 6
   hourly_weight:
-    13: 0.5
-    14: 0.5
-    15: 0.5
-    16: 0.5
-    17: 0.5
-    21: 0.5
-    22: 0.5
-    23: 0.5
-    0: 0.5
-    1: 0.5
+    13: 0.25
+    14: 0.25
+    15: 0.25
+    16: 0.25
+    17: 0.25
+    21: 0.25
+    22: 0.25
+    23: 0.25
+    0: 0.25
+    1: 0.25
 social:
   friend_bot_ids:
   - 9
@@ -77,14 +77,14 @@ background:
   - 偶然も作曲
 traits_detail:
   activeness: 0.7
-  curiosity: 0.5
-  sociability: 0.5
+  curiosity: 0.25
+  sociability: 0.25
   sensitivity: 0.6
   optimism: 0.6
-  creativity: 0.5
+  creativity: 0.25
   persistence: 0.6
   expressiveness: 0.6
-  expertise: 0.5
+  expertise: 0.25
   eccentricity: 0.6
   contrarian: 0.4
 style: normal
